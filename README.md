@@ -41,6 +41,13 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
 - ✅ Gestion des utilisateurs
 - ✅ Historique des emplois vedettes
 - ✅ Aperçu des revenus
+- ✅ **Gestion de la tarification**
+  - Créer/modifier/désactiver des forfaits
+  - 4 forfaits par défaut :
+    - 1 annonce : 50$
+    - 5 crédits d'annonces : 200$
+    - 10 crédits d'annonces : 400$
+    - Forfait illimité (1 an) : 1250$
 
 ## 🌐 URLs Actuelles
 
@@ -98,6 +105,10 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
 2. **companies** - Informations des entreprises
 3. **candidate_profiles** - Profils détaillés des candidats
 4. **job_offers** - Offres d'emploi
+5. **applications** - Candidatures
+6. **featured_orders** - Commandes d'emplois vedettes
+7. **pricing_plans** - Forfaits et tarification
+8. **employer_credits** - Suivi des crédits employeurs
 5. **applications** - Candidatures
 6. **featured_orders** - Commandes d'emplois vedettes
 
@@ -245,6 +256,14 @@ curl http://localhost:3000/api/jobs
 - `GET /api/admin/users` - Liste des utilisateurs
 - `DELETE /api/admin/users/:id` - Supprimer un utilisateur
 - `GET /api/admin/featured-orders` - Historique des commandes
+
+### Tarification
+- `GET /api/pricing` - Liste des forfaits actifs
+- `GET /api/pricing/:id` - Détail d'un forfait
+- `POST /api/pricing` - Créer un forfait (admin)
+- `PUT /api/pricing/:id` - Modifier un forfait (admin)
+- `DELETE /api/pricing/:id` - Désactiver un forfait (admin)
+- `GET /api/pricing/credits/:userId` - Crédits d'un employeur
 
 ## 🎨 Améliorations futures
 
