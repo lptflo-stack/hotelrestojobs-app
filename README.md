@@ -51,27 +51,44 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
 
 ## 🔐 Comptes de test
 
+**Mot de passe universel pour tous les comptes** : `admin123`
+
 ### Administrateur
 - Email: `admin@hotelrestojobs.com`
 - Password: `admin123`
+- **Fonctionnalités** : Validation des offres, gestion des utilisateurs, statistiques
 
 ### Employeurs
-- **Restaurant Le Luxe**
+- **Restaurant Le Luxe** (Marie Dubois)
   - Email: `rh@restaurantluxe.com`
-  - Password: `admin123` (même hash de démo)
+  - Password: `admin123`
+  - 2 offres publiées dont 1 en vedette
   
-- **Hôtel Montréal**
+- **Hôtel Montréal** (Jean Tremblay)
   - Email: `recrutement@hotelmontreal.com`
   - Password: `admin123`
+  - 2 offres publiées dont 1 en vedette
+  
+- **Bistro Moderne** (Sophie Gagnon)
+  - Email: `jobs@bistromoderne.com`
+  - Password: `admin123`
+  - 1 offre publiée
 
 ### Candidats
-- **Julien Lefebvre** (Chef)
+- **Julien Lefebvre** (Chef - 10 ans d'expérience)
   - Email: `julien.chef@email.com`
   - Password: `admin123`
+  - 1 candidature en cours
   
-- **Marie Lavoie** (Serveuse)
+- **Marie Lavoie** (Serveuse - 3 ans d'expérience)
   - Email: `marie.serveur@email.com`
   - Password: `admin123`
+  - 1 candidature en cours
+  
+- **Pierre Martin** (Cuisinier - 5 ans d'expérience)
+  - Email: `pierre.cuisinier@email.com`
+  - Password: `admin123`
+  - 1 candidature en cours
 
 ## 🗄️ Architecture des données
 
