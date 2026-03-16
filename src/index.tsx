@@ -17,6 +17,7 @@ app.use('/api/*', cors());
 
 // Servir les fichiers statiques
 app.use('/static/*', serveStatic({ root: './public' }));
+app.use('/portails/*', serveStatic({ root: './public' }));
 
 // Routes API
 app.route('/api/auth', auth);
