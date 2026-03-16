@@ -345,63 +345,169 @@
 
     <!-- Modal Edit Company -->
     <div id="company-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-2xl font-bold text-gray-800">Modifier l'entreprise</h3>
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <!-- Header -->
+            <div class="flex items-center justify-between p-6 border-b">
+                <h3 class="text-2xl font-bold text-gray-800">Gérer l'entreprise et les utilisateurs</h3>
                 <button onclick="closeCompanyModal()" class="text-gray-500 hover:text-gray-700">
                     <i class="fas fa-times text-2xl"></i>
                 </button>
             </div>
 
-            <form onsubmit="saveCompany(event)">
-                <input type="hidden" id="company-id">
-                <input type="hidden" id="company-user-id">
+            <!-- Tabs -->
+            <div class="flex border-b">
+                <button onclick="showCompanyTab('info')" id="company-tab-info" 
+                        class="company-tab px-6 py-3 font-semibold border-b-2 border-blue-600 text-blue-600">
+                    <i class="fas fa-building mr-2"></i>Informations
+                </button>
+                <button onclick="showCompanyTab('users')" id="company-tab-users" 
+                        class="company-tab px-6 py-3 font-semibold text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-users mr-2"></i>Utilisateurs
+                    <span id="company-users-count" class="ml-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">0</span>
+                </button>
+            </div>
+
+            <!-- Content Area (scrollable) -->
+            <div class="flex-1 overflow-y-auto p-6">
+                <!-- Info Tab -->
+                <div id="company-content-info">
+                    <form onsubmit="saveCompany(event)">
+                        <input type="hidden" id="company-id">
+                        <input type="hidden" id="company-user-id">
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-semibold mb-2">Nom de l'entreprise *</label>
+                            <input type="text" id="company-name" required 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-semibold mb-2">Description</label>
+                            <textarea id="company-description" rows="4" 
+                                      class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Ville</label>
+                                <input type="text" id="company-city" 
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Province</label>
+                                <input type="text" id="company-province" 
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Téléphone</label>
+                                <input type="tel" id="company-phone" 
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Site web</label>
+                                <input type="url" id="company-website" 
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="flex space-x-4">
+                            <button type="button" onclick="closeCompanyModal()" 
+                                    class="flex-1 bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-400">
+                                Annuler
+                            </button>
+                            <button type="submit" 
+                                    class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
+                                <i class="fas fa-save mr-2"></i>Enregistrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Users Tab -->
+                <div id="company-content-users" class="hidden">
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-lg font-bold text-gray-800">Utilisateurs de l'entreprise</h4>
+                            <button onclick="openAddCompanyUserModal()" 
+                                    class="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700">
+                                <i class="fas fa-plus mr-2"></i>Ajouter un utilisateur
+                            </button>
+                        </div>
+
+                        <div id="company-users-list" class="space-y-3">
+                            <!-- Les utilisateurs seront affichés ici -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Add Company User -->
+    <div id="add-company-user-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800" id="company-user-modal-title">Ajouter un utilisateur</h3>
+                <button onclick="closeAddCompanyUserModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveCompanyUser(event)">
+                <input type="hidden" id="company-user-id-edit">
+                <input type="hidden" id="company-user-company-id">
                 
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-semibold mb-2">Nom de l'entreprise *</label>
-                    <input type="text" id="company-name" required 
-                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-semibold mb-2">Description</label>
-                    <textarea id="company-description" rows="4" 
-                              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label class="block text-gray-700 font-semibold mb-2">Ville</label>
-                        <input type="text" id="company-city" 
-                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-gray-700 font-semibold mb-2">Prénom *</label>
+                        <input type="text" id="company-user-first-name" required 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
                     </div>
                     <div>
-                        <label class="block text-gray-700 font-semibold mb-2">Province</label>
-                        <input type="text" id="company-province" 
-                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-gray-700 font-semibold mb-2">Nom *</label>
+                        <input type="text" id="company-user-last-name" required 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-gray-700 font-semibold mb-2">Téléphone</label>
-                        <input type="tel" id="company-phone" 
-                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 font-semibold mb-2">Site web</label>
-                        <input type="url" id="company-website" 
-                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Email *</label>
+                    <input type="email" id="company-user-email" required 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Téléphone</label>
+                    <input type="tel" id="company-user-phone" 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+
+                <div class="mb-4" id="company-user-password-field">
+                    <label class="block text-gray-700 font-semibold mb-2">Mot de passe *</label>
+                    <input type="password" id="company-user-password" 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                           placeholder="Minimum 6 caractères">
+                    <p class="text-sm text-gray-500 mt-1">Laissez vide pour conserver le mot de passe actuel (modification uniquement)</p>
+                </div>
+
+                <div class="mb-6">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="company-user-is-active" checked 
+                               class="mr-2 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                        <span class="text-gray-700 font-semibold">Compte actif</span>
+                    </label>
                 </div>
 
                 <div class="flex space-x-4">
-                    <button type="button" onclick="closeCompanyModal()" 
+                    <button type="button" onclick="closeAddCompanyUserModal()" 
                             class="flex-1 bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-400">
                         Annuler
                     </button>
                     <button type="submit" 
-                            class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
+                            class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
                         <i class="fas fa-save mr-2"></i>Enregistrer
                     </button>
                 </div>
@@ -1002,9 +1108,190 @@
                 document.getElementById('company-phone').value = company.phone || '';
                 document.getElementById('company-website').value = company.website || '';
 
+                // Charger les utilisateurs de l'entreprise
+                await loadCompanyUsers(companyId);
+
+                // Afficher le modal et l'onglet info par défaut
+                showCompanyTab('info');
                 document.getElementById('company-modal').classList.remove('hidden');
             } catch (error) {
                 alert(error.response?.data?.error || 'Erreur lors du chargement de l\'entreprise');
+            }
+        }
+
+        // Show Company Tab
+        function showCompanyTab(tabName) {
+            // Hide all content
+            document.getElementById('company-content-info').classList.add('hidden');
+            document.getElementById('company-content-users').classList.add('hidden');
+            
+            // Remove active from all tabs
+            document.querySelectorAll('.company-tab').forEach(tab => {
+                tab.classList.remove('border-blue-600', 'text-blue-600');
+                tab.classList.add('text-gray-600');
+            });
+            
+            // Show selected content
+            document.getElementById(`company-content-${tabName}`).classList.remove('hidden');
+            
+            // Activate selected tab
+            const activeTab = document.getElementById(`company-tab-${tabName}`);
+            activeTab.classList.add('border-blue-600', 'text-blue-600');
+            activeTab.classList.remove('text-gray-600');
+        }
+
+        // Load Company Users
+        async function loadCompanyUsers(companyId) {
+            try {
+                const response = await axios.get(`/api/admin/companies/${companyId}/users?user_id=${currentUser.id}`);
+                const users = response.data.users;
+                
+                // Update counter
+                document.getElementById('company-users-count').textContent = users.length;
+                
+                const container = document.getElementById('company-users-list');
+                if (users.length === 0) {
+                    container.innerHTML = '<div class="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center text-gray-600">Aucun utilisateur pour cette entreprise</div>';
+                } else {
+                    container.innerHTML = users.map(user => createCompanyUserCard(user)).join('');
+                }
+            } catch (error) {
+                console.error('Erreur chargement utilisateurs:', error);
+            }
+        }
+
+        // Create Company User Card
+        function createCompanyUserCard(user) {
+            const statusClass = user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+            const statusLabel = user.is_active ? 'Actif' : 'Inactif';
+            
+            return `
+                <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center mb-2">
+                                <h5 class="text-lg font-bold text-gray-800 mr-3">${user.first_name} ${user.last_name}</h5>
+                                <span class="${statusClass} px-3 py-1 rounded-full text-xs font-semibold">${statusLabel}</span>
+                            </div>
+                            <div class="space-y-1 text-sm text-gray-600">
+                                <div><i class="fas fa-envelope mr-2"></i>${user.email}</div>
+                                <div><i class="fas fa-phone mr-2"></i>${user.phone || 'Non renseigné'}</div>
+                                <div class="text-xs text-gray-500 mt-2">Créé le ${new Date(user.created_at).toLocaleDateString('fr-CA')}</div>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editCompanyUser(${user.id})" 
+                                    class="text-blue-600 hover:text-blue-800" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="toggleCompanyUserStatus(${user.id}, ${user.is_active ? 0 : 1})" 
+                                    class="text-${user.is_active ? 'red' : 'green'}-600 hover:text-${user.is_active ? 'red' : 'green'}-800" 
+                                    title="${user.is_active ? 'Désactiver' : 'Activer'}">
+                                <i class="fas fa-${user.is_active ? 'ban' : 'check-circle'}"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Open Add Company User Modal
+        function openAddCompanyUserModal() {
+            document.getElementById('company-user-modal-title').textContent = 'Ajouter un utilisateur';
+            document.getElementById('company-user-id-edit').value = '';
+            document.getElementById('company-user-company-id').value = document.getElementById('company-id').value;
+            document.getElementById('company-user-first-name').value = '';
+            document.getElementById('company-user-last-name').value = '';
+            document.getElementById('company-user-email').value = '';
+            document.getElementById('company-user-phone').value = '';
+            document.getElementById('company-user-password').value = '';
+            document.getElementById('company-user-password').required = true;
+            document.getElementById('company-user-is-active').checked = true;
+            document.getElementById('add-company-user-modal').classList.remove('hidden');
+        }
+
+        // Edit Company User
+        async function editCompanyUser(userId) {
+            try {
+                const response = await axios.get(`/api/admin/users/${userId}?user_id=${currentUser.id}`);
+                const user = response.data.user;
+                
+                document.getElementById('company-user-modal-title').textContent = 'Modifier l\'utilisateur';
+                document.getElementById('company-user-id-edit').value = user.id;
+                document.getElementById('company-user-company-id').value = document.getElementById('company-id').value;
+                document.getElementById('company-user-first-name').value = user.first_name;
+                document.getElementById('company-user-last-name').value = user.last_name;
+                document.getElementById('company-user-email').value = user.email;
+                document.getElementById('company-user-phone').value = user.phone || '';
+                document.getElementById('company-user-password').value = '';
+                document.getElementById('company-user-password').required = false;
+                document.getElementById('company-user-is-active').checked = user.is_active || true;
+                document.getElementById('add-company-user-modal').classList.remove('hidden');
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors du chargement de l\'utilisateur');
+            }
+        }
+
+        // Close Add Company User Modal
+        function closeAddCompanyUserModal() {
+            document.getElementById('add-company-user-modal').classList.add('hidden');
+        }
+
+        // Save Company User
+        async function saveCompanyUser(e) {
+            e.preventDefault();
+            const userId = document.getElementById('company-user-id-edit').value;
+            const companyId = document.getElementById('company-user-company-id').value;
+            
+            const data = {
+                user_id: currentUser.id,
+                first_name: document.getElementById('company-user-first-name').value,
+                last_name: document.getElementById('company-user-last-name').value,
+                email: document.getElementById('company-user-email').value,
+                phone: document.getElementById('company-user-phone').value,
+                is_active: document.getElementById('company-user-is-active').checked,
+                company_id: companyId
+            };
+
+            const password = document.getElementById('company-user-password').value;
+            if (password) {
+                data.password = password;
+            }
+
+            try {
+                if (userId) {
+                    // Update existing user
+                    await axios.put(`/api/admin/users/${userId}`, data);
+                    alert('Utilisateur modifié avec succès');
+                } else {
+                    // Create new user
+                    data.role = 'employer';
+                    await axios.post(`/api/admin/companies/${companyId}/users`, data);
+                    alert('Utilisateur créé avec succès');
+                }
+                
+                closeAddCompanyUserModal();
+                await loadCompanyUsers(companyId);
+                loadEmployers(); // Refresh employer list
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors de la sauvegarde de l\'utilisateur');
+            }
+        }
+
+        // Toggle Company User Status
+        async function toggleCompanyUserStatus(userId, newStatus) {
+            const action = newStatus ? 'activer' : 'désactiver';
+            if (!confirm(`Êtes-vous sûr de vouloir ${action} cet utilisateur ?`)) return;
+
+            try {
+                await axios.put(`/api/admin/users/${userId}`, {
+                    user_id: currentUser.id,
+                    is_active: newStatus
+                });
+                alert(`Utilisateur ${action === 'activer' ? 'activé' : 'désactivé'} avec succès`);
+                await loadCompanyUsers(document.getElementById('company-id').value);
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors de la modification du statut');
             }
         }
 
@@ -1032,7 +1319,6 @@
             try {
                 await axios.put(`/api/admin/employers/${userId}/company`, data);
                 alert('Entreprise mise à jour avec succès');
-                closeCompanyModal();
                 loadEmployers();
             } catch (error) {
                 alert(error.response?.data?.error || 'Erreur lors de la mise à jour de l\'entreprise');

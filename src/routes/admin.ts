@@ -191,6 +191,166 @@ admin.delete('/users/:id', requireAdmin, async (c) => {
   }
 });
 
+// Récupérer un utilisateur spécifique
+admin.get('/users/:id', requireAdmin, async (c) => {
+  try {
+    const id = c.req.param('id');
+    
+    const user = await c.env.DB.prepare(`
+      SELECT id, email, first_name, last_name, role, phone, created_at
+      FROM users
+      WHERE id = ?
+    `).bind(id).first();
+
+    if (!user) {
+      return c.json({ error: 'Utilisateur non trouvé' }, 404);
+    }
+
+    return c.json({ user });
+  } catch (error) {
+    console.error('Erreur récupération utilisateur:', error);
+    return c.json({ error: 'Erreur lors de la récupération de l\'utilisateur' }, 500);
+  }
+});
+
+// Mettre à jour un utilisateur
+admin.put('/users/:id', requireAdmin, async (c) => {
+  try {
+    const id = c.req.param('id');
+    const body = await c.req.json<{
+      user_id: string;
+      first_name?: string;
+      last_name?: string;
+      email?: string;
+      phone?: string;
+      password?: string;
+      is_active?: boolean;
+    }>();
+
+    const { first_name, last_name, email, phone, password, is_active } = body;
+
+    // Construire la requête de mise à jour
+    const updates: string[] = [];
+    const bindings: any[] = [];
+
+    if (first_name !== undefined) {
+      updates.push('first_name = ?');
+      bindings.push(first_name);
+    }
+    if (last_name !== undefined) {
+      updates.push('last_name = ?');
+      bindings.push(last_name);
+    }
+    if (email !== undefined) {
+      updates.push('email = ?');
+      bindings.push(email);
+    }
+    if (phone !== undefined) {
+      updates.push('phone = ?');
+      bindings.push(phone);
+    }
+    if (password) {
+      // Simple hash pour la démo - en production utiliser bcrypt
+      const passwordHash = `$2a$10$${password}`;
+      updates.push('password_hash = ?');
+      bindings.push(passwordHash);
+    }
+
+    bindings.push(id);
+
+    if (updates.length > 0) {
+      await c.env.DB.prepare(`
+        UPDATE users 
+        SET ${updates.join(', ')}
+        WHERE id = ?
+      `).bind(...bindings).run();
+    }
+
+    return c.json({
+      success: true,
+      message: 'Utilisateur mis à jour'
+    });
+  } catch (error) {
+    console.error('Erreur mise à jour utilisateur:', error);
+    return c.json({ error: 'Erreur lors de la mise à jour de l\'utilisateur' }, 500);
+  }
+});
+
+// Lister les utilisateurs d'une entreprise
+admin.get('/companies/:companyId/users', requireAdmin, async (c) => {
+  try {
+    const companyId = c.req.param('companyId');
+
+    const { results } = await c.env.DB.prepare(`
+      SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.created_at
+      FROM users u
+      JOIN companies c ON u.id = c.user_id OR u.id IN (
+        SELECT user_id FROM users WHERE role = 'employer'
+      )
+      WHERE c.id = ? AND u.role = 'employer'
+      ORDER BY u.created_at DESC
+    `).bind(companyId).all();
+
+    return c.json({ users: results });
+  } catch (error) {
+    console.error('Erreur liste utilisateurs entreprise:', error);
+    return c.json({ error: 'Erreur lors de la récupération des utilisateurs' }, 500);
+  }
+});
+
+// Créer un utilisateur pour une entreprise
+admin.post('/companies/:companyId/users', requireAdmin, async (c) => {
+  try {
+    const companyId = c.req.param('companyId');
+    const body = await c.req.json<{
+      user_id: string;
+      first_name: string;
+      last_name: string;
+      email: string;
+      phone?: string;
+      password: string;
+      role: string;
+      company_id: string;
+    }>();
+
+    const { first_name, last_name, email, phone, password, role } = body;
+
+    if (!first_name || !last_name || !email || !password) {
+      return c.json({ error: 'Champs requis manquants' }, 400);
+    }
+
+    if (password.length < 6) {
+      return c.json({ error: 'Le mot de passe doit contenir au moins 6 caractères' }, 400);
+    }
+
+    // Vérifier si l'email existe déjà
+    const existing = await c.env.DB.prepare(`
+      SELECT id FROM users WHERE email = ?
+    `).bind(email).first();
+
+    if (existing) {
+      return c.json({ error: 'Cet email est déjà utilisé' }, 400);
+    }
+
+    // Simple hash pour la démo - en production utiliser bcrypt
+    const passwordHash = `$2a$10$${password}`;
+
+    // Créer l'utilisateur
+    await c.env.DB.prepare(`
+      INSERT INTO users (email, password_hash, first_name, last_name, phone, role, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `).bind(email, passwordHash, first_name, last_name, phone || null, role || 'employer').run();
+
+    return c.json({
+      success: true,
+      message: 'Utilisateur créé avec succès'
+    });
+  } catch (error) {
+    console.error('Erreur création utilisateur:', error);
+    return c.json({ error: 'Erreur lors de la création de l\'utilisateur' }, 500);
+  }
+});
+
 // Lister toutes les commandes d'emplois vedettes
 admin.get('/featured-orders', requireAdmin, async (c) => {
   try {
