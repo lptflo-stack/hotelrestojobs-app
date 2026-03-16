@@ -39,6 +39,13 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
 - ✅ Graphiques interactifs (Chart.js)
 - ✅ Validation des offres en attente
 - ✅ Gestion des utilisateurs
+- ✅ **Gestion complète des comptes employeurs** (NOUVEAU)
+  - Vue détaillée de tous les employeurs avec leurs entreprises
+  - Gestion des crédits (ajouter/retirer/définir avec notes)
+  - Modification des informations de l'entreprise
+  - Affichage des statistiques employeur (offres, candidatures, etc.)
+  - Badges visuels pour le niveau de crédits
+  - Identification des forfaits illimités
 - ✅ Historique des emplois vedettes
 - ✅ Aperçu des revenus
 - ✅ **Gestion de la tarification**
@@ -256,6 +263,12 @@ curl http://localhost:3000/api/jobs
 - `GET /api/admin/users` - Liste des utilisateurs
 - `DELETE /api/admin/users/:id` - Supprimer un utilisateur
 - `GET /api/admin/featured-orders` - Historique des commandes
+- **Gestion des employeurs** :
+  - `GET /api/admin/employers` - Liste de tous les employeurs
+  - `POST /api/admin/employers/:id/credits` - Gérer les crédits
+  - `GET /api/admin/employers/:id/company` - Info entreprise
+  - `PUT /api/admin/employers/:id/company` - Modifier entreprise
+  - `GET /api/admin/employers/:id/details` - Détails complets
 
 ### Tarification
 - `GET /api/pricing` - Liste des forfaits actifs
