@@ -107,10 +107,8 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
 4. **job_offers** - Offres d'emploi
 5. **applications** - Candidatures
 6. **featured_orders** - Commandes d'emplois vedettes
-7. **pricing_plans** - Forfaits et tarification
+7. **pricing_plans** - Forfaits et tarification (système de crédits)
 8. **employer_credits** - Suivi des crédits employeurs
-5. **applications** - Candidatures
-6. **featured_orders** - Commandes d'emplois vedettes
 
 ### Statuts des offres
 - `pending` : En attente de validation admin
@@ -158,14 +156,16 @@ webapp/
 │       ├── jobs.ts            # Gestion des emplois
 │       ├── applications.ts    # Gestion des candidatures
 │       ├── admin.ts           # Routes administrateur
-│       └── featured.ts        # Emplois vedettes
+│       ├── featured.ts        # Emplois vedettes
+│       └── pricing.ts         # Gestion de la tarification
 ├── public/
 │   └── portails/
 │       ├── candidat.html      # Interface candidat
 │       ├── employeur.html     # Interface employeur
 │       └── admin.html         # Interface admin
 ├── migrations/
-│   └── 0001_initial_schema.sql
+│   ├── 0001_initial_schema.sql
+│   └── 0002_pricing_system.sql
 ├── seed.sql                   # Données de test
 ├── wrangler.jsonc            # Configuration Cloudflare
 ├── package.json
