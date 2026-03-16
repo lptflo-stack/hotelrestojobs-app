@@ -2,19 +2,19 @@
 
 -- Admin user (password: admin123)
 INSERT OR IGNORE INTO users (id, email, password_hash, first_name, last_name, role, phone) VALUES 
-  (1, 'admin@hotelrestojobs.com', '$2a$10$abcdefghijklmnopqrstuv', 'Admin', 'System', 'admin', '514-555-0001');
+  (1, 'admin@hotelrestojobs.com', '$2a$10$admin123', 'Admin', 'System', 'admin', '514-555-0001');
 
 -- Employeurs
 INSERT OR IGNORE INTO users (id, email, password_hash, first_name, last_name, role, phone) VALUES 
-  (2, 'rh@restaurantluxe.com', '$2a$10$abcdefghijklmnopqrstuv', 'Marie', 'Dubois', 'employer', '514-555-0100'),
-  (3, 'recrutement@hotelmontreal.com', '$2a$10$abcdefghijklmnopqrstuv', 'Jean', 'Tremblay', 'employer', '514-555-0200'),
-  (4, 'jobs@bistromoderne.com', '$2a$10$abcdefghijklmnopqrstuv', 'Sophie', 'Gagnon', 'employer', '438-555-0300');
+  (2, 'rh@restaurantluxe.com', '$2a$10$admin123', 'Marie', 'Dubois', 'employer', '514-555-0100'),
+  (3, 'recrutement@hotelmontreal.com', '$2a$10$admin123', 'Jean', 'Tremblay', 'employer', '514-555-0200'),
+  (4, 'jobs@bistromoderne.com', '$2a$10$admin123', 'Sophie', 'Gagnon', 'employer', '438-555-0300');
 
 -- Candidats
 INSERT OR IGNORE INTO users (id, email, password_hash, first_name, last_name, role, phone) VALUES 
-  (5, 'julien.chef@email.com', '$2a$10$abcdefghijklmnopqrstuv', 'Julien', 'Lefebvre', 'candidate', '514-555-1001'),
-  (6, 'marie.serveur@email.com', '$2a$10$abcdefghijklmnopqrstuv', 'Marie', 'Lavoie', 'candidate', '514-555-1002'),
-  (7, 'pierre.cuisinier@email.com', '$2a$10$abcdefghijklmnopqrstuv', 'Pierre', 'Martin', 'candidate', '438-555-1003');
+  (5, 'julien.chef@email.com', '$2a$10$admin123', 'Julien', 'Lefebvre', 'candidate', '514-555-1001'),
+  (6, 'marie.serveur@email.com', '$2a$10$admin123', 'Marie', 'Lavoie', 'candidate', '514-555-1002'),
+  (7, 'pierre.cuisinier@email.com', '$2a$10$admin123', 'Pierre', 'Martin', 'candidate', '438-555-1003');
 
 -- Entreprises
 INSERT OR IGNORE INTO companies (id, user_id, name, description, address, city, province, postal_code, website) VALUES 
