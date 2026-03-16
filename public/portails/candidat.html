@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portail Candidat - HotelRestoJobs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <a href="/" class="flex items-center space-x-2">
+                    <i class="fas fa-utensils text-3xl"></i>
+                    <h1 class="text-2xl font-bold">HotelRestoJobs</h1>
+                </a>
+                <div id="user-menu" class="hidden">
+                    <div class="flex items-center space-x-4">
+                        <span id="user-name" class="font-semibold"></span>
+                        <button onclick="logout()" class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Section Login/Register -->
+        <div id="auth-section" class="max-w-md mx-auto">
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <!-- Tabs -->
+                <div class="flex border-b mb-6">
+                    <button id="login-tab" onclick="showLogin()" class="flex-1 py-3 text-center font-semibold border-b-2 border-blue-600 text-blue-600">
+                        Connexion
+                    </button>
+                    <button id="register-tab" onclick="showRegister()" class="flex-1 py-3 text-center font-semibold text-gray-500 hover:text-gray-700">
+                        Inscription
+                    </button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form" onsubmit="login(event)">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Connexion Candidat</h2>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Email</label>
+                        <input type="email" id="login-email" required 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-2">Mot de passe</label>
+                        <input type="password" id="login-password" required 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">
+                        Se connecter
+                    </button>
+
+                    <div id="login-error" class="hidden mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"></div>
+                </form>
+
+                <!-- Register Form -->
+                <form id="register-form" class="hidden" onsubmit="register(event)">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Créer un compte candidat</h2>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Prénom</label>
+                            <input type="text" id="register-firstname" required 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Nom</label>
+                            <input type="text" id="register-lastname" required 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Email</label>
+                        <input type="email" id="register-email" required 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Téléphone</label>
+                        <input type="tel" id="register-phone" placeholder="514-555-0000"
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-2">Mot de passe</label>
+                        <input type="password" id="register-password" required minlength="6"
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <p class="text-sm text-gray-500 mt-1">Minimum 6 caractères</p>
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">
+                        Créer mon compte
+                    </button>
+
+                    <div id="register-error" class="hidden mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dashboard Section (hidden by default) -->
+        <div id="dashboard-section" class="hidden">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-gray-800">
+                    <i class="fas fa-user-circle mr-2"></i>
+                    Mon Espace Candidat
+                </h2>
+            </div>
+
+            <!-- Tabs -->
+            <div class="bg-white rounded-lg shadow mb-6">
+                <div class="flex border-b overflow-x-auto">
+                    <button onclick="showTab('profile')" id="tab-profile" class="px-6 py-4 font-semibold border-b-2 border-blue-600 text-blue-600 whitespace-nowrap">
+                        <i class="fas fa-user mr-2"></i>Mon Profil
+                    </button>
+                    <button onclick="showTab('search')" id="tab-search" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-search mr-2"></i>Rechercher un emploi
+                    </button>
+                    <button onclick="showTab('applications')" id="tab-applications" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-paper-plane mr-2"></i>Mes Candidatures
+                    </button>
+                </div>
+            </div>
+
+            <!-- Profile Tab -->
+            <div id="content-profile" class="space-y-6">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Informations personnelles</h3>
+                    <form onsubmit="updateProfile(event)">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Prénom</label>
+                                <input type="text" id="profile-firstname" required 
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Nom</label>
+                                <input type="text" id="profile-lastname" required 
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Email</label>
+                                <input type="email" id="profile-email" disabled 
+                                       class="w-full px-4 py-2 border rounded-lg bg-gray-100">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Téléphone</label>
+                                <input type="tel" id="profile-phone" 
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-semibold mb-2">Biographie</label>
+                            <textarea id="profile-bio" rows="4" 
+                                      class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Parlez-nous de vous, votre expérience, vos compétences..."></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Années d'expérience</label>
+                                <input type="number" id="profile-experience" min="0" 
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Disponibilité</label>
+                                <select id="profile-availability" 
+                                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Sélectionner</option>
+                                    <option value="Immédiate">Immédiate</option>
+                                    <option value="Dans 2 semaines">Dans 2 semaines</option>
+                                    <option value="Dans 1 mois">Dans 1 mois</option>
+                                    <option value="À discuter">À discuter</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Poste recherché</label>
+                                <input type="text" id="profile-desired-position" placeholder="Ex: Cuisinier"
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Salaire minimum souhaité ($)</label>
+                                <input type="number" id="profile-salary-min" min="0" 
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Salaire maximum souhaité ($)</label>
+                                <input type="number" id="profile-salary-max" min="0" 
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700">
+                            <i class="fas fa-save mr-2"></i>Enregistrer les modifications
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Search Tab -->
+            <div id="content-search" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Rechercher un emploi</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <input type="text" id="search-keywords" placeholder="Mots-clés (ex: Chef, Serveur...)" 
+                               class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="text" id="search-city" placeholder="Ville" 
+                               class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button onclick="searchJobs()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">
+                            <i class="fas fa-search mr-2"></i>Rechercher
+                        </button>
+                    </div>
+                </div>
+
+                <div id="search-results" class="space-y-4">
+                    <!-- Les résultats seront affichés ici -->
+                </div>
+            </div>
+
+            <!-- Applications Tab -->
+            <div id="content-applications" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Mes Candidatures</h3>
+                    
+                    <div id="applications-list" class="space-y-4">
+                        <!-- Les candidatures seront affichées ici -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour postuler -->
+    <div id="apply-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Postuler à l'offre</h3>
+                <button onclick="closeApplyModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <div id="apply-job-info" class="mb-6 p-4 bg-gray-50 rounded-lg">
+                <!-- Les infos de l'emploi seront affichées ici -->
+            </div>
+
+            <form onsubmit="submitApplication(event)">
+                <input type="hidden" id="apply-job-id">
+                
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-semibold mb-2">Lettre de motivation</label>
+                    <textarea id="apply-cover-letter" rows="6" required
+                              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Expliquez pourquoi vous êtes le candidat idéal pour ce poste..."></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeApplyModal()" 
+                            class="px-6 py-2 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50">
+                        Annuler
+                    </button>
+                    <button type="submit" 
+                            class="bg-blue-600 text-white px-8 py-2 rounded-lg font-semibold hover:bg-blue-700">
+                        <i class="fas fa-paper-plane mr-2"></i>Envoyer ma candidature
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script>
+        let currentUser = null;
+
+        // Vérifier si l'utilisateur est connecté au chargement
+        window.onload = function() {
+            const userData = localStorage.getItem('user');
+            if (userData) {
+                currentUser = JSON.parse(userData);
+                showDashboard();
+            }
+        };
+
+        // Toggle Login/Register
+        function showLogin() {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('login-tab').classList.add('border-blue-600', 'text-blue-600');
+            document.getElementById('login-tab').classList.remove('text-gray-500');
+            document.getElementById('register-tab').classList.remove('border-blue-600', 'text-blue-600');
+            document.getElementById('register-tab').classList.add('text-gray-500');
+        }
+
+        function showRegister() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('register-tab').classList.add('border-blue-600', 'text-blue-600');
+            document.getElementById('register-tab').classList.remove('text-gray-500');
+            document.getElementById('login-tab').classList.remove('border-blue-600', 'text-blue-600');
+            document.getElementById('login-tab').classList.add('text-gray-500');
+        }
+
+        // Login
+        async function login(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await axios.post('/api/auth/login', {
+                    email,
+                    password
+                });
+
+                if (response.data.success && response.data.user.role === 'candidate') {
+                    currentUser = response.data.user;
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+                    showDashboard();
+                } else {
+                    showError('login-error', 'Accès réservé aux candidats uniquement');
+                }
+            } catch (error) {
+                showError('login-error', error.response?.data?.error || 'Erreur de connexion');
+            }
+        }
+
+        // Register
+        async function register(e) {
+            e.preventDefault();
+            const data = {
+                email: document.getElementById('register-email').value,
+                password: document.getElementById('register-password').value,
+                first_name: document.getElementById('register-firstname').value,
+                last_name: document.getElementById('register-lastname').value,
+                phone: document.getElementById('register-phone').value,
+                role: 'candidate'
+            };
+
+            try {
+                const response = await axios.post('/api/auth/register', data);
+
+                if (response.data.success) {
+                    alert('Compte créé avec succès ! Vous pouvez maintenant vous connecter.');
+                    showLogin();
+                    document.getElementById('login-email').value = data.email;
+                }
+            } catch (error) {
+                showError('register-error', error.response?.data?.error || 'Erreur lors de l\'inscription');
+            }
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('user');
+            currentUser = null;
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('user-menu').classList.add('hidden');
+        }
+
+        // Show Dashboard
+        async function showDashboard() {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
+            document.getElementById('user-menu').classList.remove('hidden');
+            document.getElementById('user-name').textContent = `${currentUser.first_name} ${currentUser.last_name}`;
+
+            // Charger le profil
+            await loadProfile();
+            showTab('profile');
+        }
+
+        // Load Profile
+        async function loadProfile() {
+            try {
+                const response = await axios.get(`/api/auth/profile/${currentUser.id}`);
+                const profile = response.data;
+
+                document.getElementById('profile-firstname').value = profile.first_name || '';
+                document.getElementById('profile-lastname').value = profile.last_name || '';
+                document.getElementById('profile-email').value = profile.email || '';
+                document.getElementById('profile-phone').value = profile.phone || '';
+
+                if (profile.candidate_profile) {
+                    const cp = profile.candidate_profile;
+                    document.getElementById('profile-bio').value = cp.bio || '';
+                    document.getElementById('profile-experience').value = cp.experience_years || '';
+                    document.getElementById('profile-availability').value = cp.availability || '';
+                    document.getElementById('profile-desired-position').value = cp.desired_position || '';
+                    document.getElementById('profile-salary-min').value = cp.desired_salary_min || '';
+                    document.getElementById('profile-salary-max').value = cp.desired_salary_max || '';
+                }
+            } catch (error) {
+                console.error('Erreur chargement profil:', error);
+            }
+        }
+
+        // Update Profile (à implémenter côté API)
+        async function updateProfile(e) {
+            e.preventDefault();
+            alert('Fonctionnalité de mise à jour du profil à venir !');
+        }
+
+        // Show Tab
+        function showTab(tabName) {
+            // Hide all content
+            document.querySelectorAll('[id^="content-"]').forEach(el => el.classList.add('hidden'));
+            // Remove active from all tabs
+            document.querySelectorAll('[id^="tab-"]').forEach(el => {
+                el.classList.remove('border-blue-600', 'text-blue-600');
+                el.classList.add('text-gray-600');
+            });
+            
+            // Show selected content
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+            // Activate selected tab
+            const tab = document.getElementById(`tab-${tabName}`);
+            tab.classList.add('border-blue-600', 'text-blue-600');
+            tab.classList.remove('text-gray-600');
+
+            // Load data based on tab
+            if (tabName === 'search') {
+                searchJobs();
+            } else if (tabName === 'applications') {
+                loadApplications();
+            }
+        }
+
+        // Search Jobs
+        async function searchJobs() {
+            const keywords = document.getElementById('search-keywords').value;
+            const city = document.getElementById('search-city').value;
+            
+            let url = '/api/jobs?';
+            if (keywords) url += `search=${encodeURIComponent(keywords)}&`;
+            if (city) url += `city=${encodeURIComponent(city)}`;
+            
+            try {
+                const response = await axios.get(url);
+                const jobs = response.data.jobs;
+                
+                const container = document.getElementById('search-results');
+                if (jobs.length === 0) {
+                    container.innerHTML = '<div class="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center text-gray-600">Aucun emploi trouvé</div>';
+                } else {
+                    container.innerHTML = jobs.map(job => createJobCard(job)).join('');
+                }
+            } catch (error) {
+                console.error('Erreur recherche:', error);
+            }
+        }
+
+        // Create Job Card
+        function createJobCard(job) {
+            return `
+                <div class="bg-white rounded-lg p-6 shadow hover:shadow-lg transition-shadow">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            ${job.is_featured ? '<div class="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-semibold inline-block mb-2"><i class="fas fa-star mr-1"></i>VEDETTE</div>' : ''}
+                            <h4 class="text-xl font-bold text-gray-800 mb-2">${job.title}</h4>
+                            <p class="text-gray-600 mb-2">
+                                <i class="fas fa-building mr-2"></i>${job.company_name}
+                            </p>
+                            <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
+                                <span><i class="fas fa-map-marker-alt mr-1"></i>${job.city}, ${job.province}</span>
+                                <span><i class="fas fa-briefcase mr-1"></i>${job.employment_type}</span>
+                                <span><i class="fas fa-users mr-1"></i>${job.applications_count} candidatures</span>
+                            </div>
+                            <p class="text-gray-700">${job.description.substring(0, 150)}...</p>
+                        </div>
+                        <div class="ml-4 flex flex-col space-y-2">
+                            <button onclick="openApplyModal(${job.id})" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 whitespace-nowrap">
+                                <i class="fas fa-paper-plane mr-2"></i>Postuler
+                            </button>
+                            <a href="/emploi/${job.id}" target="_blank" class="text-center border border-blue-600 text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-blue-50 whitespace-nowrap">
+                                Détails
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Open Apply Modal
+        async function openApplyModal(jobId) {
+            try {
+                const response = await axios.get(`/api/jobs/${jobId}`);
+                const job = response.data;
+                
+                document.getElementById('apply-job-id').value = jobId;
+                document.getElementById('apply-job-info').innerHTML = `
+                    <h4 class="font-bold text-lg mb-2">${job.title}</h4>
+                    <p class="text-gray-600">${job.company_name} - ${job.city}, ${job.province}</p>
+                `;
+                document.getElementById('apply-modal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Erreur chargement emploi:', error);
+            }
+        }
+
+        // Close Apply Modal
+        function closeApplyModal() {
+            document.getElementById('apply-modal').classList.add('hidden');
+            document.getElementById('apply-cover-letter').value = '';
+        }
+
+        // Submit Application
+        async function submitApplication(e) {
+            e.preventDefault();
+            const jobId = document.getElementById('apply-job-id').value;
+            const coverLetter = document.getElementById('apply-cover-letter').value;
+
+            try {
+                const response = await axios.post('/api/applications', {
+                    job_offer_id: parseInt(jobId),
+                    user_id: currentUser.id,
+                    cover_letter: coverLetter
+                });
+
+                if (response.data.success) {
+                    alert('Candidature envoyée avec succès !');
+                    closeApplyModal();
+                    loadApplications();
+                }
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors de l\'envoi de la candidature');
+            }
+        }
+
+        // Load Applications
+        async function loadApplications() {
+            try {
+                const response = await axios.get(`/api/applications/candidate/${currentUser.id}`);
+                const applications = response.data.applications;
+                
+                const container = document.getElementById('applications-list');
+                if (applications.length === 0) {
+                    container.innerHTML = '<div class="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center text-gray-600">Vous n\'avez pas encore de candidatures</div>';
+                } else {
+                    container.innerHTML = applications.map(app => createApplicationCard(app)).join('');
+                }
+            } catch (error) {
+                console.error('Erreur chargement candidatures:', error);
+            }
+        }
+
+        // Create Application Card
+        function createApplicationCard(app) {
+            const statusColors = {
+                'pending': 'bg-yellow-100 text-yellow-800',
+                'reviewed': 'bg-blue-100 text-blue-800',
+                'shortlisted': 'bg-green-100 text-green-800',
+                'rejected': 'bg-red-100 text-red-800',
+                'accepted': 'bg-green-500 text-white'
+            };
+            const statusLabels = {
+                'pending': 'En attente',
+                'reviewed': 'Vue',
+                'shortlisted': 'Présélectionné',
+                'rejected': 'Refusée',
+                'accepted': 'Acceptée'
+            };
+
+            return `
+                <div class="border rounded-lg p-6 hover:shadow-md transition-shadow">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h4 class="text-xl font-bold text-gray-800 mb-2">${app.job_title}</h4>
+                            <p class="text-gray-600 mb-1">
+                                <i class="fas fa-building mr-2"></i>${app.company_name}
+                            </p>
+                            <p class="text-gray-600">
+                                <i class="fas fa-map-marker-alt mr-2"></i>${app.job_city}
+                            </p>
+                        </div>
+                        <span class="${statusColors[app.status]} px-4 py-2 rounded-full font-semibold">
+                            ${statusLabels[app.status]}
+                        </span>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded p-4 mb-4">
+                        <p class="text-sm text-gray-600 mb-1"><strong>Lettre de motivation:</strong></p>
+                        <p class="text-gray-700">${app.cover_letter || 'Aucune lettre fournie'}</p>
+                    </div>
+                    
+                    ${app.employer_notes ? `
+                        <div class="bg-blue-50 rounded p-4 mb-4">
+                            <p class="text-sm text-blue-600 mb-1"><strong>Note de l'employeur:</strong></p>
+                            <p class="text-gray-700">${app.employer_notes}</p>
+                        </div>
+                    ` : ''}
+                    
+                    <p class="text-sm text-gray-500">
+                        <i class="fas fa-clock mr-2"></i>Postulé le ${formatDate(app.created_at)}
+                    </p>
+                </div>
+            `;
+        }
+
+        // Format Date
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('fr-CA', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        // Show Error
+        function showError(elementId, message) {
+            const errorDiv = document.getElementById(elementId);
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+    </script>
+</body>
+</html>

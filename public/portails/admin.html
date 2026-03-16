@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portail Admin - HotelRestoJobs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-red-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <a href="/" class="flex items-center space-x-2">
+                    <i class="fas fa-utensils text-3xl"></i>
+                    <h1 class="text-2xl font-bold">HotelRestoJobs Admin</h1>
+                </a>
+                <div id="user-menu" class="hidden">
+                    <div class="flex items-center space-x-4">
+                        <span id="user-name" class="font-semibold"></span>
+                        <button onclick="logout()" class="bg-red-700 hover:bg-red-800 px-4 py-2 rounded">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Section Login -->
+        <div id="auth-section" class="max-w-md mx-auto">
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+                    <i class="fas fa-shield-alt text-red-600 mr-2"></i>
+                    Connexion Administrateur
+                </h2>
+                
+                <form onsubmit="login(event)">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Email</label>
+                        <input type="email" id="login-email" required 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-2">Mot de passe</label>
+                        <input type="password" id="login-password" required 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Se connecter
+                    </button>
+
+                    <div id="login-error" class="hidden mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"></div>
+                </form>
+
+                <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
+                    <p class="text-sm text-yellow-800">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <strong>Compte de test:</strong><br>
+                        Email: admin@hotelrestojobs.com<br>
+                        Password: admin123
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Section (hidden by default) -->
+        <div id="dashboard-section" class="hidden">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-gray-800">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    Tableau de Bord Administrateur
+                </h2>
+            </div>
+
+            <!-- Tabs -->
+            <div class="bg-white rounded-lg shadow mb-6">
+                <div class="flex border-b overflow-x-auto">
+                    <button onclick="showTab('stats')" id="tab-stats" class="px-6 py-4 font-semibold border-b-2 border-red-600 text-red-600 whitespace-nowrap">
+                        <i class="fas fa-chart-pie mr-2"></i>Statistiques
+                    </button>
+                    <button onclick="showTab('pending')" id="tab-pending" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-clock mr-2"></i>Offres en attente
+                        <span id="pending-count" class="ml-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs">0</span>
+                    </button>
+                    <button onclick="showTab('users')" id="tab-users" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-users mr-2"></i>Utilisateurs
+                    </button>
+                    <button onclick="showTab('featured')" id="tab-featured" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-star mr-2"></i>Emplois Vedettes
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Tab -->
+            <div id="content-stats">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="text-blue-600">
+                                <i class="fas fa-users text-4xl"></i>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-3xl font-bold text-gray-800" id="stat-total-users">0</div>
+                                <div class="text-sm text-gray-600">Utilisateurs</div>
+                            </div>
+                        </div>
+                        <div class="space-y-1 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Candidats:</span>
+                                <span class="font-semibold" id="stat-candidates">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Employeurs:</span>
+                                <span class="font-semibold" id="stat-employers">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="text-green-600">
+                                <i class="fas fa-briefcase text-4xl"></i>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-3xl font-bold text-gray-800" id="stat-total-jobs">0</div>
+                                <div class="text-sm text-gray-600">Offres d'emploi</div>
+                            </div>
+                        </div>
+                        <div class="space-y-1 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Actives:</span>
+                                <span class="font-semibold text-green-600" id="stat-jobs-active">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">En attente:</span>
+                                <span class="font-semibold text-yellow-600" id="stat-jobs-pending">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="text-purple-600">
+                                <i class="fas fa-paper-plane text-4xl"></i>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-3xl font-bold text-gray-800" id="stat-total-applications">0</div>
+                                <div class="text-sm text-gray-600">Candidatures</div>
+                            </div>
+                        </div>
+                        <div class="space-y-1 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">En attente:</span>
+                                <span class="font-semibold text-yellow-600" id="stat-apps-pending">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Acceptées:</span>
+                                <span class="font-semibold text-green-600" id="stat-apps-accepted">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="text-yellow-600">
+                                <i class="fas fa-dollar-sign text-4xl"></i>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-3xl font-bold text-gray-800" id="stat-revenue">0$</div>
+                                <div class="text-sm text-gray-600">Revenus vedettes</div>
+                            </div>
+                        </div>
+                        <div class="space-y-1 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Vedettes actives:</span>
+                                <span class="font-semibold text-yellow-600" id="stat-featured-active">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Répartition des utilisateurs</h3>
+                        <canvas id="users-chart"></canvas>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Statut des offres</h3>
+                        <canvas id="jobs-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Jobs Tab -->
+            <div id="content-pending" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Offres en attente de validation</h3>
+                    
+                    <div id="pending-jobs-list" class="space-y-4">
+                        <!-- Les offres en attente seront affichées ici -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="content-users" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">Gestion des utilisateurs</h3>
+                        <select id="filter-role" onchange="loadUsers()" 
+                                class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="">Tous les rôles</option>
+                            <option value="candidate">Candidats</option>
+                            <option value="employer">Employeurs</option>
+                            <option value="admin">Administrateurs</option>
+                        </select>
+                    </div>
+                    
+                    <div id="users-list" class="overflow-x-auto">
+                        <!-- Les utilisateurs seront affichés ici -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Featured Tab -->
+            <div id="content-featured" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Historique des emplois vedettes</h3>
+                    
+                    <div id="featured-orders-list" class="space-y-4">
+                        <!-- Les commandes vedettes seront affichées ici -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script>
+        let currentUser = null;
+        let usersChart = null;
+        let jobsChart = null;
+
+        // Vérifier si l'utilisateur est connecté au chargement
+        window.onload = function() {
+            const userData = localStorage.getItem('admin');
+            if (userData) {
+                currentUser = JSON.parse(userData);
+                showDashboard();
+            }
+        };
+
+        // Login
+        async function login(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await axios.post('/api/auth/login', {
+                    email,
+                    password
+                });
+
+                if (response.data.success && response.data.user.role === 'admin') {
+                    currentUser = response.data.user;
+                    localStorage.setItem('admin', JSON.stringify(currentUser));
+                    showDashboard();
+                } else {
+                    showError('login-error', 'Accès réservé aux administrateurs uniquement');
+                }
+            } catch (error) {
+                showError('login-error', error.response?.data?.error || 'Erreur de connexion');
+            }
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('admin');
+            currentUser = null;
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('user-menu').classList.add('hidden');
+        }
+
+        // Show Dashboard
+        async function showDashboard() {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
+            document.getElementById('user-menu').classList.remove('hidden');
+            document.getElementById('user-name').textContent = `${currentUser.first_name} ${currentUser.last_name}`;
+
+            showTab('stats');
+        }
+
+        // Show Tab
+        function showTab(tabName) {
+            // Hide all content
+            document.querySelectorAll('[id^="content-"]').forEach(el => el.classList.add('hidden'));
+            // Remove active from all tabs
+            document.querySelectorAll('[id^="tab-"]').forEach(el => {
+                el.classList.remove('border-red-600', 'text-red-600');
+                el.classList.add('text-gray-600');
+            });
+            
+            // Show selected content
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+            // Activate selected tab
+            const tab = document.getElementById(`tab-${tabName}`);
+            tab.classList.add('border-red-600', 'text-red-600');
+            tab.classList.remove('text-gray-600');
+
+            // Load data based on tab
+            if (tabName === 'stats') {
+                loadStats();
+            } else if (tabName === 'pending') {
+                loadPendingJobs();
+            } else if (tabName === 'users') {
+                loadUsers();
+            } else if (tabName === 'featured') {
+                loadFeaturedOrders();
+            }
+        }
+
+        // Load Stats
+        async function loadStats() {
+            try {
+                const response = await axios.get(`/api/admin/stats?user_id=${currentUser.id}`);
+                const stats = response.data;
+
+                // Update stat cards
+                document.getElementById('stat-total-users').textContent = stats.users.total;
+                document.getElementById('stat-total-jobs').textContent = stats.jobs.total;
+                document.getElementById('stat-total-applications').textContent = stats.applications.total;
+                document.getElementById('stat-revenue').textContent = stats.revenue.total.toFixed(2) + '$';
+                document.getElementById('stat-featured-active').textContent = stats.jobs.featured_active;
+
+                // Users by role
+                const candidatesCount = stats.users.by_role.find(r => r.role === 'candidate')?.count || 0;
+                const employersCount = stats.users.by_role.find(r => r.role === 'employer')?.count || 0;
+                document.getElementById('stat-candidates').textContent = candidatesCount;
+                document.getElementById('stat-employers').textContent = employersCount;
+
+                // Jobs by status
+                const activeJobs = stats.jobs.by_status.find(j => j.status === 'active')?.count || 0;
+                const pendingJobs = stats.jobs.by_status.find(j => j.status === 'pending')?.count || 0;
+                document.getElementById('stat-jobs-active').textContent = activeJobs;
+                document.getElementById('stat-jobs-pending').textContent = pendingJobs;
+                document.getElementById('pending-count').textContent = pendingJobs;
+
+                // Applications by status
+                const pendingApps = stats.applications.by_status.find(a => a.status === 'pending')?.count || 0;
+                const acceptedApps = stats.applications.by_status.find(a => a.status === 'accepted')?.count || 0;
+                document.getElementById('stat-apps-pending').textContent = pendingApps;
+                document.getElementById('stat-apps-accepted').textContent = acceptedApps;
+
+                // Create charts
+                createUsersChart(stats.users.by_role);
+                createJobsChart(stats.jobs.by_status);
+            } catch (error) {
+                console.error('Erreur chargement stats:', error);
+            }
+        }
+
+        // Create Users Chart
+        function createUsersChart(data) {
+            const ctx = document.getElementById('users-chart');
+            
+            if (usersChart) {
+                usersChart.destroy();
+            }
+
+            const labels = data.map(d => {
+                const roleLabels = {
+                    'candidate': 'Candidats',
+                    'employer': 'Employeurs',
+                    'admin': 'Admins'
+                };
+                return roleLabels[d.role] || d.role;
+            });
+            const counts = data.map(d => d.count);
+
+            usersChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: counts,
+                        backgroundColor: ['#3B82F6', '#10B981', '#EF4444'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true
+                }
+            });
+        }
+
+        // Create Jobs Chart
+        function createJobsChart(data) {
+            const ctx = document.getElementById('jobs-chart');
+            
+            if (jobsChart) {
+                jobsChart.destroy();
+            }
+
+            const labels = data.map(d => {
+                const statusLabels = {
+                    'pending': 'En attente',
+                    'active': 'Actives',
+                    'rejected': 'Rejetées',
+                    'expired': 'Expirées',
+                    'closed': 'Fermées'
+                };
+                return statusLabels[d.status] || d.status;
+            });
+            const counts = data.map(d => d.count);
+
+            jobsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Nombre d\'offres',
+                        data: counts,
+                        backgroundColor: ['#F59E0B', '#10B981', '#EF4444', '#6B7280', '#9CA3AF'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load Pending Jobs
+        async function loadPendingJobs() {
+            try {
+                const response = await axios.get(`/api/admin/jobs/pending?user_id=${currentUser.id}`);
+                const jobs = response.data.jobs;
+                
+                const container = document.getElementById('pending-jobs-list');
+                if (jobs.length === 0) {
+                    container.innerHTML = '<div class="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center text-gray-600">Aucune offre en attente</div>';
+                } else {
+                    container.innerHTML = jobs.map(job => createPendingJobCard(job)).join('');
+                }
+            } catch (error) {
+                console.error('Erreur chargement offres en attente:', error);
+            }
+        }
+
+        // Create Pending Job Card
+        function createPendingJobCard(job) {
+            return `
+                <div class="border-2 border-yellow-400 rounded-lg p-6 bg-yellow-50">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <h4 class="text-xl font-bold text-gray-800 mb-2">${job.title}</h4>
+                            <p class="text-gray-600 mb-2">
+                                <i class="fas fa-building mr-2"></i>${job.company_name}
+                            </p>
+                            <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
+                                <span><i class="fas fa-map-marker-alt mr-1"></i>${job.city}, ${job.province}</span>
+                                <span><i class="fas fa-briefcase mr-1"></i>${job.employment_type}</span>
+                                <span><i class="fas fa-user mr-1"></i>${job.employer_email}</span>
+                            </div>
+                        </div>
+                        <span class="bg-yellow-500 text-white px-4 py-2 rounded-full font-semibold">
+                            <i class="fas fa-clock mr-1"></i>En attente
+                        </span>
+                    </div>
+                    
+                    <div class="bg-white rounded p-4 mb-4">
+                        <p class="text-sm text-gray-600 mb-2"><strong>Description:</strong></p>
+                        <p class="text-gray-700">${job.description}</p>
+                    </div>
+                    
+                    ${job.requirements ? `
+                        <div class="bg-white rounded p-4 mb-4">
+                            <p class="text-sm text-gray-600 mb-2"><strong>Exigences:</strong></p>
+                            <p class="text-gray-700">${job.requirements}</p>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="flex justify-end space-x-4">
+                        <button onclick="validateJob(${job.id}, 'approve')" 
+                                class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700">
+                            <i class="fas fa-check mr-2"></i>Approuver
+                        </button>
+                        <button onclick="validateJob(${job.id}, 'reject')" 
+                                class="bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700">
+                            <i class="fas fa-times mr-2"></i>Rejeter
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Validate Job
+        async function validateJob(jobId, action) {
+            const confirmMessage = action === 'approve' 
+                ? 'Êtes-vous sûr de vouloir approuver cette offre ?' 
+                : 'Êtes-vous sûr de vouloir rejeter cette offre ?';
+                
+            if (!confirm(confirmMessage)) return;
+
+            try {
+                await axios.post(`/api/admin/jobs/${jobId}/validate?user_id=${currentUser.id}`, {
+                    action: action
+                });
+                
+                alert(action === 'approve' ? 'Offre approuvée avec succès' : 'Offre rejetée');
+                loadPendingJobs();
+                loadStats(); // Refresh stats
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors de la validation');
+            }
+        }
+
+        // Load Users
+        async function loadUsers() {
+            try {
+                const role = document.getElementById('filter-role').value;
+                let url = `/api/admin/users?user_id=${currentUser.id}`;
+                if (role) url += `&role=${role}`;
+                
+                const response = await axios.get(url);
+                const users = response.data.users;
+                
+                const container = document.getElementById('users-list');
+                if (users.length === 0) {
+                    container.innerHTML = '<div class="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center text-gray-600">Aucun utilisateur trouvé</div>';
+                } else {
+                    container.innerHTML = `
+                        <table class="min-w-full">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rôle</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Téléphone</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date d'inscription</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                ${users.map(user => createUserRow(user)).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                }
+            } catch (error) {
+                console.error('Erreur chargement utilisateurs:', error);
+            }
+        }
+
+        // Create User Row
+        function createUserRow(user) {
+            const roleColors = {
+                'candidate': 'bg-blue-100 text-blue-800',
+                'employer': 'bg-green-100 text-green-800',
+                'admin': 'bg-red-100 text-red-800'
+            };
+            const roleLabels = {
+                'candidate': 'Candidat',
+                'employer': 'Employeur',
+                'admin': 'Admin'
+            };
+
+            return `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="font-medium text-gray-900">${user.first_name} ${user.last_name}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-600">${user.email}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="${roleColors[user.role]} px-3 py-1 rounded-full text-sm font-semibold">
+                            ${roleLabels[user.role]}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-600">${user.phone || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-600">${formatDate(user.created_at)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${user.role !== 'admin' ? `
+                            <button onclick="deleteUser(${user.id})" class="text-red-600 hover:text-red-800 font-semibold">
+                                <i class="fas fa-trash mr-1"></i>Supprimer
+                            </button>
+                        ` : '<span class="text-gray-400">Protégé</span>'}
+                    </td>
+                </tr>
+            `;
+        }
+
+        // Delete User
+        async function deleteUser(userId) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.')) return;
+
+            try {
+                await axios.delete(`/api/admin/users/${userId}?user_id=${currentUser.id}`);
+                alert('Utilisateur supprimé avec succès');
+                loadUsers();
+                loadStats(); // Refresh stats
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors de la suppression');
+            }
+        }
+
+        // Load Featured Orders
+        async function loadFeaturedOrders() {
+            try {
+                const response = await axios.get(`/api/admin/featured-orders?user_id=${currentUser.id}`);
+                const orders = response.data.orders;
+                
+                const container = document.getElementById('featured-orders-list');
+                if (orders.length === 0) {
+                    container.innerHTML = '<div class="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center text-gray-600">Aucune commande vedette</div>';
+                } else {
+                    container.innerHTML = orders.map(order => createFeaturedOrderCard(order)).join('');
+                }
+            } catch (error) {
+                console.error('Erreur chargement commandes vedettes:', error);
+            }
+        }
+
+        // Create Featured Order Card
+        function createFeaturedOrderCard(order) {
+            const statusColors = {
+                'pending': 'bg-yellow-100 text-yellow-800',
+                'completed': 'bg-green-100 text-green-800',
+                'failed': 'bg-red-100 text-red-800',
+                'refunded': 'bg-gray-100 text-gray-800'
+            };
+            const statusLabels = {
+                'pending': 'En attente',
+                'completed': 'Complétée',
+                'failed': 'Échouée',
+                'refunded': 'Remboursée'
+            };
+
+            return `
+                <div class="border rounded-lg p-6 hover:shadow-md transition-shadow">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h4 class="text-xl font-bold text-gray-800 mb-2">${order.job_title}</h4>
+                            <p class="text-gray-600 mb-1">
+                                <i class="fas fa-building mr-2"></i>${order.company_name}
+                            </p>
+                            <p class="text-gray-600">
+                                <i class="fas fa-envelope mr-2"></i>${order.employer_email}
+                            </p>
+                        </div>
+                        <span class="${statusColors[order.status]} px-4 py-2 rounded-full font-semibold">
+                            ${statusLabels[order.status]}
+                        </span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <div class="bg-gray-50 rounded p-3">
+                            <div class="text-lg font-bold text-green-600">${order.amount}$</div>
+                            <div class="text-sm text-gray-600">Montant</div>
+                        </div>
+                        <div class="bg-gray-50 rounded p-3">
+                            <div class="text-lg font-bold text-blue-600">${order.duration_days} jours</div>
+                            <div class="text-sm text-gray-600">Durée</div>
+                        </div>
+                        <div class="bg-gray-50 rounded p-3">
+                            <div class="text-sm font-bold text-gray-800">${formatDate(order.created_at)}</div>
+                            <div class="text-sm text-gray-600">Date</div>
+                        </div>
+                        <div class="bg-gray-50 rounded p-3">
+                            <div class="text-xs font-mono text-gray-600">${order.payment_intent_id || 'N/A'}</div>
+                            <div class="text-sm text-gray-600">Transaction</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Format Date
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('fr-CA', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        // Show Error
+        function showError(elementId, message) {
+            const errorDiv = document.getElementById(elementId);
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+    </script>
+</body>
+</html>

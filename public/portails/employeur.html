@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portail Employeur - HotelRestoJobs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-green-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <a href="/" class="flex items-center space-x-2">
+                    <i class="fas fa-utensils text-3xl"></i>
+                    <h1 class="text-2xl font-bold">HotelRestoJobs</h1>
+                </a>
+                <div id="user-menu" class="hidden">
+                    <div class="flex items-center space-x-4">
+                        <span id="user-name" class="font-semibold"></span>
+                        <button onclick="logout()" class="bg-green-700 hover:bg-green-800 px-4 py-2 rounded">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Section Login/Register -->
+        <div id="auth-section" class="max-w-md mx-auto">
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <!-- Tabs -->
+                <div class="flex border-b mb-6">
+                    <button id="login-tab" onclick="showLogin()" class="flex-1 py-3 text-center font-semibold border-b-2 border-green-600 text-green-600">
+                        Connexion
+                    </button>
+                    <button id="register-tab" onclick="showRegister()" class="flex-1 py-3 text-center font-semibold text-gray-500 hover:text-gray-700">
+                        Inscription
+                    </button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form" onsubmit="login(event)">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Connexion Employeur</h2>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Email</label>
+                        <input type="email" id="login-email" required 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-2">Mot de passe</label>
+                        <input type="password" id="login-password" required 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+
+                    <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700">
+                        Se connecter
+                    </button>
+
+                    <div id="login-error" class="hidden mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"></div>
+                </form>
+
+                <!-- Register Form -->
+                <form id="register-form" class="hidden" onsubmit="register(event)">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Créer un compte employeur</h2>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Prénom</label>
+                            <input type="text" id="register-firstname" required 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Nom</label>
+                            <input type="text" id="register-lastname" required 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Email</label>
+                        <input type="email" id="register-email" required 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Téléphone</label>
+                        <input type="tel" id="register-phone" placeholder="514-555-0000"
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-2">Mot de passe</label>
+                        <input type="password" id="register-password" required minlength="6"
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <p class="text-sm text-gray-500 mt-1">Minimum 6 caractères</p>
+                    </div>
+
+                    <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700">
+                        Créer mon compte
+                    </button>
+
+                    <div id="register-error" class="hidden mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dashboard Section (hidden by default) -->
+        <div id="dashboard-section" class="hidden">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-gray-800">
+                    <i class="fas fa-briefcase mr-2"></i>
+                    Mon Espace Employeur
+                </h2>
+            </div>
+
+            <!-- Tabs -->
+            <div class="bg-white rounded-lg shadow mb-6">
+                <div class="flex border-b overflow-x-auto">
+                    <button onclick="showTab('jobs')" id="tab-jobs" class="px-6 py-4 font-semibold border-b-2 border-green-600 text-green-600 whitespace-nowrap">
+                        <i class="fas fa-list mr-2"></i>Mes Offres
+                    </button>
+                    <button onclick="showTab('create')" id="tab-create" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-plus-circle mr-2"></i>Nouvelle Offre
+                    </button>
+                    <button onclick="showTab('applications')" id="tab-applications" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-users mr-2"></i>Candidatures
+                    </button>
+                    <button onclick="showTab('company')" id="tab-company" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-building mr-2"></i>Mon Entreprise
+                    </button>
+                </div>
+            </div>
+
+            <!-- Jobs Tab -->
+            <div id="content-jobs">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">Mes offres d'emploi</h3>
+                        <button onclick="showTab('create')" class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700">
+                            <i class="fas fa-plus mr-2"></i>Nouvelle offre
+                        </button>
+                    </div>
+                    
+                    <div id="jobs-list" class="space-y-4">
+                        <!-- Les offres seront affichées ici -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Job Tab -->
+            <div id="content-create" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Créer une nouvelle offre d'emploi</h3>
+                    
+                    <form onsubmit="createJob(event)">
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-semibold mb-2">Titre du poste *</label>
+                            <input type="text" id="job-title" required 
+                                   placeholder="Ex: Chef de Cuisine, Serveur/Serveuse..."
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-semibold mb-2">Description du poste *</label>
+                            <textarea id="job-description" required rows="6"
+                                      placeholder="Décrivez le poste, les responsabilités..."
+                                      class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Type de poste *</label>
+                                <input type="text" id="job-position-type" required 
+                                       placeholder="Ex: Cuisinier, Serveur, Chef..."
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Type d'emploi *</label>
+                                <select id="job-employment-type" required 
+                                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    <option value="">Sélectionner</option>
+                                    <option value="full-time">Temps plein</option>
+                                    <option value="part-time">Temps partiel</option>
+                                    <option value="contract">Contrat</option>
+                                    <option value="temporary">Temporaire</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-semibold mb-2">Salaire</label>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <input type="number" id="job-salary-min" placeholder="Minimum"
+                                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                                <div>
+                                    <input type="number" id="job-salary-max" placeholder="Maximum"
+                                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                                <div>
+                                    <select id="job-salary-type"
+                                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                        <option value="">Type</option>
+                                        <option value="hourly">À l'heure</option>
+                                        <option value="annual">Annuel</option>
+                                        <option value="negotiable">Négociable</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Adresse *</label>
+                                <input type="text" id="job-location" required 
+                                       placeholder="123 Rue Principale"
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Ville *</label>
+                                <input type="text" id="job-city" required 
+                                       placeholder="Montréal"
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Province *</label>
+                                <select id="job-province" required 
+                                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    <option value="">Sélectionner</option>
+                                    <option value="QC">Québec (QC)</option>
+                                    <option value="ON">Ontario (ON)</option>
+                                    <option value="BC">Colombie-Britannique (BC)</option>
+                                    <option value="AB">Alberta (AB)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-semibold mb-2">Exigences du poste</label>
+                            <textarea id="job-requirements" rows="4"
+                                      placeholder="Expérience requise, formation, compétences..."
+                                      class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-semibold mb-2">Avantages offerts</label>
+                            <textarea id="job-benefits" rows="4"
+                                      placeholder="Assurances, vacances, repas fournis..."
+                                      class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                        </div>
+
+                        <div class="flex justify-end space-x-4">
+                            <button type="button" onclick="showTab('jobs')" 
+                                    class="px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50">
+                                Annuler
+                            </button>
+                            <button type="submit" 
+                                    class="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700">
+                                <i class="fas fa-save mr-2"></i>Publier l'offre
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Applications Tab -->
+            <div id="content-applications" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Candidatures reçues</h3>
+                    
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-2">Filtrer par offre</label>
+                        <select id="filter-job" onchange="loadApplicationsByJob()" 
+                                class="w-full max-w-md px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <option value="">Toutes les offres</option>
+                        </select>
+                    </div>
+                    
+                    <div id="applications-list" class="space-y-4">
+                        <!-- Les candidatures seront affichées ici -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Tab -->
+            <div id="content-company" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Informations de l'entreprise</h3>
+                    
+                    <form onsubmit="updateCompany(event)">
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-semibold mb-2">Nom de l'entreprise *</label>
+                            <input type="text" id="company-name" required 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-semibold mb-2">Description</label>
+                            <textarea id="company-description" rows="4"
+                                      placeholder="Décrivez votre entreprise, votre mission, vos valeurs..."
+                                      class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Adresse</label>
+                                <input type="text" id="company-address" 
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Ville</label>
+                                <input type="text" id="company-city" 
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Province</label>
+                                <select id="company-province" 
+                                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    <option value="">Sélectionner</option>
+                                    <option value="QC">Québec (QC)</option>
+                                    <option value="ON">Ontario (ON)</option>
+                                    <option value="BC">Colombie-Britannique (BC)</option>
+                                    <option value="AB">Alberta (AB)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Code postal</label>
+                                <input type="text" id="company-postal-code" 
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-semibold mb-2">Site web</label>
+                            <input type="url" id="company-website" placeholder="https://"
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+
+                        <button type="submit" class="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700">
+                            <i class="fas fa-save mr-2"></i>Enregistrer les modifications
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Featured -->
+    <div id="featured-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">
+                    <i class="fas fa-star text-yellow-500 mr-2"></i>
+                    Mettre en vedette
+                </h3>
+                <button onclick="closeFeaturedModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <div id="featured-job-info" class="mb-6 p-4 bg-gray-50 rounded-lg">
+                <!-- Info emploi -->
+            </div>
+
+            <div class="mb-6">
+                <h4 class="text-lg font-bold text-gray-800 mb-4">Choisissez une durée</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="featured-prices">
+                    <!-- Les prix seront chargés ici -->
+                </div>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <h5 class="font-bold text-blue-800 mb-2">Avantages des emplois vedettes :</h5>
+                <ul class="text-sm text-blue-700 space-y-1">
+                    <li><i class="fas fa-check-circle mr-2"></i>Affichage en haut de la liste</li>
+                    <li><i class="fas fa-check-circle mr-2"></i>Badge vedette visible</li>
+                    <li><i class="fas fa-check-circle mr-2"></i>Plus de visibilité et de candidatures</li>
+                </ul>
+            </div>
+
+            <input type="hidden" id="featured-job-id">
+            <input type="hidden" id="featured-duration">
+
+            <div class="flex justify-end space-x-4">
+                <button onclick="closeFeaturedModal()" 
+                        class="px-6 py-2 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50">
+                    Annuler
+                </button>
+                <button onclick="processFeaturedPayment()" 
+                        class="bg-yellow-500 text-white px-8 py-2 rounded-lg font-semibold hover:bg-yellow-600">
+                    <i class="fas fa-credit-card mr-2"></i>Procéder au paiement
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal View Application -->
+    <div id="application-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full p-8 max-h-screen overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Détails de la candidature</h3>
+                <button onclick="closeApplicationModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <div id="application-detail">
+                <!-- Le détail sera chargé ici -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script>
+        let currentUser = null;
+
+        // Vérifier si l'utilisateur est connecté au chargement
+        window.onload = function() {
+            const userData = localStorage.getItem('employer');
+            if (userData) {
+                currentUser = JSON.parse(userData);
+                showDashboard();
+            }
+        };
+
+        // Toggle Login/Register
+        function showLogin() {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('login-tab').classList.add('border-green-600', 'text-green-600');
+            document.getElementById('login-tab').classList.remove('text-gray-500');
+            document.getElementById('register-tab').classList.remove('border-green-600', 'text-green-600');
+            document.getElementById('register-tab').classList.add('text-gray-500');
+        }
+
+        function showRegister() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('register-tab').classList.add('border-green-600', 'text-green-600');
+            document.getElementById('register-tab').classList.remove('text-gray-500');
+            document.getElementById('login-tab').classList.remove('border-green-600', 'text-green-600');
+            document.getElementById('login-tab').classList.add('text-gray-500');
+        }
+
+        // Login
+        async function login(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await axios.post('/api/auth/login', {
+                    email,
+                    password
+                });
+
+                if (response.data.success && response.data.user.role === 'employer') {
+                    currentUser = response.data.user;
+                    localStorage.setItem('employer', JSON.stringify(currentUser));
+                    showDashboard();
+                } else {
+                    showError('login-error', 'Accès réservé aux employeurs uniquement');
+                }
+            } catch (error) {
+                showError('login-error', error.response?.data?.error || 'Erreur de connexion');
+            }
+        }
+
+        // Register
+        async function register(e) {
+            e.preventDefault();
+            const data = {
+                email: document.getElementById('register-email').value,
+                password: document.getElementById('register-password').value,
+                first_name: document.getElementById('register-firstname').value,
+                last_name: document.getElementById('register-lastname').value,
+                phone: document.getElementById('register-phone').value,
+                role: 'employer'
+            };
+
+            try {
+                const response = await axios.post('/api/auth/register', data);
+
+                if (response.data.success) {
+                    alert('Compte créé avec succès ! Vous pouvez maintenant vous connecter.');
+                    showLogin();
+                    document.getElementById('login-email').value = data.email;
+                }
+            } catch (error) {
+                showError('register-error', error.response?.data?.error || 'Erreur lors de l\'inscription');
+            }
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('employer');
+            currentUser = null;
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('user-menu').classList.add('hidden');
+        }
+
+        // Show Dashboard
+        async function showDashboard() {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
+            document.getElementById('user-menu').classList.remove('hidden');
+            document.getElementById('user-name').textContent = `${currentUser.first_name} ${currentUser.last_name}`;
+
+            await loadCompany();
+            showTab('jobs');
+        }
+
+        // Load Company
+        async function loadCompany() {
+            try {
+                const response = await axios.get(`/api/auth/profile/${currentUser.id}`);
+                const profile = response.data;
+
+                if (profile.company) {
+                    const company = profile.company;
+                    document.getElementById('company-name').value = company.name || '';
+                    document.getElementById('company-description').value = company.description || '';
+                    document.getElementById('company-address').value = company.address || '';
+                    document.getElementById('company-city').value = company.city || '';
+                    document.getElementById('company-province').value = company.province || '';
+                    document.getElementById('company-postal-code').value = company.postal_code || '';
+                    document.getElementById('company-website').value = company.website || '';
+                }
+            } catch (error) {
+                console.error('Erreur chargement entreprise:', error);
+            }
+        }
+
+        // Update Company (à implémenter côté API)
+        async function updateCompany(e) {
+            e.preventDefault();
+            alert('Fonctionnalité de mise à jour de l\'entreprise à venir !');
+        }
+
+        // Show Tab
+        function showTab(tabName) {
+            // Hide all content
+            document.querySelectorAll('[id^="content-"]').forEach(el => el.classList.add('hidden'));
+            // Remove active from all tabs
+            document.querySelectorAll('[id^="tab-"]').forEach(el => {
+                el.classList.remove('border-green-600', 'text-green-600');
+                el.classList.add('text-gray-600');
+            });
+            
+            // Show selected content
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+            // Activate selected tab
+            const tab = document.getElementById(`tab-${tabName}`);
+            tab.classList.add('border-green-600', 'text-green-600');
+            tab.classList.remove('text-gray-600');
+
+            // Load data based on tab
+            if (tabName === 'jobs') {
+                loadJobs();
+            } else if (tabName === 'applications') {
+                loadJobsForFilter();
+                loadApplicationsByJob();
+            }
+        }
+
+        // Load Jobs
+        async function loadJobs() {
+            try {
+                const response = await axios.get(`/api/jobs/employer/${currentUser.id}`);
+                const jobs = response.data.jobs;
+                
+                const container = document.getElementById('jobs-list');
+                if (jobs.length === 0) {
+                    container.innerHTML = '<div class="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center text-gray-600">Vous n\'avez pas encore d\'offres publiées</div>';
+                } else {
+                    container.innerHTML = jobs.map(job => createJobCard(job)).join('');
+                }
+            } catch (error) {
+                console.error('Erreur chargement emplois:', error);
+            }
+        }
+
+        // Create Job Card
+        function createJobCard(job) {
+            const statusColors = {
+                'pending': 'bg-yellow-100 text-yellow-800',
+                'active': 'bg-green-100 text-green-800',
+                'rejected': 'bg-red-100 text-red-800',
+                'expired': 'bg-gray-100 text-gray-800',
+                'closed': 'bg-gray-100 text-gray-800'
+            };
+            const statusLabels = {
+                'pending': 'En attente',
+                'active': 'Active',
+                'rejected': 'Rejetée',
+                'expired': 'Expirée',
+                'closed': 'Fermée'
+            };
+
+            return `
+                <div class="border rounded-lg p-6 hover:shadow-md transition-shadow ${job.is_featured ? 'border-yellow-400 bg-yellow-50' : ''}">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            ${job.is_featured ? '<div class="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-semibold inline-block mb-2"><i class="fas fa-star mr-1"></i>VEDETTE</div>' : ''}
+                            <h4 class="text-xl font-bold text-gray-800 mb-2">${job.title}</h4>
+                            <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-2">
+                                <span><i class="fas fa-map-marker-alt mr-1"></i>${job.city}, ${job.province}</span>
+                                <span><i class="fas fa-briefcase mr-1"></i>${job.employment_type}</span>
+                            </div>
+                        </div>
+                        <span class="${statusColors[job.status]} px-4 py-2 rounded-full font-semibold">
+                            ${statusLabels[job.status]}
+                        </span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-center">
+                        <div class="bg-gray-50 rounded p-3">
+                            <div class="text-2xl font-bold text-blue-600">${job.views_count}</div>
+                            <div class="text-sm text-gray-600">Vues</div>
+                        </div>
+                        <div class="bg-gray-50 rounded p-3">
+                            <div class="text-2xl font-bold text-green-600">${job.applications_count}</div>
+                            <div class="text-sm text-gray-600">Candidatures</div>
+                        </div>
+                        <div class="bg-gray-50 rounded p-3">
+                            <div class="text-sm font-bold text-gray-800">${formatDate(job.created_at)}</div>
+                            <div class="text-sm text-gray-600">Publiée</div>
+                        </div>
+                        <div class="bg-gray-50 rounded p-3">
+                            <div class="text-sm font-bold text-gray-800">${job.featured_until ? formatDate(job.featured_until) : 'N/A'}</div>
+                            <div class="text-sm text-gray-600">Vedette jusqu'à</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-3">
+                        <a href="/emploi/${job.id}" target="_blank" class="text-blue-600 hover:text-blue-800 font-semibold">
+                            <i class="fas fa-external-link-alt mr-1"></i>Voir l'annonce
+                        </a>
+                        ${job.status === 'active' && !job.is_featured ? `
+                            <button onclick="openFeaturedModal(${job.id})" class="text-yellow-600 hover:text-yellow-800 font-semibold">
+                                <i class="fas fa-star mr-1"></i>Mettre en vedette
+                            </button>
+                        ` : ''}
+                        ${job.status === 'active' ? `
+                            <button onclick="viewApplications(${job.id})" class="text-green-600 hover:text-green-800 font-semibold">
+                                <i class="fas fa-users mr-1"></i>Voir candidatures (${job.applications_count})
+                            </button>
+                        ` : ''}
+                        <button onclick="deleteJob(${job.id})" class="text-red-600 hover:text-red-800 font-semibold">
+                            <i class="fas fa-trash mr-1"></i>Supprimer
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Create Job
+        async function createJob(e) {
+            e.preventDefault();
+            
+            const data = {
+                user_id: currentUser.id,
+                title: document.getElementById('job-title').value,
+                description: document.getElementById('job-description').value,
+                position_type: document.getElementById('job-position-type').value,
+                employment_type: document.getElementById('job-employment-type').value,
+                salary_min: document.getElementById('job-salary-min').value || null,
+                salary_max: document.getElementById('job-salary-max').value || null,
+                salary_type: document.getElementById('job-salary-type').value || null,
+                location: document.getElementById('job-location').value,
+                city: document.getElementById('job-city').value,
+                province: document.getElementById('job-province').value,
+                requirements: document.getElementById('job-requirements').value || null,
+                benefits: document.getElementById('job-benefits').value || null
+            };
+
+            try {
+                const response = await axios.post('/api/jobs', data);
+                
+                if (response.data.success) {
+                    alert('Offre créée avec succès ! Elle sera visible après validation par l\'administrateur.');
+                    e.target.reset();
+                    showTab('jobs');
+                }
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors de la création de l\'offre');
+            }
+        }
+
+        // Delete Job
+        async function deleteJob(jobId) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cette offre ?')) return;
+
+            try {
+                await axios.delete(`/api/jobs/${jobId}?user_id=${currentUser.id}`);
+                alert('Offre supprimée avec succès');
+                loadJobs();
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors de la suppression');
+            }
+        }
+
+        // View Applications
+        function viewApplications(jobId) {
+            document.getElementById('filter-job').value = jobId;
+            showTab('applications');
+        }
+
+        // Load Jobs for Filter
+        async function loadJobsForFilter() {
+            try {
+                const response = await axios.get(`/api/jobs/employer/${currentUser.id}`);
+                const jobs = response.data.jobs;
+                
+                const select = document.getElementById('filter-job');
+                select.innerHTML = '<option value="">Toutes les offres</option>' + 
+                    jobs.map(job => `<option value="${job.id}">${job.title}</option>`).join('');
+            } catch (error) {
+                console.error('Erreur chargement emplois:', error);
+            }
+        }
+
+        // Load Applications by Job
+        async function loadApplicationsByJob() {
+            const jobId = document.getElementById('filter-job').value;
+            
+            if (!jobId) {
+                document.getElementById('applications-list').innerHTML = '<div class="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center text-gray-600">Sélectionnez une offre pour voir les candidatures</div>';
+                return;
+            }
+
+            try {
+                const response = await axios.get(`/api/applications/job/${jobId}?user_id=${currentUser.id}`);
+                const applications = response.data.applications;
+                
+                const container = document.getElementById('applications-list');
+                if (applications.length === 0) {
+                    container.innerHTML = '<div class="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center text-gray-600">Aucune candidature pour cette offre</div>';
+                } else {
+                    container.innerHTML = applications.map(app => createApplicationCard(app)).join('');
+                }
+            } catch (error) {
+                console.error('Erreur chargement candidatures:', error);
+            }
+        }
+
+        // Create Application Card
+        function createApplicationCard(app) {
+            const statusColors = {
+                'pending': 'bg-yellow-100 text-yellow-800',
+                'reviewed': 'bg-blue-100 text-blue-800',
+                'shortlisted': 'bg-green-100 text-green-800',
+                'rejected': 'bg-red-100 text-red-800',
+                'accepted': 'bg-green-500 text-white'
+            };
+            const statusLabels = {
+                'pending': 'Nouveau',
+                'reviewed': 'Vue',
+                'shortlisted': 'Présélectionné',
+                'rejected': 'Refusée',
+                'accepted': 'Acceptée'
+            };
+
+            return `
+                <div class="border rounded-lg p-6 hover:shadow-md transition-shadow">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h4 class="text-xl font-bold text-gray-800 mb-2">
+                                ${app.first_name} ${app.last_name}
+                            </h4>
+                            <div class="text-gray-600 space-y-1">
+                                <p><i class="fas fa-envelope mr-2"></i>${app.email}</p>
+                                ${app.phone ? `<p><i class="fas fa-phone mr-2"></i>${app.phone}</p>` : ''}
+                                ${app.experience_years ? `<p><i class="fas fa-briefcase mr-2"></i>${app.experience_years} ans d'expérience</p>` : ''}
+                            </div>
+                        </div>
+                        <span class="${statusColors[app.status]} px-4 py-2 rounded-full font-semibold">
+                            ${statusLabels[app.status]}
+                        </span>
+                    </div>
+                    
+                    ${app.bio ? `
+                        <div class="bg-gray-50 rounded p-4 mb-4">
+                            <p class="text-sm text-gray-600 mb-1"><strong>Bio:</strong></p>
+                            <p class="text-gray-700">${app.bio}</p>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="viewApplicationDetail(${app.id})" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700">
+                            <i class="fas fa-eye mr-2"></i>Voir détails
+                        </button>
+                        ${app.status === 'pending' ? `
+                            <button onclick="updateApplicationStatus(${app.id}, 'reviewed')" class="bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-700">
+                                <i class="fas fa-check mr-2"></i>Marquer comme vue
+                            </button>
+                        ` : ''}
+                        ${app.status !== 'rejected' ? `
+                            <button onclick="updateApplicationStatus(${app.id}, 'shortlisted')" class="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700">
+                                <i class="fas fa-star mr-2"></i>Présélectionner
+                            </button>
+                            <button onclick="updateApplicationStatus(${app.id}, 'rejected')" class="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700">
+                                <i class="fas fa-times mr-2"></i>Refuser
+                            </button>
+                        ` : ''}
+                    </div>
+                    
+                    <p class="text-sm text-gray-500 mt-4">
+                        <i class="fas fa-clock mr-2"></i>Reçue le ${formatDate(app.created_at)}
+                    </p>
+                </div>
+            `;
+        }
+
+        // View Application Detail (à implémenter)
+        async function viewApplicationDetail(appId) {
+            alert('Fonctionnalité de détail de candidature à venir !');
+        }
+
+        // Update Application Status
+        async function updateApplicationStatus(appId, status) {
+            try {
+                await axios.put(`/api/applications/${appId}/status`, {
+                    user_id: currentUser.id,
+                    status: status
+                });
+                
+                loadApplicationsByJob();
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors de la mise à jour');
+            }
+        }
+
+        // Open Featured Modal
+        async function openFeaturedModal(jobId) {
+            try {
+                // Charger les infos de l'emploi
+                const jobResponse = await axios.get(`/api/jobs/${jobId}`);
+                const job = jobResponse.data;
+                
+                document.getElementById('featured-job-id').value = jobId;
+                document.getElementById('featured-job-info').innerHTML = `
+                    <h4 class="font-bold text-lg mb-2">${job.title}</h4>
+                    <p class="text-gray-600">${job.city}, ${job.province}</p>
+                `;
+                
+                // Charger les prix
+                const pricesResponse = await axios.get('/api/featured/prices');
+                const prices = pricesResponse.data.prices;
+                
+                document.getElementById('featured-prices').innerHTML = prices.map(price => `
+                    <div onclick="selectFeaturedDuration(${price.duration_days}, ${price.price})" 
+                         class="border-2 border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-yellow-500 hover:bg-yellow-50 transition-all">
+                        <div class="text-3xl font-bold text-gray-800 mb-2">${price.price}$</div>
+                        <div class="text-lg font-semibold text-gray-700 mb-1">${price.label}</div>
+                        <div class="text-sm text-gray-500">${(price.price / price.duration_days).toFixed(2)}$ / jour</div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('featured-modal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Erreur ouverture modal vedette:', error);
+            }
+        }
+
+        // Select Featured Duration
+        function selectFeaturedDuration(days, price) {
+            document.getElementById('featured-duration').value = days;
+            
+            // Highlight selected
+            document.querySelectorAll('#featured-prices > div').forEach(el => {
+                el.classList.remove('border-yellow-500', 'bg-yellow-50');
+                el.classList.add('border-gray-300');
+            });
+            event.currentTarget.classList.add('border-yellow-500', 'bg-yellow-50');
+            event.currentTarget.classList.remove('border-gray-300');
+        }
+
+        // Close Featured Modal
+        function closeFeaturedModal() {
+            document.getElementById('featured-modal').classList.add('hidden');
+        }
+
+        // Process Featured Payment
+        async function processFeaturedPayment() {
+            const jobId = document.getElementById('featured-job-id').value;
+            const duration = document.getElementById('featured-duration').value;
+            
+            if (!duration) {
+                alert('Veuillez sélectionner une durée');
+                return;
+            }
+
+            try {
+                // Créer la commande
+                const orderResponse = await axios.post('/api/featured/order', {
+                    job_offer_id: parseInt(jobId),
+                    user_id: currentUser.id,
+                    duration_days: parseInt(duration)
+                });
+                
+                const orderId = orderResponse.data.order_id;
+                
+                // Simuler le paiement
+                const paymentResponse = await axios.post(`/api/featured/payment/${orderId}`, {
+                    user_id: currentUser.id
+                });
+                
+                if (paymentResponse.data.success) {
+                    alert('Paiement réussi ! Votre offre est maintenant en vedette.');
+                    closeFeaturedModal();
+                    loadJobs();
+                }
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors du paiement');
+            }
+        }
+
+        // Format Date
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('fr-CA', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        // Show Error
+        function showError(elementId, message) {
+            const errorDiv = document.getElementById(elementId);
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+    </script>
+</body>
+</html>
