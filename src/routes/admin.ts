@@ -215,4 +215,237 @@ admin.get('/featured-orders', requireAdmin, async (c) => {
   }
 });
 
+// ===== EMPLOYERS MANAGEMENT =====
+
+// Lister tous les employeurs avec détails
+admin.get('/employers', requireAdmin, async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare(`
+      SELECT 
+        u.id as user_id,
+        u.email,
+        u.first_name,
+        u.last_name,
+        u.phone,
+        u.created_at,
+        c.id as company_id,
+        c.name as company_name,
+        c.city as company_city,
+        c.province as company_province,
+        ec.credits_remaining,
+        ec.unlimited_until,
+        (SELECT COUNT(*) FROM job_offers jo WHERE jo.company_id = c.id) as total_jobs
+      FROM users u
+      LEFT JOIN companies c ON u.id = c.user_id
+      LEFT JOIN employer_credits ec ON u.id = ec.user_id
+      WHERE u.role = 'employer'
+      ORDER BY u.created_at DESC
+    `).all();
+
+    return c.json({ employers: results });
+  } catch (error) {
+    console.error('Erreur liste employeurs:', error);
+    return c.json({ error: 'Erreur lors de la récupération des employeurs' }, 500);
+  }
+});
+
+// Gérer les crédits d'un employeur
+admin.post('/employers/:userId/credits', requireAdmin, async (c) => {
+  try {
+    const userId = c.req.param('userId');
+    const body = await c.req.json<{
+      user_id: string;
+      action: 'add' | 'remove' | 'set';
+      amount: number;
+      note?: string;
+    }>();
+
+    const { action, amount, note } = body;
+
+    if (!['add', 'remove', 'set'].includes(action)) {
+      return c.json({ error: 'Action invalide' }, 400);
+    }
+
+    if (amount < 0) {
+      return c.json({ error: 'Le montant doit être positif' }, 400);
+    }
+
+    // Vérifier si l'employeur existe
+    const user = await c.env.DB.prepare(`
+      SELECT role FROM users WHERE id = ?
+    `).bind(userId).first<{ role: string }>();
+
+    if (!user || user.role !== 'employer') {
+      return c.json({ error: 'Employeur non trouvé' }, 404);
+    }
+
+    // Vérifier si l'enregistrement de crédits existe
+    const existingCredits = await c.env.DB.prepare(`
+      SELECT credits_remaining FROM employer_credits WHERE user_id = ?
+    `).bind(userId).first<{ credits_remaining: number }>();
+
+    if (!existingCredits) {
+      // Créer l'enregistrement s'il n'existe pas
+      await c.env.DB.prepare(`
+        INSERT INTO employer_credits (user_id, credits_remaining, updated_at)
+        VALUES (?, 0, CURRENT_TIMESTAMP)
+      `).bind(userId).run();
+    }
+
+    // Calculer le nouveau montant de crédits
+    let newAmount = 0;
+    const currentAmount = existingCredits?.credits_remaining || 0;
+
+    if (action === 'add') {
+      newAmount = currentAmount + amount;
+    } else if (action === 'remove') {
+      newAmount = Math.max(0, currentAmount - amount);
+    } else if (action === 'set') {
+      newAmount = amount;
+    }
+
+    // Mettre à jour les crédits
+    await c.env.DB.prepare(`
+      UPDATE employer_credits 
+      SET credits_remaining = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE user_id = ?
+    `).bind(newAmount, userId).run();
+
+    return c.json({
+      success: true,
+      message: 'Crédits mis à jour',
+      old_amount: currentAmount,
+      new_amount: newAmount
+    });
+  } catch (error) {
+    console.error('Erreur gestion crédits:', error);
+    return c.json({ error: 'Erreur lors de la mise à jour des crédits' }, 500);
+  }
+});
+
+// Récupérer les informations d'une entreprise
+admin.get('/employers/:userId/company', requireAdmin, async (c) => {
+  try {
+    const userId = c.req.param('userId');
+
+    const company = await c.env.DB.prepare(`
+      SELECT * FROM companies WHERE user_id = ?
+    `).bind(userId).first();
+
+    if (!company) {
+      return c.json({ error: 'Entreprise non trouvée' }, 404);
+    }
+
+    return c.json({ company });
+  } catch (error) {
+    console.error('Erreur récupération entreprise:', error);
+    return c.json({ error: 'Erreur lors de la récupération de l\'entreprise' }, 500);
+  }
+});
+
+// Mettre à jour les informations d'une entreprise
+admin.put('/employers/:userId/company', requireAdmin, async (c) => {
+  try {
+    const userId = c.req.param('userId');
+    const body = await c.req.json<{
+      user_id: string;
+      name: string;
+      description?: string;
+      city?: string;
+      province?: string;
+      phone?: string;
+      website?: string;
+    }>();
+
+    const { name, description, city, province, phone, website } = body;
+
+    if (!name) {
+      return c.json({ error: 'Le nom de l\'entreprise est requis' }, 400);
+    }
+
+    // Vérifier si l'entreprise existe
+    const existingCompany = await c.env.DB.prepare(`
+      SELECT id FROM companies WHERE user_id = ?
+    `).bind(userId).first();
+
+    if (!existingCompany) {
+      return c.json({ error: 'Entreprise non trouvée' }, 404);
+    }
+
+    // Mettre à jour l'entreprise
+    await c.env.DB.prepare(`
+      UPDATE companies 
+      SET 
+        name = ?,
+        description = ?,
+        city = ?,
+        province = ?,
+        phone = ?,
+        website = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE user_id = ?
+    `).bind(name, description, city, province, phone, website, userId).run();
+
+    return c.json({
+      success: true,
+      message: 'Entreprise mise à jour'
+    });
+  } catch (error) {
+    console.error('Erreur mise à jour entreprise:', error);
+    return c.json({ error: 'Erreur lors de la mise à jour de l\'entreprise' }, 500);
+  }
+});
+
+// Récupérer les détails complets d'un employeur
+admin.get('/employers/:userId/details', requireAdmin, async (c) => {
+  try {
+    const userId = c.req.param('userId');
+
+    // Informations employeur
+    const employer = await c.env.DB.prepare(`
+      SELECT id, email, first_name, last_name, phone, created_at
+      FROM users
+      WHERE id = ? AND role = 'employer'
+    `).bind(userId).first();
+
+    if (!employer) {
+      return c.json({ error: 'Employeur non trouvé' }, 404);
+    }
+
+    // Informations entreprise
+    const company = await c.env.DB.prepare(`
+      SELECT * FROM companies WHERE user_id = ?
+    `).bind(userId).first();
+
+    // Crédits
+    const credits = await c.env.DB.prepare(`
+      SELECT credits_remaining, unlimited_until
+      FROM employer_credits
+      WHERE user_id = ?
+    `).bind(userId).first();
+
+    // Statistiques
+    const stats = await c.env.DB.prepare(`
+      SELECT 
+        COUNT(DISTINCT jo.id) as total_jobs,
+        COUNT(DISTINCT CASE WHEN jo.status = 'active' THEN jo.id END) as active_jobs,
+        COUNT(DISTINCT CASE WHEN jo.is_featured = 1 THEN jo.id END) as featured_jobs,
+        COUNT(DISTINCT a.id) as total_applications
+      FROM job_offers jo
+      LEFT JOIN applications a ON jo.id = a.job_offer_id
+      WHERE jo.company_id = (SELECT id FROM companies WHERE user_id = ?)
+    `).bind(userId).first();
+
+    return c.json({
+      employer,
+      company,
+      credits: credits || { credits_remaining: 0, unlimited_until: null },
+      stats: stats || { total_jobs: 0, active_jobs: 0, featured_jobs: 0, total_applications: 0 }
+    });
+  } catch (error) {
+    console.error('Erreur détails employeur:', error);
+    return c.json({ error: 'Erreur lors de la récupération des détails' }, 500);
+  }
+});
+
 export default admin;

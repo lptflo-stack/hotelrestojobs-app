@@ -91,6 +91,9 @@
                     <button onclick="showTab('users')" id="tab-users" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
                         <i class="fas fa-users mr-2"></i>Utilisateurs
                     </button>
+                    <button onclick="showTab('employers')" id="tab-employers" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-building mr-2"></i>Employeurs
+                    </button>
                     <button onclick="showTab('featured')" id="tab-featured" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
                         <i class="fas fa-star mr-2"></i>Emplois Vedettes
                     </button>
@@ -234,6 +237,17 @@
                 </div>
             </div>
 
+            <!-- Employers Tab -->
+            <div id="content-employers" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Gestion des comptes employeurs</h3>
+                    
+                    <div id="employers-list" class="overflow-x-auto">
+                        <!-- Les employeurs seront affichés ici -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Featured Tab -->
             <!-- Featured Tab -->
             <div id="content-featured" class="hidden">
@@ -261,6 +275,137 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal Manage Credits -->
+    <div id="credits-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Gérer les crédits</h3>
+                <button onclick="closeCreditsModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-gray-700 font-semibold">Employeur:</span>
+                    <span id="credits-employer-name" class="text-gray-900"></span>
+                </div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-gray-700 font-semibold">Entreprise:</span>
+                    <span id="credits-company-name" class="text-gray-900"></span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-700 font-semibold">Crédits actuels:</span>
+                    <span id="credits-current" class="text-2xl font-bold text-blue-600">0</span>
+                </div>
+            </div>
+
+            <form onsubmit="saveCredits(event)">
+                <input type="hidden" id="credits-user-id">
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Action</label>
+                    <select id="credits-action" required 
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="add">Ajouter des crédits</option>
+                        <option value="remove">Retirer des crédits</option>
+                        <option value="set">Définir le montant exact</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Nombre de crédits</label>
+                    <input type="number" id="credits-amount" required min="0"
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-semibold mb-2">Note (optionnel)</label>
+                    <textarea id="credits-note" rows="3" 
+                              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Raison de l'ajustement..."></textarea>
+                </div>
+
+                <div class="flex space-x-4">
+                    <button type="button" onclick="closeCreditsModal()" 
+                            class="flex-1 bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-400">
+                        Annuler
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
+                        <i class="fas fa-save mr-2"></i>Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Edit Company -->
+    <div id="company-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Modifier l'entreprise</h3>
+                <button onclick="closeCompanyModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveCompany(event)">
+                <input type="hidden" id="company-id">
+                <input type="hidden" id="company-user-id">
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Nom de l'entreprise *</label>
+                    <input type="text" id="company-name" required 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Description</label>
+                    <textarea id="company-description" rows="4" 
+                              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Ville</label>
+                        <input type="text" id="company-city" 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Province</label>
+                        <input type="text" id="company-province" 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Téléphone</label>
+                        <input type="tel" id="company-phone" 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Site web</label>
+                        <input type="url" id="company-website" 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div class="flex space-x-4">
+                    <button type="button" onclick="closeCompanyModal()" 
+                            class="flex-1 bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-400">
+                        Annuler
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
+                        <i class="fas fa-save mr-2"></i>Enregistrer
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -416,6 +561,8 @@
                 loadPendingJobs();
             } else if (tabName === 'users') {
                 loadUsers();
+            } else if (tabName === 'employers') {
+                loadEmployers();
             } else if (tabName === 'featured') {
                 loadFeaturedOrders();
             } else if (tabName === 'pricing') {
@@ -712,6 +859,235 @@
                 loadStats(); // Refresh stats
             } catch (error) {
                 alert(error.response?.data?.error || 'Erreur lors de la suppression');
+            }
+        }
+
+        // ===== EMPLOYERS MANAGEMENT =====
+
+        // Load Employers
+        async function loadEmployers() {
+            try {
+                const response = await axios.get(`/api/admin/employers?user_id=${currentUser.id}`);
+                const employers = response.data.employers;
+                
+                const container = document.getElementById('employers-list');
+                if (employers.length === 0) {
+                    container.innerHTML = '<div class="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center text-gray-600">Aucun employeur trouvé</div>';
+                } else {
+                    container.innerHTML = `
+                        <table class="min-w-full">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employeur</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Entreprise</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Téléphone</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Crédits</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Offres</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Inscription</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                ${employers.map(emp => createEmployerRow(emp)).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                }
+            } catch (error) {
+                console.error('Erreur chargement employeurs:', error);
+            }
+        }
+
+        // Create Employer Row
+        function createEmployerRow(emp) {
+            const creditsClass = emp.credits_remaining > 5 ? 'text-green-600' : (emp.credits_remaining > 0 ? 'text-yellow-600' : 'text-red-600');
+            const unlimitedBadge = emp.unlimited_until && new Date(emp.unlimited_until) > new Date() 
+                ? '<span class="ml-2 bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-semibold">ILLIMITÉ</span>' 
+                : '';
+            
+            return `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium text-gray-900">${emp.first_name} ${emp.last_name}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900 font-semibold">${emp.company_name || 'N/A'}</div>
+                        <div class="text-xs text-gray-500">${emp.company_city || ''} ${emp.company_province || ''}</div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${emp.email}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${emp.phone || 'N/A'}</td>
+                    <td class="px-6 py-4">
+                        <span class="text-lg font-bold ${creditsClass}">${emp.credits_remaining || 0}</span>
+                        ${unlimitedBadge}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${emp.total_jobs || 0}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${new Date(emp.created_at).toLocaleDateString('fr-CA')}</td>
+                    <td class="px-6 py-4 text-sm">
+                        <button onclick="openCreditsModal(${emp.user_id}, '${emp.first_name} ${emp.last_name}', '${emp.company_name || ''}', ${emp.credits_remaining || 0})" 
+                                class="text-blue-600 hover:text-blue-800 mr-3" title="Gérer les crédits">
+                            <i class="fas fa-coins"></i>
+                        </button>
+                        <button onclick="openEditCompanyModal(${emp.user_id}, ${emp.company_id})" 
+                                class="text-green-600 hover:text-green-800 mr-3" title="Modifier l'entreprise">
+                            <i class="fas fa-building"></i>
+                        </button>
+                        <button onclick="viewEmployerDetails(${emp.user_id})" 
+                                class="text-purple-600 hover:text-purple-800" title="Voir détails">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // Open Credits Modal
+        function openCreditsModal(userId, employerName, companyName, currentCredits) {
+            document.getElementById('credits-user-id').value = userId;
+            document.getElementById('credits-employer-name').textContent = employerName;
+            document.getElementById('credits-company-name').textContent = companyName || 'Non renseigné';
+            document.getElementById('credits-current').textContent = currentCredits;
+            document.getElementById('credits-amount').value = '';
+            document.getElementById('credits-note').value = '';
+            document.getElementById('credits-action').value = 'add';
+            document.getElementById('credits-modal').classList.remove('hidden');
+        }
+
+        // Close Credits Modal
+        function closeCreditsModal() {
+            document.getElementById('credits-modal').classList.add('hidden');
+        }
+
+        // Save Credits
+        async function saveCredits(e) {
+            e.preventDefault();
+            const userId = document.getElementById('credits-user-id').value;
+            const action = document.getElementById('credits-action').value;
+            const amount = parseInt(document.getElementById('credits-amount').value);
+            const note = document.getElementById('credits-note').value;
+
+            if (amount < 0) {
+                alert('Le montant doit être positif');
+                return;
+            }
+
+            try {
+                await axios.post(`/api/admin/employers/${userId}/credits`, {
+                    user_id: currentUser.id,
+                    action,
+                    amount,
+                    note
+                });
+
+                alert('Crédits mis à jour avec succès');
+                closeCreditsModal();
+                loadEmployers();
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors de la mise à jour des crédits');
+            }
+        }
+
+        // Open Edit Company Modal
+        async function openEditCompanyModal(userId, companyId) {
+            try {
+                const response = await axios.get(`/api/admin/employers/${userId}/company?user_id=${currentUser.id}`);
+                const company = response.data.company;
+
+                document.getElementById('company-id').value = companyId;
+                document.getElementById('company-user-id').value = userId;
+                document.getElementById('company-name').value = company.name || '';
+                document.getElementById('company-description').value = company.description || '';
+                document.getElementById('company-city').value = company.city || '';
+                document.getElementById('company-province').value = company.province || '';
+                document.getElementById('company-phone').value = company.phone || '';
+                document.getElementById('company-website').value = company.website || '';
+
+                document.getElementById('company-modal').classList.remove('hidden');
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors du chargement de l\'entreprise');
+            }
+        }
+
+        // Close Company Modal
+        function closeCompanyModal() {
+            document.getElementById('company-modal').classList.add('hidden');
+        }
+
+        // Save Company
+        async function saveCompany(e) {
+            e.preventDefault();
+            const userId = document.getElementById('company-user-id').value;
+            const companyId = document.getElementById('company-id').value;
+            
+            const data = {
+                user_id: currentUser.id,
+                name: document.getElementById('company-name').value,
+                description: document.getElementById('company-description').value,
+                city: document.getElementById('company-city').value,
+                province: document.getElementById('company-province').value,
+                phone: document.getElementById('company-phone').value,
+                website: document.getElementById('company-website').value
+            };
+
+            try {
+                await axios.put(`/api/admin/employers/${userId}/company`, data);
+                alert('Entreprise mise à jour avec succès');
+                closeCompanyModal();
+                loadEmployers();
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors de la mise à jour de l\'entreprise');
+            }
+        }
+
+        // View Employer Details
+        async function viewEmployerDetails(userId) {
+            try {
+                const response = await axios.get(`/api/admin/employers/${userId}/details?user_id=${currentUser.id}`);
+                const details = response.data;
+                
+                let detailsHtml = `
+                    <div class="space-y-4">
+                        <h4 class="text-xl font-bold text-gray-800">Détails de l'employeur</h4>
+                        
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h5 class="font-bold mb-2">Informations générales</h5>
+                            <p><strong>Nom:</strong> ${details.employer.first_name} ${details.employer.last_name}</p>
+                            <p><strong>Email:</strong> ${details.employer.email}</p>
+                            <p><strong>Téléphone:</strong> ${details.employer.phone || 'N/A'}</p>
+                            <p><strong>Entreprise:</strong> ${details.company?.name || 'N/A'}</p>
+                        </div>
+
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h5 class="font-bold mb-2">Crédits</h5>
+                            <p><strong>Crédits restants:</strong> ${details.credits.credits_remaining || 0}</p>
+                            <p><strong>Forfait illimité:</strong> ${details.credits.unlimited_until ? 'Jusqu\'au ' + new Date(details.credits.unlimited_until).toLocaleDateString('fr-CA') : 'Non'}</p>
+                        </div>
+
+                        <div class="bg-yellow-50 p-4 rounded-lg">
+                            <h5 class="font-bold mb-2">Statistiques</h5>
+                            <p><strong>Offres publiées:</strong> ${details.stats.total_jobs}</p>
+                            <p><strong>Offres actives:</strong> ${details.stats.active_jobs}</p>
+                            <p><strong>Candidatures reçues:</strong> ${details.stats.total_applications}</p>
+                            <p><strong>Offres vedettes:</strong> ${details.stats.featured_jobs}</p>
+                        </div>
+                    </div>
+                `;
+
+                // Créer un modal temporaire pour afficher les détails
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-8">
+                        ${detailsHtml}
+                        <button onclick="this.closest('.fixed').remove()" 
+                                class="mt-6 w-full bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700">
+                            Fermer
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors du chargement des détails');
             }
         }
 
