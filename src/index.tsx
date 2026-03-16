@@ -9,6 +9,7 @@ import jobs from './routes/jobs';
 import applications from './routes/applications';
 import admin from './routes/admin';
 import featured from './routes/featured';
+import pricing from './routes/pricing';
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -25,6 +26,7 @@ app.route('/api/jobs', jobs);
 app.route('/api/applications', applications);
 app.route('/api/admin', admin);
 app.route('/api/featured', featured);
+app.route('/api/pricing', pricing);
 
 // Page d'accueil
 app.get('/', (c) => {

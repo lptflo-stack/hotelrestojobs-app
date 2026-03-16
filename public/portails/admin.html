@@ -94,6 +94,9 @@
                     <button onclick="showTab('featured')" id="tab-featured" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
                         <i class="fas fa-star mr-2"></i>Emplois Vedettes
                     </button>
+                    <button onclick="showTab('pricing')" id="tab-pricing" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-tags mr-2"></i>Tarification
+                    </button>
                 </div>
             </div>
 
@@ -232,6 +235,7 @@
             </div>
 
             <!-- Featured Tab -->
+            <!-- Featured Tab -->
             <div id="content-featured" class="hidden">
                 <div class="bg-white rounded-lg shadow-lg p-6">
                     <h3 class="text-2xl font-bold text-gray-800 mb-6">Historique des emplois vedettes</h3>
@@ -241,6 +245,92 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Pricing Tab -->
+            <div id="content-pricing" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">Gestion de la tarification</h3>
+                        <button onclick="openAddPricingModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">
+                            <i class="fas fa-plus mr-2"></i>Ajouter un tarif
+                        </button>
+                    </div>
+                    
+                    <div id="pricing-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Les tarifs seront affichés ici -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Add/Edit Pricing -->
+    <div id="pricing-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800" id="pricing-modal-title">Ajouter un tarif</h3>
+                <button onclick="closePricingModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <form onsubmit="savePricing(event)">
+                <input type="hidden" id="pricing-id">
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Nom du forfait *</label>
+                    <input type="text" id="pricing-name" required 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Type *</label>
+                    <select id="pricing-type" required onchange="togglePricingFields()" 
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Sélectionner un type</option>
+                        <option value="single">Annonce simple</option>
+                        <option value="credits">Forfait crédits</option>
+                        <option value="unlimited">Forfait illimité</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div id="credits-field" style="display: none;">
+                        <label class="block text-gray-700 font-semibold mb-2">Nombre de crédits</label>
+                        <input type="number" id="pricing-credits" min="1" 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Prix (CAD) *</label>
+                        <input type="number" id="pricing-price" required min="0" step="0.01" 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div id="duration-field" style="display: none;">
+                        <label class="block text-gray-700 font-semibold mb-2">Durée (jours)</label>
+                        <input type="number" id="pricing-duration" min="1" 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-semibold mb-2">Description</label>
+                    <textarea id="pricing-description" rows="3" 
+                              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closePricingModal()" 
+                            class="px-6 py-2 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50">
+                        Annuler
+                    </button>
+                    <button type="submit" 
+                            class="bg-blue-600 text-white px-8 py-2 rounded-lg font-semibold hover:bg-blue-700">
+                        <i class="fas fa-save mr-2"></i>Enregistrer
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -328,6 +418,10 @@
                 loadUsers();
             } else if (tabName === 'featured') {
                 loadFeaturedOrders();
+            } else if (tabName === 'pricing') {
+                loadPricing();
+            }
+        }
             }
         }
 
@@ -706,6 +800,187 @@
             errorDiv.textContent = message;
             errorDiv.classList.remove('hidden');
             setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+
+        // ===== PRICING MANAGEMENT =====
+
+        // Load Pricing Plans
+        async function loadPricing() {
+            try {
+                const response = await axios.get('/api/pricing');
+                const plans = response.data.plans;
+                
+                const container = document.getElementById('pricing-list');
+                if (plans.length === 0) {
+                    container.innerHTML = '<div class="col-span-4 bg-gray-100 border border-gray-300 rounded-lg p-6 text-center text-gray-600">Aucun tarif configuré</div>';
+                } else {
+                    container.innerHTML = plans.map(plan => createPricingCard(plan)).join('');
+                }
+            } catch (error) {
+                console.error('Erreur chargement tarifs:', error);
+            }
+        }
+
+        // Create Pricing Card
+        function createPricingCard(plan) {
+            const typeLabels = {
+                'single': '💼 Simple',
+                'credits': '🎫 Crédits',
+                'unlimited': '🚀 Illimité'
+            };
+
+            const typeColors = {
+                'single': 'bg-blue-50 border-blue-200',
+                'credits': 'bg-green-50 border-green-200',
+                'unlimited': 'bg-purple-50 border-purple-200'
+            };
+
+            return `
+                <div class="border-2 ${typeColors[plan.type]} rounded-lg p-6 hover:shadow-lg transition-shadow">
+                    <div class="mb-4">
+                        <div class="text-sm font-semibold text-gray-600 mb-2">${typeLabels[plan.type]}</div>
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">${plan.name}</h4>
+                        <div class="text-3xl font-bold text-blue-600 mb-2">
+                            ${plan.price.toFixed(2)} $
+                        </div>
+                        ${plan.credits ? `<div class="text-sm text-gray-600">✓ ${plan.credits} crédits d'annonces</div>` : ''}
+                        ${plan.duration_days ? `<div class="text-sm text-gray-600">✓ Valide ${plan.duration_days} jours</div>` : ''}
+                        ${plan.type === 'unlimited' ? '<div class="text-sm text-gray-600">✓ Annonces illimitées</div>' : ''}
+                    </div>
+                    
+                    ${plan.description ? `
+                        <p class="text-sm text-gray-700 mb-4">${plan.description}</p>
+                    ` : ''}
+                    
+                    <div class="flex justify-between items-center mt-4 pt-4 border-t">
+                        <span class="text-xs ${plan.is_active ? 'text-green-600' : 'text-red-600'} font-semibold">
+                            ${plan.is_active ? '✓ Actif' : '✗ Inactif'}
+                        </span>
+                        <div class="space-x-2">
+                            <button onclick="editPricing(${plan.id})" class="text-blue-600 hover:text-blue-800 text-sm font-semibold">
+                                <i class="fas fa-edit mr-1"></i>Modifier
+                            </button>
+                            <button onclick="togglePricingStatus(${plan.id}, ${plan.is_active})" class="text-${plan.is_active ? 'red' : 'green'}-600 hover:text-${plan.is_active ? 'red' : 'green'}-800 text-sm font-semibold">
+                                <i class="fas fa-${plan.is_active ? 'ban' : 'check'} mr-1"></i>${plan.is_active ? 'Désactiver' : 'Activer'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Open Add Pricing Modal
+        function openAddPricingModal() {
+            document.getElementById('pricing-modal-title').textContent = 'Ajouter un tarif';
+            document.getElementById('pricing-id').value = '';
+            document.getElementById('pricing-name').value = '';
+            document.getElementById('pricing-type').value = '';
+            document.getElementById('pricing-credits').value = '';
+            document.getElementById('pricing-price').value = '';
+            document.getElementById('pricing-duration').value = '';
+            document.getElementById('pricing-description').value = '';
+            document.getElementById('pricing-modal').classList.remove('hidden');
+            togglePricingFields();
+        }
+
+        // Close Pricing Modal
+        function closePricingModal() {
+            document.getElementById('pricing-modal').classList.add('hidden');
+        }
+
+        // Toggle Pricing Fields based on type
+        function togglePricingFields() {
+            const type = document.getElementById('pricing-type').value;
+            const creditsField = document.getElementById('credits-field');
+            const durationField = document.getElementById('duration-field');
+            
+            if (type === 'credits') {
+                creditsField.style.display = 'block';
+                durationField.style.display = 'none';
+                document.getElementById('pricing-credits').required = true;
+                document.getElementById('pricing-duration').required = false;
+            } else if (type === 'unlimited') {
+                creditsField.style.display = 'none';
+                durationField.style.display = 'block';
+                document.getElementById('pricing-credits').required = false;
+                document.getElementById('pricing-duration').required = true;
+            } else {
+                creditsField.style.display = 'none';
+                durationField.style.display = 'none';
+                document.getElementById('pricing-credits').required = false;
+                document.getElementById('pricing-duration').required = false;
+            }
+        }
+
+        // Save Pricing
+        async function savePricing(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('pricing-id').value;
+            const data = {
+                name: document.getElementById('pricing-name').value,
+                type: document.getElementById('pricing-type').value,
+                credits: parseInt(document.getElementById('pricing-credits').value) || null,
+                price: parseFloat(document.getElementById('pricing-price').value),
+                duration_days: parseInt(document.getElementById('pricing-duration').value) || null,
+                description: document.getElementById('pricing-description').value || null
+            };
+
+            try {
+                if (id) {
+                    // Update
+                    await axios.put(`/api/pricing/${id}?user_id=${currentUser.id}`, data);
+                    alert('Tarif mis à jour avec succès');
+                } else {
+                    // Create
+                    await axios.post(`/api/pricing?user_id=${currentUser.id}`, data);
+                    alert('Tarif créé avec succès');
+                }
+                
+                closePricingModal();
+                loadPricing();
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors de l\'enregistrement');
+            }
+        }
+
+        // Edit Pricing
+        async function editPricing(id) {
+            try {
+                const response = await axios.get(`/api/pricing/${id}`);
+                const plan = response.data;
+                
+                document.getElementById('pricing-modal-title').textContent = 'Modifier le tarif';
+                document.getElementById('pricing-id').value = plan.id;
+                document.getElementById('pricing-name').value = plan.name;
+                document.getElementById('pricing-type').value = plan.type;
+                document.getElementById('pricing-credits').value = plan.credits || '';
+                document.getElementById('pricing-price').value = plan.price;
+                document.getElementById('pricing-duration').value = plan.duration_days || '';
+                document.getElementById('pricing-description').value = plan.description || '';
+                
+                togglePricingFields();
+                document.getElementById('pricing-modal').classList.remove('hidden');
+            } catch (error) {
+                alert('Erreur lors du chargement du tarif');
+            }
+        }
+
+        // Toggle Pricing Status
+        async function togglePricingStatus(id, currentStatus) {
+            const action = currentStatus ? 'désactiver' : 'activer';
+            if (!confirm(`Êtes-vous sûr de vouloir ${action} ce tarif ?`)) return;
+
+            try {
+                await axios.put(`/api/pricing/${id}?user_id=${currentUser.id}`, {
+                    is_active: currentStatus ? 0 : 1
+                });
+                
+                alert(`Tarif ${currentStatus ? 'désactivé' : 'activé'} avec succès`);
+                loadPricing();
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors de la modification');
+            }
         }
     </script>
 </body>
