@@ -23,10 +23,26 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
 ### Portail Employeur
 - ✅ Inscription et connexion
 - ✅ Gestion de l'entreprise (nom, description, coordonnées)
+- ✅ **Gestion des crédits d'annonces** (NOUVEAU)
+  - Affichage visuel des crédits disponibles
+  - Date d'expiration du forfait illimité sous le nom
+  - Statistiques : crédits utilisés, annonces actives/expirées
+  - Achat direct de forfaits depuis le portail
+  - Explication : 1 crédit = 1 annonce valide 30 jours
 - ✅ Création d'offres d'emploi détaillées
-- ✅ Gestion des offres (modification, suppression)
+- ✅ Gestion des offres actives (modification, suppression)
+- ✅ **Annonces expirées** (NOUVEAU)
+  - Liste des annonces avec statut expiré
+  - Republication en 1 clic (coûte 1 crédit)
+  - Calcul automatique nouvelle date d'expiration (+30 jours)
+  - Statistiques conservées (vues, candidatures)
 - ✅ Consultation des candidatures reçues
 - ✅ Gestion des candidatures (statut, notes)
+- ✅ **Historique des factures** (NOUVEAU)
+  - Toutes les transactions (achats, déductions, ajustements)
+  - Détails : montant, crédits avant/après, date, description
+  - Numéros de facture pour les achats
+  - Notes administrateur si présentes
 - ✅ Mise en vedette des offres (option payante)
   - 7 jours : 29.99$
   - 15 jours : 49.99$
@@ -38,14 +54,29 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
 - ✅ Tableau de bord avec statistiques globales
 - ✅ Graphiques interactifs (Chart.js)
 - ✅ Validation des offres en attente
+  - Vérification automatique des crédits avant activation
+  - Déduction de 1 crédit lors de l'activation
+  - Calcul automatique date d'expiration (30 jours)
+  - Création des notifications d'expiration (7j, 3j, expirée)
 - ✅ Gestion des utilisateurs
-- ✅ **Gestion complète des comptes employeurs** (NOUVEAU)
+- ✅ **Gestion complète des comptes employeurs**
   - Vue détaillée de tous les employeurs avec leurs entreprises
   - Gestion des crédits (ajouter/retirer/définir avec notes)
   - Modification des informations de l'entreprise
+  - Gestion des utilisateurs de l'entreprise (ajouter/modifier/activer/désactiver)
   - Affichage des statistiques employeur (offres, candidatures, etc.)
   - Badges visuels pour le niveau de crédits
   - Identification des forfaits illimités
+- ✅ **Transactions et factures** (NOUVEAU)
+  - Vue consolidée de toutes les transactions de tous les employeurs
+  - Filtres par type et par employeur
+  - Affichage complet : entreprise, montant, crédits, notes admin
+  - Types : achats, déductions, remboursements, ajustements, expirations
+- ✅ **Annonces expirées** (NOUVEAU)
+  - Liste de toutes les annonces expirées du système
+  - Affichage : employeur, entreprise, statistiques
+  - Actions : voir détails, supprimer
+  - Tri par date d'expiration
 - ✅ Historique des emplois vedettes
 - ✅ Aperçu des revenus
 - ✅ **Gestion de la tarification**
@@ -121,7 +152,7 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
 - `pending` : En attente de validation admin
 - `active` : Offre publiée et visible
 - `rejected` : Rejetée par l'admin
-- `expired` : Expirée
+- `expired` : Expirée (après 30 jours)
 - `closed` : Fermée manuellement
 
 ### Statuts des candidatures
@@ -130,6 +161,65 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
 - `shortlisted` : Présélectionnée
 - `rejected` : Refusée
 - `accepted` : Acceptée
+
+## 💳 Système de crédits et facturation
+
+### Fonctionnement des crédits
+- **1 crédit = 1 annonce valide pendant 30 jours**
+- Les crédits sont déduits automatiquement lors de l'activation d'une annonce par l'admin
+- Date d'expiration calculée automatiquement : `created_at + 30 jours`
+- Notifications d'expiration envoyées à 7 jours, 3 jours et le jour de l'expiration
+- Les annonces expirées peuvent être republiées (coûte 1 crédit)
+
+### Forfaits disponibles
+1. **Annonce simple** - 50$ CAD
+   - 1 crédit
+   - Idéal pour tester le service
+   
+2. **Forfait 5 crédits** - 200$ CAD
+   - 5 crédits (40$/crédit)
+   - Économie de 10$ vs annonces simples
+   
+3. **Forfait 10 crédits** - 400$ CAD
+   - 10 crédits (40$/crédit)
+   - Économie de 100$ vs annonces simples
+   
+4. **Forfait illimité (1 an)** - 1250$ CAD
+   - Annonces illimitées pendant 365 jours
+   - Idéal pour recrutement régulier
+   - `unlimited_until` date stockée dans `employer_credits`
+
+### Transactions et historique
+Types de transactions :
+- `purchase` : Achat de forfait (crédits ajoutés)
+- `deduction` : Utilisation de crédit (publication/republication)
+- `refund` : Remboursement (crédits restaurés)
+- `admin_adjustment` : Ajustement manuel par admin
+- `expiration` : Expiration d'une annonce
+
+Chaque transaction stocke :
+- Crédits avant/après (`balance_before`, `balance_after`)
+- Montant payé et devise
+- Référence à l'annonce ou au forfait
+- Numéro de facture (achats)
+- Note administrateur (ajustements)
+- Identifiants Stripe (production)
+
+### Tables de données
+- **`employer_credits`** : Solde de crédits par employeur
+- **`credit_transactions`** : Historique de toutes les transactions
+- **`plan_purchases`** : Factures d'achats de forfaits
+- **`expiration_notifications`** : Notifications programmées
+- **`job_offers.expires_at`** : Date d'expiration de chaque annonce
+
+### Vue `employer_credit_stats`
+Statistiques consolidées par employeur :
+- `credits_remaining` : Crédits disponibles
+- `unlimited_until` : Date fin forfait illimité
+- `total_purchases` : Nombre d'achats
+- `total_used` : Crédits utilisés
+- `active_jobs` : Annonces actives
+- `expired_jobs` : Annonces expirées
 
 ## 🛠️ Technologies utilisées
 
@@ -162,9 +252,10 @@ webapp/
 │       ├── auth.ts            # Authentification
 │       ├── jobs.ts            # Gestion des emplois
 │       ├── applications.ts    # Gestion des candidatures
-│       ├── admin.ts           # Routes administrateur
+│       ├── admin.ts           # Routes administrateur + employeurs
 │       ├── featured.ts        # Emplois vedettes
-│       └── pricing.ts         # Gestion de la tarification
+│       ├── pricing.ts         # Gestion de la tarification
+│       └── payments.ts        # Paiements et transactions
 ├── public/
 │   └── portails/
 │       ├── candidat.html      # Interface candidat
@@ -172,7 +263,8 @@ webapp/
 │       └── admin.html         # Interface admin
 ├── migrations/
 │   ├── 0001_initial_schema.sql
-│   └── 0002_pricing_system.sql
+│   ├── 0002_pricing_system.sql
+│   └── 0003_credits_transactions_system.sql
 ├── seed.sql                   # Données de test
 ├── wrangler.jsonc            # Configuration Cloudflare
 ├── package.json
@@ -242,6 +334,7 @@ curl http://localhost:3000/api/jobs
 - `PUT /api/jobs/:id` - Modifier une offre (employeur)
 - `DELETE /api/jobs/:id` - Supprimer une offre (employeur)
 - `GET /api/jobs/employer/:userId` - Emplois d'un employeur
+- `POST /api/jobs/:id/republish` - Republier une annonce expirée (coûte 1 crédit)
 
 ### Candidatures
 - `POST /api/applications` - Postuler à une offre
@@ -259,16 +352,20 @@ curl http://localhost:3000/api/jobs
 ### Administration
 - `GET /api/admin/stats` - Statistiques globales
 - `GET /api/admin/jobs/pending` - Offres en attente
-- `POST /api/admin/jobs/:id/validate` - Valider/rejeter une offre
+- `POST /api/admin/jobs/:id/validate` - Valider/rejeter une offre (déduit 1 crédit)
 - `GET /api/admin/users` - Liste des utilisateurs
+- `GET /api/admin/users/:id` - Détails d'un utilisateur
+- `PUT /api/admin/users/:id` - Modifier un utilisateur
 - `DELETE /api/admin/users/:id` - Supprimer un utilisateur
 - `GET /api/admin/featured-orders` - Historique des commandes
 - **Gestion des employeurs** :
   - `GET /api/admin/employers` - Liste de tous les employeurs
-  - `POST /api/admin/employers/:id/credits` - Gérer les crédits
-  - `GET /api/admin/employers/:id/company` - Info entreprise
-  - `PUT /api/admin/employers/:id/company` - Modifier entreprise
-  - `GET /api/admin/employers/:id/details` - Détails complets
+  - `POST /api/admin/employers/:userId/credits` - Gérer les crédits (add/remove/set)
+  - `GET /api/admin/employers/:userId/company` - Info entreprise
+  - `PUT /api/admin/employers/:userId/company` - Modifier entreprise
+  - `GET /api/admin/employers/:userId/details` - Détails complets
+  - `GET /api/admin/companies/:companyId/users` - Utilisateurs de l'entreprise
+  - `POST /api/admin/companies/:companyId/users` - Ajouter un utilisateur
 
 ### Tarification
 - `GET /api/pricing` - Liste des forfaits actifs
@@ -277,6 +374,12 @@ curl http://localhost:3000/api/jobs
 - `PUT /api/pricing/:id` - Modifier un forfait (admin)
 - `DELETE /api/pricing/:id` - Désactiver un forfait (admin)
 - `GET /api/pricing/credits/:userId` - Crédits d'un employeur
+
+### Paiements
+- `POST /api/payments/create-checkout-session` - Créer session de paiement
+- `GET /api/payments/checkout/:sessionId` - Page de paiement (dev)
+- `POST /api/payments/complete/:sessionId` - Webhook de complétion
+- `GET /api/payments/transactions/:userId` - Historique des transactions
 
 ## 🎨 Améliorations futures
 
