@@ -94,6 +94,12 @@
                     <button onclick="showTab('employers')" id="tab-employers" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
                         <i class="fas fa-building mr-2"></i>Employeurs
                     </button>
+                    <button onclick="showTab('transactions')" id="tab-transactions" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-file-invoice-dollar mr-2"></i>Transactions
+                    </button>
+                    <button onclick="showTab('expired')" id="tab-expired" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-clock mr-2"></i>Annonces Expirées
+                    </button>
                     <button onclick="showTab('featured')" id="tab-featured" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
                         <i class="fas fa-star mr-2"></i>Emplois Vedettes
                     </button>
@@ -272,6 +278,57 @@
                     
                     <div id="pricing-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <!-- Les tarifs seront affichés ici -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Tab -->
+            <div id="content-transactions" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">
+                            <i class="fas fa-file-invoice-dollar mr-2"></i>
+                            Toutes les transactions
+                        </h3>
+                        <div class="flex gap-4">
+                            <select id="filter-transaction-type" onchange="loadAllTransactions()" 
+                                    class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                                <option value="">Tous les types</option>
+                                <option value="purchase">Achats</option>
+                                <option value="deduction">Déductions</option>
+                                <option value="refund">Remboursements</option>
+                                <option value="admin_adjustment">Ajustements admin</option>
+                                <option value="expiration">Expirations</option>
+                            </select>
+                            <select id="filter-transaction-user" onchange="loadAllTransactions()" 
+                                    class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                                <option value="">Tous les employeurs</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="transactions-list" class="space-y-4">
+                        <!-- Les transactions seront affichées ici -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expired Jobs Tab -->
+            <div id="content-expired" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">
+                            <i class="fas fa-clock mr-2"></i>
+                            Annonces expirées
+                        </h3>
+                        <div class="text-sm text-gray-600">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Les employeurs peuvent republier ces annonces (coûte 1 crédit)
+                        </div>
+                    </div>
+                    
+                    <div id="expired-jobs-list" class="space-y-4">
+                        <!-- Les annonces expirées seront affichées ici -->
                     </div>
                 </div>
             </div>
@@ -669,6 +726,10 @@
                 loadUsers();
             } else if (tabName === 'employers') {
                 loadEmployers();
+            } else if (tabName === 'transactions') {
+                loadAllTransactions();
+            } else if (tabName === 'expired') {
+                loadExpiredJobs();
             } else if (tabName === 'featured') {
                 loadFeaturedOrders();
             } else if (tabName === 'pricing') {
@@ -1640,6 +1701,272 @@
                 loadPricing();
             } catch (error) {
                 alert(error.response?.data?.error || 'Erreur lors de la modification');
+            }
+        }
+
+        // ===== TRANSACTIONS MANAGEMENT =====
+
+        // Load All Transactions
+        async function loadAllTransactions() {
+            try {
+                const typeFilter = document.getElementById('filter-transaction-type').value;
+                const userFilter = document.getElementById('filter-transaction-user').value;
+
+                // Load all employers for filter
+                const employersResponse = await axios.get(`/api/admin/employers?user_id=${currentUser.id}`);
+                const employers = employersResponse.data;
+                
+                const userSelect = document.getElementById('filter-transaction-user');
+                if (userSelect.options.length === 1) {
+                    userSelect.innerHTML = '<option value="">Tous les employeurs</option>' +
+                        employers.map(e => `<option value="${e.user_id}">${e.company_name} (${e.first_name} ${e.last_name})</option>`).join('');
+                }
+
+                // Get all transactions
+                let allTransactions = [];
+                for (const employer of employers) {
+                    try {
+                        const response = await axios.get(`/api/payments/transactions/${employer.user_id}`);
+                        const transactions = response.data.transactions || [];
+                        allTransactions = allTransactions.concat(transactions.map(t => ({
+                            ...t,
+                            employer_name: `${employer.first_name} ${employer.last_name}`,
+                            company_name: employer.company_name
+                        })));
+                    } catch (err) {
+                        console.error(`Error loading transactions for user ${employer.user_id}:`, err);
+                    }
+                }
+
+                // Filter transactions
+                let filteredTransactions = allTransactions;
+                if (typeFilter) {
+                    filteredTransactions = filteredTransactions.filter(t => t.transaction_type === typeFilter);
+                }
+                if (userFilter) {
+                    filteredTransactions = filteredTransactions.filter(t => t.user_id === parseInt(userFilter));
+                }
+
+                // Sort by date (most recent first)
+                filteredTransactions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                const container = document.getElementById('transactions-list');
+                if (filteredTransactions.length === 0) {
+                    container.innerHTML = '<div class="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center text-gray-600">Aucune transaction</div>';
+                } else {
+                    container.innerHTML = filteredTransactions.map(t => createAdminTransactionCard(t)).join('');
+                }
+            } catch (error) {
+                console.error('Erreur chargement transactions:', error);
+            }
+        }
+
+        // Create Admin Transaction Card
+        function createAdminTransactionCard(transaction) {
+            const typeIcons = {
+                'purchase': 'fa-shopping-cart',
+                'deduction': 'fa-minus-circle',
+                'refund': 'fa-undo',
+                'admin_adjustment': 'fa-user-shield',
+                'expiration': 'fa-clock'
+            };
+            
+            const typeColors = {
+                'purchase': 'bg-green-50 border-green-200',
+                'deduction': 'bg-blue-50 border-blue-200',
+                'refund': 'bg-yellow-50 border-yellow-200',
+                'admin_adjustment': 'bg-purple-50 border-purple-200',
+                'expiration': 'bg-red-50 border-red-200'
+            };
+            
+            const typeLabels = {
+                'purchase': 'Achat de forfait',
+                'deduction': 'Utilisation de crédit',
+                'refund': 'Remboursement',
+                'admin_adjustment': 'Ajustement admin',
+                'expiration': 'Expiration'
+            };
+            
+            return `
+                <div class="border-2 ${typeColors[transaction.transaction_type]} rounded-lg p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <i class="fas ${typeIcons[transaction.transaction_type]} text-2xl text-gray-600"></i>
+                                <div>
+                                    <h4 class="text-xl font-bold text-gray-800">${typeLabels[transaction.transaction_type]}</h4>
+                                    <p class="text-sm text-gray-600">
+                                        <i class="fas fa-building mr-1"></i>${transaction.company_name} - 
+                                        <i class="fas fa-user mr-1"></i>${transaction.employer_name}
+                                    </p>
+                                </div>
+                            </div>
+                            <p class="text-gray-700 mb-2">${transaction.description}</p>
+                            <p class="text-sm text-gray-600">
+                                <i class="fas fa-calendar mr-2"></i>
+                                ${formatDate(transaction.created_at)}
+                            </p>
+                        </div>
+                        ${transaction.amount_paid ? `
+                            <div class="text-right">
+                                <div class="text-3xl font-bold text-green-600">${transaction.amount_paid}$</div>
+                                <div class="text-sm text-gray-600">${transaction.currency || 'CAD'}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 bg-white rounded p-4">
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Crédits avant:</p>
+                            <p class="text-lg font-bold text-gray-800">${transaction.balance_before}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Crédits après:</p>
+                            <p class="text-lg font-bold text-gray-800">${transaction.balance_after}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Changement:</p>
+                            <p class="text-lg font-bold ${transaction.balance_after > transaction.balance_before ? 'text-green-600' : 'text-red-600'}">
+                                ${transaction.balance_after > transaction.balance_before ? '+' : ''}${transaction.balance_after - transaction.balance_before}
+                            </p>
+                        </div>
+                        ${transaction.invoice_number ? `
+                            <div>
+                                <p class="text-sm text-gray-600 mb-1">Facture:</p>
+                                <p class="text-sm font-mono text-gray-800">#${transaction.invoice_number}</p>
+                            </div>
+                        ` : `<div></div>`}
+                        ${transaction.job_title ? `
+                            <div>
+                                <p class="text-sm text-gray-600 mb-1">Annonce:</p>
+                                <p class="text-sm text-gray-800">${transaction.job_title}</p>
+                            </div>
+                        ` : `<div></div>`}
+                    </div>
+                    
+                    ${transaction.admin_note ? `
+                        <div class="bg-yellow-50 border border-yellow-200 rounded p-3 mt-4">
+                            <p class="text-sm text-yellow-800">
+                                <i class="fas fa-sticky-note mr-2"></i>
+                                <strong>Note admin:</strong> ${transaction.admin_note}
+                            </p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // ===== EXPIRED JOBS MANAGEMENT =====
+
+        // Load Expired Jobs (all employers)
+        async function loadExpiredJobs() {
+            try {
+                // Get all jobs
+                const response = await axios.get(`/api/admin/jobs/pending?user_id=${currentUser.id}`);
+                // Note: We need a dedicated endpoint for this, for now we'll query by company
+                
+                const employersResponse = await axios.get(`/api/admin/employers?user_id=${currentUser.id}`);
+                const employers = employersResponse.data;
+                
+                let allExpiredJobs = [];
+                
+                for (const employer of employers) {
+                    try {
+                        const jobsResponse = await axios.get(`/api/jobs/employer/${employer.user_id}`);
+                        const expiredJobs = jobsResponse.data.jobs.filter(job => job.status === 'expired');
+                        allExpiredJobs = allExpiredJobs.concat(expiredJobs.map(job => ({
+                            ...job,
+                            employer_name: `${employer.first_name} ${employer.last_name}`,
+                            company_name: employer.company_name,
+                            user_id: employer.user_id
+                        })));
+                    } catch (err) {
+                        console.error(`Error loading jobs for employer ${employer.user_id}:`, err);
+                    }
+                }
+                
+                // Sort by expiration date (most recently expired first)
+                allExpiredJobs.sort((a, b) => new Date(b.expires_at) - new Date(a.expires_at));
+                
+                const container = document.getElementById('expired-jobs-list');
+                if (allExpiredJobs.length === 0) {
+                    container.innerHTML = '<div class="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center text-gray-600">Aucune annonce expirée</div>';
+                } else {
+                    container.innerHTML = allExpiredJobs.map(job => createAdminExpiredJobCard(job)).join('');
+                }
+            } catch (error) {
+                console.error('Erreur chargement annonces expirées:', error);
+            }
+        }
+
+        // Create Admin Expired Job Card
+        function createAdminExpiredJobCard(job) {
+            return `
+                <div class="border-2 border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow bg-gray-50">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <div class="mb-2">
+                                <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                    <i class="fas fa-building mr-1"></i>${job.company_name}
+                                </span>
+                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold ml-2">
+                                    <i class="fas fa-user mr-1"></i>${job.employer_name}
+                                </span>
+                            </div>
+                            <h4 class="text-xl font-bold text-gray-800 mb-2">${job.title}</h4>
+                            <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-2">
+                                <span><i class="fas fa-map-marker-alt mr-1"></i>${job.city}, ${job.province}</span>
+                                <span><i class="fas fa-briefcase mr-1"></i>${job.employment_type}</span>
+                            </div>
+                            ${job.expires_at ? `
+                                <p class="text-sm text-red-600">
+                                    <i class="fas fa-calendar-times mr-2"></i>
+                                    Expirée le: ${formatDate(job.expires_at)}
+                                </p>
+                            ` : ''}
+                        </div>
+                        <span class="bg-red-100 text-red-800 px-4 py-2 rounded-full font-semibold">
+                            Expirée
+                        </span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4 text-center">
+                        <div class="bg-white rounded p-3 border border-gray-200">
+                            <div class="text-2xl font-bold text-blue-600">${job.views_count}</div>
+                            <div class="text-sm text-gray-600">Vues</div>
+                        </div>
+                        <div class="bg-white rounded p-3 border border-gray-200">
+                            <div class="text-2xl font-bold text-green-600">${job.applications_count}</div>
+                            <div class="text-sm text-gray-600">Candidatures</div>
+                        </div>
+                        <div class="bg-white rounded p-3 border border-gray-200">
+                            <div class="text-sm font-bold text-gray-800">${formatDate(job.created_at)}</div>
+                            <div class="text-sm text-gray-600">Publiée</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-3">
+                        <a href="/emploi/${job.id}" target="_blank" class="text-blue-600 hover:text-blue-800 font-semibold px-4 py-2">
+                            <i class="fas fa-external-link-alt mr-1"></i>Voir l'annonce
+                        </a>
+                        <button onclick="deleteJobAsAdmin(${job.id})" class="text-red-600 hover:text-red-800 font-semibold px-4 py-2">
+                            <i class="fas fa-trash mr-1"></i>Supprimer
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Delete Job as Admin
+        async function deleteJobAsAdmin(jobId) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?')) return;
+            
+            try {
+                await axios.delete(`/api/jobs/${jobId}?user_id=${currentUser.id}`);
+                alert('Annonce supprimée avec succès');
+                loadExpiredJobs();
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors de la suppression');
             }
         }
     </script>
