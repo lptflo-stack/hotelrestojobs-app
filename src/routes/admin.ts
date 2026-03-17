@@ -303,7 +303,7 @@ admin.get('/users/:id', requireAdmin, async (c) => {
     const id = c.req.param('id');
     
     const user = await c.env.DB.prepare(`
-      SELECT id, email, first_name, last_name, role, phone, created_at
+      SELECT id, email, first_name, last_name, role, phone, company_id, is_active, created_at
       FROM users
       WHERE id = ?
     `).bind(id).first();
@@ -361,6 +361,10 @@ admin.put('/users/:id', requireAdmin, async (c) => {
       updates.push('password_hash = ?');
       bindings.push(passwordHash);
     }
+    if (is_active !== undefined) {
+      updates.push('is_active = ?');
+      bindings.push(is_active ? 1 : 0);
+    }
 
     bindings.push(id);
 
@@ -388,12 +392,17 @@ admin.get('/companies/:companyId/users', requireAdmin, async (c) => {
     const companyId = c.req.param('companyId');
 
     const { results } = await c.env.DB.prepare(`
-      SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.created_at
+      SELECT 
+        u.id, 
+        u.email, 
+        u.first_name, 
+        u.last_name, 
+        u.phone, 
+        u.is_active,
+        u.company_id,
+        u.created_at
       FROM users u
-      JOIN companies c ON u.id = c.user_id OR u.id IN (
-        SELECT user_id FROM users WHERE role = 'employer'
-      )
-      WHERE c.id = ? AND u.role = 'employer'
+      WHERE u.company_id = ? AND u.role = 'employer'
       ORDER BY u.created_at DESC
     `).bind(companyId).all();
 
@@ -417,9 +426,10 @@ admin.post('/companies/:companyId/users', requireAdmin, async (c) => {
       password: string;
       role: string;
       company_id: string;
+      is_active?: boolean;
     }>();
 
-    const { first_name, last_name, email, phone, password, role } = body;
+    const { first_name, last_name, email, phone, password, role, is_active = true } = body;
 
     if (!first_name || !last_name || !email || !password) {
       return c.json({ error: 'Champs requis manquants' }, 400);
@@ -443,9 +453,18 @@ admin.post('/companies/:companyId/users', requireAdmin, async (c) => {
 
     // Créer l'utilisateur
     await c.env.DB.prepare(`
-      INSERT INTO users (email, password_hash, first_name, last_name, phone, role, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-    `).bind(email, passwordHash, first_name, last_name, phone || null, role || 'employer').run();
+      INSERT INTO users (email, password_hash, first_name, last_name, phone, role, company_id, is_active, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `).bind(
+      email, 
+      passwordHash, 
+      first_name, 
+      last_name, 
+      phone || null, 
+      role || 'employer', 
+      companyId,
+      is_active ? 1 : 0
+    ).run();
 
     return c.json({
       success: true,

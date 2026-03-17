@@ -50,12 +50,19 @@ auth.post('/register', async (c) => {
 
     const userId = result.meta.last_row_id;
 
-    // Si c'est un employeur, créer une entrée company
+    // Si c'est un employeur, créer une entrée company et mettre à jour company_id
     if (role === 'employer') {
-      await c.env.DB.prepare(`
+      const companyResult = await c.env.DB.prepare(`
         INSERT INTO companies (user_id, name)
         VALUES (?, ?)
       `).bind(userId, `${first_name} ${last_name}`).run();
+      
+      const companyId = companyResult.meta.last_row_id;
+      
+      // Mettre à jour le company_id de l'utilisateur
+      await c.env.DB.prepare(`
+        UPDATE users SET company_id = ? WHERE id = ?
+      `).bind(companyId, userId).run();
     }
 
     // Si c'est un candidat, créer un profil
@@ -94,13 +101,18 @@ auth.post('/login', async (c) => {
 
     // Récupérer l'utilisateur
     const user = await c.env.DB.prepare(`
-      SELECT id, email, password_hash, first_name, last_name, role
+      SELECT id, email, password_hash, first_name, last_name, role, company_id, is_active
       FROM users
       WHERE email = ?
     `).bind(email).first<User>();
 
     if (!user) {
       return c.json({ error: 'Email ou mot de passe incorrect' }, 401);
+    }
+
+    // Vérifier si l'utilisateur est actif
+    if (!user.is_active) {
+      return c.json({ error: 'Votre compte est désactivé. Contactez votre administrateur.' }, 403);
     }
 
     // Vérifier le mot de passe
@@ -117,7 +129,9 @@ auth.post('/login', async (c) => {
         email: user.email,
         first_name: user.first_name,
         last_name: user.last_name,
-        role: user.role
+        role: user.role,
+        company_id: user.company_id,
+        is_active: user.is_active
       }
     });
   } catch (error) {
@@ -132,7 +146,7 @@ auth.get('/profile/:userId', async (c) => {
     const userId = c.req.param('userId');
 
     const user = await c.env.DB.prepare(`
-      SELECT id, email, first_name, last_name, role, phone, created_at
+      SELECT id, email, first_name, last_name, role, phone, company_id, is_active, created_at
       FROM users
       WHERE id = ?
     `).bind(userId).first<User>();
@@ -152,10 +166,10 @@ auth.get('/profile/:userId', async (c) => {
     }
 
     // Si employeur, récupérer l'entreprise
-    if (user.role === 'employer') {
+    if (user.role === 'employer' && user.company_id) {
       const company = await c.env.DB.prepare(`
-        SELECT * FROM companies WHERE user_id = ?
-      `).bind(userId).first();
+        SELECT * FROM companies WHERE id = ?
+      `).bind(user.company_id).first();
       profile.company = company;
     }
 
