@@ -53,6 +53,14 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
   - Détails : montant, crédits avant/après, date, description
   - Numéros de facture pour les achats
   - Notes administrateur si présentes
+- ✅ **Gestion des utilisateurs de l'entreprise** (NOUVEAU)
+  - Liste de tous les utilisateurs ayant accès au portail employeur
+  - Ajouter de nouveaux utilisateurs avec email et mot de passe
+  - Modifier les informations des utilisateurs existants
+  - Activer/désactiver les comptes utilisateurs
+  - Supprimer des utilisateurs (sauf soi-même)
+  - Vérification email unique
+  - Badge de statut (actif/inactif)
 - ✅ Mise en vedette des offres (option payante)
   - 7 jours : 29.99$
   - 15 jours : 49.99$
@@ -271,7 +279,8 @@ webapp/
 ├── migrations/
 │   ├── 0001_initial_schema.sql
 │   ├── 0002_pricing_system.sql
-│   └── 0003_credits_transactions_system.sql
+│   ├── 0003_credits_transactions_system.sql
+│   └── 0004_add_company_id_and_is_active.sql
 ├── seed.sql                   # Données de test
 ├── wrangler.jsonc            # Configuration Cloudflare
 ├── package.json
