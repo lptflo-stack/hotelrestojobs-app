@@ -165,8 +165,9 @@
                         </h4>
                         <ul class="space-y-2 text-blue-700">
                             <li><i class="fas fa-check mr-2"></i>1 crédit = 1 annonce valide pendant 30 jours</li>
-                            <li><i class="fas fa-check mr-2"></i>Les crédits sont déduits automatiquement lors de la validation de votre annonce</li>
-                            <li><i class="fas fa-check mr-2"></i>Vous pouvez acheter des forfaits dans la section Factures</li>
+                            <li><i class="fas fa-check mr-2"></i>Les crédits sont déduits automatiquement lors de la publication de votre annonce</li>
+                            <li><i class="fas fa-check mr-2"></i>Vos annonces sont publiées immédiatement, sans validation admin</li>
+                            <li><i class="fas fa-check mr-2"></i>Vous pouvez acheter des forfaits directement depuis cette page</li>
                             <li><i class="fas fa-check mr-2"></i>Le forfait illimité vous permet de publier autant d'annonces que vous voulez pendant 1 an</li>
                         </ul>
                     </div>
@@ -852,7 +853,7 @@
                                             ${creditCheck.credits} crédit${creditCheck.credits > 1 ? 's' : ''} disponible${creditCheck.credits > 1 ? 's' : ''}
                                         </h4>
                                         <p class="text-sm">
-                                            Cette annonce coûtera 1 crédit lors de sa validation par l'admin
+                                            Cette annonce coûtera 1 crédit et sera publiée immédiatement
                                         </p>
                                     </div>
                                 </div>
@@ -918,17 +919,32 @@
                 const response = await axios.post('/api/jobs', data);
                 
                 if (response.data.success) {
+                    const expiresDate = new Date(response.data.expires_at);
+                    const formattedDate = expiresDate.toLocaleDateString('fr-CA', { year: 'numeric', month: 'long', day: 'numeric' });
+                    
                     if (creditCheck.unlimited) {
-                        alert('Offre créée avec succès ! (Forfait illimité)\n\nElle sera visible après validation par l\'administrateur.');
+                        alert(`✅ Annonce publiée avec succès !\n\n` +
+                              `📅 Valide jusqu'au: ${formattedDate}\n` +
+                              `♾️ Forfait illimité actif\n\n` +
+                              `Votre annonce est maintenant visible par les candidats.`);
                     } else {
-                        alert(`Offre créée avec succès !\n\nCrédits restants: ${creditCheck.credits - 1}\n\nElle sera visible après validation par l'administrateur.\nUn crédit sera déduit lors de l'activation.`);
+                        alert(`✅ Annonce publiée avec succès !\n\n` +
+                              `📅 Valide jusqu'au: ${formattedDate}\n` +
+                              `💳 Crédits restants: ${response.data.credits_remaining}\n\n` +
+                              `Votre annonce est maintenant visible par les candidats.`);
                     }
                     e.target.reset();
                     await loadCredits(); // Rafraîchir l'affichage des crédits
                     showTab('jobs');
                 }
             } catch (error) {
-                alert(error.response?.data?.error || 'Erreur lors de la création de l\'offre');
+                if (error.response?.data?.needs_purchase) {
+                    if (confirm('Crédits insuffisants.\n\nVoulez-vous acheter un forfait maintenant?')) {
+                        showTab('credits');
+                    }
+                } else {
+                    alert(error.response?.data?.error || 'Erreur lors de la création de l\'offre');
+                }
             }
         }
 
@@ -1453,7 +1469,13 @@
                 });
                 
                 if (response.data.success) {
-                    alert('Annonce republiée avec succès! Elle sera visible après validation par l\'administrateur.');
+                    const expiresDate = new Date(response.data.expires_at);
+                    const formattedDate = expiresDate.toLocaleDateString('fr-CA', { year: 'numeric', month: 'long', day: 'numeric' });
+                    
+                    alert(`✅ Annonce republiée avec succès !\n\n` +
+                          `📅 Valide jusqu'au: ${formattedDate}\n` +
+                          `💳 1 crédit a été déduit\n\n` +
+                          `Votre annonce est de nouveau visible par les candidats.`);
                     loadExpiredJobs();
                     loadCredits();
                 }

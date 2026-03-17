@@ -148,13 +148,17 @@ jobs.post('/', async (c) => {
       }, 400);
     }
 
-    // Créer l'offre d'emploi
+    // Calculer la date d'expiration (30 jours)
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30);
+
+    // Créer l'offre d'emploi avec statut 'active' (pas de validation admin)
     const result = await c.env.DB.prepare(`
       INSERT INTO job_offers (
         company_id, title, description, position_type, employment_type,
         salary_min, salary_max, salary_type, location, city, province,
-        requirements, benefits, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+        requirements, benefits, status, expires_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)
     `).bind(
       company.id,
       title,
@@ -168,13 +172,61 @@ jobs.post('/', async (c) => {
       city,
       province,
       requirements || null,
-      benefits || null
+      benefits || null,
+      expiresAt.toISOString()
     ).run();
+
+    const jobId = result.meta.last_row_id;
+
+    // Déduire 1 crédit si pas de forfait illimité
+    if (!hasUnlimited) {
+      const balanceBefore = credits.credits_remaining;
+      const balanceAfter = balanceBefore - 1;
+
+      await c.env.DB.prepare(`
+        UPDATE employer_credits
+        SET credits_remaining = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = ?
+      `).bind(balanceAfter, user_id).run();
+
+      // Enregistrer la transaction
+      await c.env.DB.prepare(`
+        INSERT INTO credit_transactions (
+          user_id, transaction_type, credits_amount, balance_before, balance_after,
+          job_offer_id, description
+        ) VALUES (?, 'deduction', ?, ?, ?, ?, ?)
+      `).bind(
+        user_id,
+        -1,
+        balanceBefore,
+        balanceAfter,
+        jobId,
+        `Publication de l'annonce: ${title}`
+      ).run();
+    }
+
+    // Créer les notifications d'expiration
+    const notifications = [
+      { type: 'warning_7days', days: 23 },  // 30 - 7 = 23 jours
+      { type: 'warning_3days', days: 27 },  // 30 - 3 = 27 jours
+      { type: 'expired', days: 30 }
+    ];
+
+    for (const notif of notifications) {
+      await c.env.DB.prepare(`
+        INSERT INTO expiration_notifications (
+          user_id, job_offer_id, notification_type
+        ) VALUES (?, ?, ?)
+      `).bind(user_id, jobId, notif.type).run();
+    }
 
     return c.json({
       success: true,
-      job_id: result.meta.last_row_id,
-      message: 'Offre créée et en attente de validation'
+      job_id: jobId,
+      message: 'Annonce publiée avec succès !',
+      expires_at: expiresAt.toISOString(),
+      credits_remaining: hasUnlimited ? 'unlimited' : (credits.credits_remaining - 1)
     }, 201);
   } catch (error) {
     console.error('Erreur création emploi:', error);
@@ -312,13 +364,13 @@ jobs.post('/:id/republish', async (c) => {
       return c.json({ error: 'Crédits insuffisants' }, 400);
     }
 
-    // Remettre le statut à pending et recalculer la date d'expiration
+    // Remettre le statut à 'active' (pas de validation) et recalculer la date d'expiration
     const newExpiresAt = new Date();
     newExpiresAt.setDate(newExpiresAt.getDate() + 30);
 
     await c.env.DB.prepare(`
       UPDATE job_offers
-      SET status = 'pending',
+      SET status = 'active',
           expires_at = ?,
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
