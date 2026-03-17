@@ -253,4 +253,96 @@ jobs.get('/employer/:userId', async (c) => {
   }
 });
 
+// Republier une annonce expirée
+jobs.post('/:id/republish', async (c) => {
+  try {
+    const id = c.req.param('id');
+    const { user_id } = await c.req.json();
+
+    // Vérifier que l'offre existe et appartient à l'utilisateur
+    const job = await c.env.DB.prepare(`
+      SELECT jo.*, c.user_id
+      FROM job_offers jo
+      JOIN companies c ON jo.company_id = c.id
+      WHERE jo.id = ?
+    `).bind(id).first<any>();
+
+    if (!job) {
+      return c.json({ error: 'Offre non trouvée' }, 404);
+    }
+
+    if (job.user_id !== Number(user_id)) {
+      return c.json({ error: 'Non autorisé' }, 403);
+    }
+
+    // Vérifier que l'annonce est expirée
+    if (job.status !== 'expired') {
+      return c.json({ error: 'Seules les annonces expirées peuvent être republiées' }, 400);
+    }
+
+    // Vérifier les crédits de l'employeur
+    const credits = await c.env.DB.prepare(`
+      SELECT credits_remaining, unlimited_until
+      FROM employer_credits
+      WHERE user_id = ?
+    `).bind(user_id).first<any>();
+
+    const hasUnlimited = credits?.unlimited_until && new Date(credits.unlimited_until) > new Date();
+    const hasCredits = credits && credits.credits_remaining > 0;
+
+    if (!hasUnlimited && !hasCredits) {
+      return c.json({ error: 'Crédits insuffisants' }, 400);
+    }
+
+    // Remettre le statut à pending et recalculer la date d'expiration
+    const newExpiresAt = new Date();
+    newExpiresAt.setDate(newExpiresAt.getDate() + 30);
+
+    await c.env.DB.prepare(`
+      UPDATE job_offers
+      SET status = 'pending',
+          expires_at = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(newExpiresAt.toISOString(), id).run();
+
+    // Déduire 1 crédit si pas de forfait illimité
+    if (!hasUnlimited) {
+      const balanceBefore = credits.credits_remaining;
+      const balanceAfter = balanceBefore - 1;
+
+      await c.env.DB.prepare(`
+        UPDATE employer_credits
+        SET credits_remaining = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = ?
+      `).bind(balanceAfter, user_id).run();
+
+      // Logger la transaction
+      await c.env.DB.prepare(`
+        INSERT INTO credit_transactions (
+          user_id, transaction_type, credits_amount, balance_before, balance_after,
+          job_offer_id, description
+        ) VALUES (?, 'deduction', ?, ?, ?, ?, ?)
+      `).bind(
+        user_id,
+        -1,
+        balanceBefore,
+        balanceAfter,
+        id,
+        `Republication de l'annonce: ${job.title}`
+      ).run();
+    }
+
+    return c.json({ 
+      success: true, 
+      message: 'Annonce republiée avec succès',
+      expires_at: newExpiresAt.toISOString()
+    });
+  } catch (error) {
+    console.error('Erreur republication emploi:', error);
+    return c.json({ error: 'Erreur lors de la republication' }, 500);
+  }
+});
+
 export default jobs;

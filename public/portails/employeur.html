@@ -122,8 +122,14 @@
             <!-- Tabs -->
             <div class="bg-white rounded-lg shadow mb-6">
                 <div class="flex border-b overflow-x-auto">
-                    <button onclick="showTab('jobs')" id="tab-jobs" class="px-6 py-4 font-semibold border-b-2 border-green-600 text-green-600 whitespace-nowrap">
+                    <button onclick="showTab('credits')" id="tab-credits" class="px-6 py-4 font-semibold border-b-2 border-green-600 text-green-600 whitespace-nowrap">
+                        <i class="fas fa-coins mr-2"></i>Mes Crédits
+                    </button>
+                    <button onclick="showTab('jobs')" id="tab-jobs" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
                         <i class="fas fa-list mr-2"></i>Mes Offres
+                    </button>
+                    <button onclick="showTab('expired')" id="tab-expired" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-clock mr-2"></i>Annonces Expirées
                     </button>
                     <button onclick="showTab('create')" id="tab-create" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
                         <i class="fas fa-plus-circle mr-2"></i>Nouvelle Offre
@@ -131,9 +137,46 @@
                     <button onclick="showTab('applications')" id="tab-applications" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
                         <i class="fas fa-users mr-2"></i>Candidatures
                     </button>
+                    <button onclick="showTab('invoices')" id="tab-invoices" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-file-invoice-dollar mr-2"></i>Factures
+                    </button>
                     <button onclick="showTab('company')" id="tab-company" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
                         <i class="fas fa-building mr-2"></i>Mon Entreprise
                     </button>
+                </div>
+            </div>
+
+            <!-- Credits Tab -->
+            <div id="content-credits">
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-coins text-yellow-500 mr-2"></i>
+                        Mes Crédits d'Annonces
+                    </h3>
+                    
+                    <div id="credits-info" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Credits info will be loaded here -->
+                    </div>
+                    
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                        <h4 class="text-lg font-bold text-blue-800 mb-4">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Comment fonctionnent les crédits?
+                        </h4>
+                        <ul class="space-y-2 text-blue-700">
+                            <li><i class="fas fa-check mr-2"></i>1 crédit = 1 annonce valide pendant 30 jours</li>
+                            <li><i class="fas fa-check mr-2"></i>Les crédits sont déduits automatiquement lors de la validation de votre annonce</li>
+                            <li><i class="fas fa-check mr-2"></i>Vous pouvez acheter des forfaits dans la section Factures</li>
+                            <li><i class="fas fa-check mr-2"></i>Le forfait illimité vous permet de publier autant d'annonces que vous voulez pendant 1 an</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Forfaits disponibles</h3>
+                    <div id="pricing-plans" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Pricing plans will be loaded here -->
+                    </div>
                 </div>
             </div>
 
@@ -149,6 +192,23 @@
                     
                     <div id="jobs-list" class="space-y-4">
                         <!-- Les offres seront affichées ici -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expired Jobs Tab -->
+            <div id="content-expired" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">Annonces expirées</h3>
+                        <div class="text-sm text-gray-600">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Les annonces expirées peuvent être republiées (coûte 1 crédit)
+                        </div>
+                    </div>
+                    
+                    <div id="expired-jobs-list" class="space-y-4">
+                        <!-- Les offres expirées seront affichées ici -->
                     </div>
                 </div>
             </div>
@@ -285,6 +345,22 @@
                     
                     <div id="applications-list" class="space-y-4">
                         <!-- Les candidatures seront affichées ici -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoices Tab -->
+            <div id="content-invoices" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">Historique des factures</h3>
+                        <button onclick="showTab('credits')" class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700">
+                            <i class="fas fa-shopping-cart mr-2"></i>Acheter un forfait
+                        </button>
+                    </div>
+                    
+                    <div id="invoices-list" class="space-y-4">
+                        <!-- Les factures seront affichées ici -->
                     </div>
                 </div>
             </div>
@@ -518,7 +594,8 @@
             document.getElementById('user-name').textContent = `${currentUser.first_name} ${currentUser.last_name}`;
 
             await loadCompany();
-            showTab('jobs');
+            await loadCredits();
+            showTab('credits');
         }
 
         // Load Company
@@ -566,11 +643,18 @@
             tab.classList.remove('text-gray-600');
 
             // Load data based on tab
-            if (tabName === 'jobs') {
+            if (tabName === 'credits') {
+                loadCredits();
+                loadPricingPlans();
+            } else if (tabName === 'jobs') {
                 loadJobs();
+            } else if (tabName === 'expired') {
+                loadExpiredJobs();
             } else if (tabName === 'applications') {
                 loadJobsForFilter();
                 loadApplicationsByJob();
+            } else if (tabName === 'invoices') {
+                loadInvoices();
             }
         }
 
@@ -939,6 +1023,408 @@
             errorDiv.textContent = message;
             errorDiv.classList.remove('hidden');
             setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+
+        // ===== CREDITS MANAGEMENT =====
+
+        // Load Credits
+        async function loadCredits() {
+            try {
+                const response = await axios.get(`/api/pricing/credits/${currentUser.id}`);
+                const credits = response.data;
+                
+                const container = document.getElementById('credits-info');
+                
+                let creditsHTML = '';
+                
+                if (credits.unlimited_until && new Date(credits.unlimited_until) > new Date()) {
+                    const expiryDate = new Date(credits.unlimited_until);
+                    creditsHTML += `
+                        <div class="bg-gradient-to-br from-purple-500 to-purple-700 text-white rounded-lg p-6 shadow-lg">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-2xl font-bold">
+                                    <i class="fas fa-infinity mr-2"></i>
+                                    Forfait Illimité
+                                </h4>
+                                <span class="bg-white text-purple-700 px-3 py-1 rounded-full text-sm font-bold">ACTIF</span>
+                            </div>
+                            <p class="text-purple-100 mb-2">Annonces illimitées jusqu'au:</p>
+                            <p class="text-3xl font-bold">${formatDate(credits.unlimited_until)}</p>
+                            <p class="text-sm text-purple-100 mt-4">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                Publiez autant d'annonces que vous voulez
+                            </p>
+                        </div>
+                    `;
+                } else {
+                    creditsHTML += `
+                        <div class="bg-gradient-to-br from-green-500 to-green-700 text-white rounded-lg p-6 shadow-lg">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-2xl font-bold">
+                                    <i class="fas fa-coins mr-2"></i>
+                                    Crédits Disponibles
+                                </h4>
+                            </div>
+                            <div class="flex items-end">
+                                <p class="text-6xl font-bold">${credits.credits_remaining || 0}</p>
+                                <p class="text-2xl ml-2 mb-2">crédits</p>
+                            </div>
+                            <p class="text-green-100 mt-4">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                1 crédit = 1 annonce pour 30 jours
+                            </p>
+                        </div>
+                    `;
+                }
+                
+                // Get transactions history
+                const transactionsResponse = await axios.get(`/api/payments/transactions/${currentUser.id}`);
+                const transactions = transactionsResponse.data.transactions || [];
+                
+                // Calculate active plan info
+                const purchaseTransactions = transactions.filter(t => t.transaction_type === 'purchase');
+                const lastPurchase = purchaseTransactions[0]; // Most recent
+                
+                creditsHTML += `
+                    <div class="bg-white border-2 border-gray-200 rounded-lg p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-4">
+                            <i class="fas fa-chart-line mr-2"></i>
+                            Statistiques
+                        </h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Crédits utilisés:</span>
+                                <span class="font-bold text-gray-800">${credits.total_used || 0}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Annonces actives:</span>
+                                <span class="font-bold text-green-600">${credits.active_jobs || 0}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Annonces expirées:</span>
+                                <span class="font-bold text-red-600">${credits.expired_jobs || 0}</span>
+                            </div>
+                            ${lastPurchase ? `
+                                <div class="pt-3 border-t border-gray-200 mt-3">
+                                    <p class="text-sm text-gray-500 mb-2">Dernier forfait acheté:</p>
+                                    <p class="font-bold text-gray-800">${lastPurchase.description}</p>
+                                    <p class="text-sm text-gray-600">${formatDate(lastPurchase.created_at)}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML = creditsHTML;
+            } catch (error) {
+                console.error('Erreur chargement crédits:', error);
+            }
+        }
+
+        // Load Pricing Plans
+        async function loadPricingPlans() {
+            try {
+                const response = await axios.get('/api/pricing');
+                const plans = response.data;
+                
+                const container = document.getElementById('pricing-plans');
+                container.innerHTML = plans.map(plan => createPricingPlanCard(plan)).join('');
+            } catch (error) {
+                console.error('Erreur chargement forfaits:', error);
+            }
+        }
+
+        // Create Pricing Plan Card
+        function createPricingPlanCard(plan) {
+            const isUnlimited = plan.type === 'unlimited';
+            const isCredits = plan.type === 'credits';
+            
+            return `
+                <div class="border-2 border-gray-200 rounded-lg p-6 hover:border-green-500 hover:shadow-lg transition-all">
+                    <h4 class="text-xl font-bold text-gray-800 mb-2">${plan.name}</h4>
+                    <div class="text-4xl font-bold text-green-600 mb-4">
+                        ${plan.price}$
+                    </div>
+                    
+                    ${isUnlimited ? `
+                        <div class="space-y-2 mb-6">
+                            <p class="text-gray-700 flex items-center">
+                                <i class="fas fa-infinity text-purple-500 mr-2"></i>
+                                <strong>Annonces illimitées</strong>
+                            </p>
+                            <p class="text-gray-600 text-sm">
+                                <i class="fas fa-calendar mr-2"></i>
+                                Valide ${plan.duration_days} jours
+                            </p>
+                        </div>
+                    ` : `
+                        <div class="space-y-2 mb-6">
+                            <p class="text-gray-700">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                <strong>${plan.credits} crédit${plan.credits > 1 ? 's' : ''}</strong>
+                            </p>
+                            <p class="text-gray-600 text-sm">
+                                ${plan.credits} annonce${plan.credits > 1 ? 's' : ''} × 30 jours
+                            </p>
+                            ${isCredits ? `
+                                <p class="text-gray-500 text-xs">
+                                    ${(plan.price / plan.credits).toFixed(2)}$ par annonce
+                                </p>
+                            ` : ''}
+                        </div>
+                    `}
+                    
+                    ${plan.description ? `
+                        <p class="text-sm text-gray-600 mb-4">${plan.description}</p>
+                    ` : ''}
+                    
+                    <button onclick="purchasePlan(${plan.id})" 
+                            class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700">
+                        <i class="fas fa-shopping-cart mr-2"></i>
+                        Acheter
+                    </button>
+                </div>
+            `;
+        }
+
+        // Purchase Plan
+        async function purchasePlan(planId) {
+            try {
+                const response = await axios.post('/api/payments/create-checkout-session', {
+                    user_id: currentUser.id,
+                    plan_id: planId
+                });
+                
+                if (response.data.success) {
+                    // In development, complete payment immediately
+                    const sessionId = response.data.sessionId;
+                    const completeResponse = await axios.post(`/api/payments/complete/${sessionId}`, {
+                        user_id: currentUser.id
+                    });
+                    
+                    if (completeResponse.data.success) {
+                        alert(`Forfait acheté avec succès! ${completeResponse.data.credits_added ? completeResponse.data.credits_added + ' crédits ajoutés' : 'Forfait illimité activé'}`);
+                        loadCredits();
+                        loadInvoices();
+                    }
+                }
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors de l\'achat');
+            }
+        }
+
+        // ===== EXPIRED JOBS MANAGEMENT =====
+
+        // Load Expired Jobs
+        async function loadExpiredJobs() {
+            try {
+                const response = await axios.get(`/api/jobs/employer/${currentUser.id}`);
+                const allJobs = response.data.jobs;
+                const expiredJobs = allJobs.filter(job => job.status === 'expired');
+                
+                const container = document.getElementById('expired-jobs-list');
+                if (expiredJobs.length === 0) {
+                    container.innerHTML = '<div class="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center text-gray-600">Aucune annonce expirée</div>';
+                } else {
+                    container.innerHTML = expiredJobs.map(job => createExpiredJobCard(job)).join('');
+                }
+            } catch (error) {
+                console.error('Erreur chargement annonces expirées:', error);
+            }
+        }
+
+        // Create Expired Job Card
+        function createExpiredJobCard(job) {
+            return `
+                <div class="border-2 border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow bg-gray-50">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <h4 class="text-xl font-bold text-gray-800 mb-2">${job.title}</h4>
+                            <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-2">
+                                <span><i class="fas fa-map-marker-alt mr-1"></i>${job.city}, ${job.province}</span>
+                                <span><i class="fas fa-briefcase mr-1"></i>${job.employment_type}</span>
+                            </div>
+                            ${job.expires_at ? `
+                                <p class="text-sm text-red-600">
+                                    <i class="fas fa-calendar-times mr-2"></i>
+                                    Expirée le: ${formatDate(job.expires_at)}
+                                </p>
+                            ` : ''}
+                        </div>
+                        <span class="bg-red-100 text-red-800 px-4 py-2 rounded-full font-semibold">
+                            Expirée
+                        </span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4 text-center">
+                        <div class="bg-white rounded p-3 border border-gray-200">
+                            <div class="text-2xl font-bold text-blue-600">${job.views_count}</div>
+                            <div class="text-sm text-gray-600">Vues</div>
+                        </div>
+                        <div class="bg-white rounded p-3 border border-gray-200">
+                            <div class="text-2xl font-bold text-green-600">${job.applications_count}</div>
+                            <div class="text-sm text-gray-600">Candidatures</div>
+                        </div>
+                        <div class="bg-white rounded p-3 border border-gray-200">
+                            <div class="text-sm font-bold text-gray-800">${formatDate(job.created_at)}</div>
+                            <div class="text-sm text-gray-600">Publiée</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
+                        <p class="text-sm text-blue-800">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <strong>Republier cette annonce coûte 1 crédit</strong> et sera valide 30 jours
+                        </p>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="republishJob(${job.id})" class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700">
+                            <i class="fas fa-redo mr-2"></i>Republier (1 crédit)
+                        </button>
+                        <a href="/emploi/${job.id}" target="_blank" class="text-blue-600 hover:text-blue-800 font-semibold px-4 py-2">
+                            <i class="fas fa-external-link-alt mr-1"></i>Voir l'annonce
+                        </a>
+                        <button onclick="deleteJob(${job.id})" class="text-red-600 hover:text-red-800 font-semibold px-4 py-2">
+                            <i class="fas fa-trash mr-1"></i>Supprimer
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Republish Job
+        async function republishJob(jobId) {
+            if (!confirm('Republier cette annonce coûtera 1 crédit. Continuer?')) return;
+            
+            try {
+                const response = await axios.post(`/api/jobs/${jobId}/republish`, {
+                    user_id: currentUser.id
+                });
+                
+                if (response.data.success) {
+                    alert('Annonce republiée avec succès! Elle sera visible après validation par l\'administrateur.');
+                    loadExpiredJobs();
+                    loadCredits();
+                }
+            } catch (error) {
+                alert(error.response?.data?.error || 'Erreur lors de la republication');
+            }
+        }
+
+        // ===== INVOICES MANAGEMENT =====
+
+        // Load Invoices
+        async function loadInvoices() {
+            try {
+                const response = await axios.get(`/api/payments/transactions/${currentUser.id}`);
+                const transactions = response.data.transactions || [];
+                
+                const container = document.getElementById('invoices-list');
+                if (transactions.length === 0) {
+                    container.innerHTML = '<div class="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center text-gray-600">Aucune transaction</div>';
+                } else {
+                    container.innerHTML = transactions.map(t => createInvoiceCard(t)).join('');
+                }
+            } catch (error) {
+                console.error('Erreur chargement factures:', error);
+            }
+        }
+
+        // Create Invoice Card
+        function createInvoiceCard(transaction) {
+            const typeIcons = {
+                'purchase': 'fa-shopping-cart',
+                'deduction': 'fa-minus-circle',
+                'refund': 'fa-undo',
+                'admin_adjustment': 'fa-user-shield',
+                'expiration': 'fa-clock'
+            };
+            
+            const typeColors = {
+                'purchase': 'bg-green-50 border-green-200',
+                'deduction': 'bg-blue-50 border-blue-200',
+                'refund': 'bg-yellow-50 border-yellow-200',
+                'admin_adjustment': 'bg-purple-50 border-purple-200',
+                'expiration': 'bg-red-50 border-red-200'
+            };
+            
+            const typeLabels = {
+                'purchase': 'Achat de forfait',
+                'deduction': 'Utilisation de crédit',
+                'refund': 'Remboursement',
+                'admin_adjustment': 'Ajustement admin',
+                'expiration': 'Expiration'
+            };
+            
+            return `
+                <div class="border-2 ${typeColors[transaction.transaction_type]} rounded-lg p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <i class="fas ${typeIcons[transaction.transaction_type]} text-2xl text-gray-600"></i>
+                                <h4 class="text-xl font-bold text-gray-800">${typeLabels[transaction.transaction_type]}</h4>
+                            </div>
+                            <p class="text-gray-700 mb-2">${transaction.description}</p>
+                            <p class="text-sm text-gray-600">
+                                <i class="fas fa-calendar mr-2"></i>
+                                ${formatDate(transaction.created_at)}
+                            </p>
+                        </div>
+                        ${transaction.amount_paid ? `
+                            <div class="text-right">
+                                <div class="text-3xl font-bold text-green-600">${transaction.amount_paid}$</div>
+                                <div class="text-sm text-gray-600">${transaction.currency || 'CAD'}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 bg-white rounded p-4">
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Crédits avant:</p>
+                            <p class="text-lg font-bold text-gray-800">${transaction.balance_before}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Crédits après:</p>
+                            <p class="text-lg font-bold text-gray-800">${transaction.balance_after}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Changement:</p>
+                            <p class="text-lg font-bold ${transaction.balance_after > transaction.balance_before ? 'text-green-600' : 'text-red-600'}">
+                                ${transaction.balance_after > transaction.balance_before ? '+' : ''}${transaction.balance_after - transaction.balance_before}
+                            </p>
+                        </div>
+                        ${transaction.invoice_number ? `
+                            <div>
+                                <p class="text-sm text-gray-600 mb-1">Facture:</p>
+                                <p class="text-sm font-mono text-gray-800">#${transaction.invoice_number}</p>
+                            </div>
+                        ` : `<div></div>`}
+                    </div>
+                    
+                    ${transaction.admin_note ? `
+                        <div class="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4">
+                            <p class="text-sm text-yellow-800">
+                                <i class="fas fa-sticky-note mr-2"></i>
+                                <strong>Note admin:</strong> ${transaction.admin_note}
+                            </p>
+                        </div>
+                    ` : ''}
+                    
+                    ${transaction.transaction_type === 'purchase' && transaction.invoice_number ? `
+                        <div class="flex gap-3">
+                            <button class="text-blue-600 hover:text-blue-800 font-semibold">
+                                <i class="fas fa-file-invoice mr-2"></i>
+                                Voir la facture
+                            </button>
+                            <button class="text-gray-600 hover:text-gray-800 font-semibold">
+                                <i class="fas fa-download mr-2"></i>
+                                Télécharger PDF
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
         }
     </script>
 </body>
