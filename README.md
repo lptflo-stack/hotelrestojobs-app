@@ -63,11 +63,7 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
 - ✅ Connexion sécurisée
 - ✅ Tableau de bord avec statistiques globales
 - ✅ Graphiques interactifs (Chart.js)
-- ✅ Validation des offres en attente
-  - Vérification automatique des crédits avant activation
-  - Déduction de 1 crédit lors de l'activation
-  - Calcul automatique date d'expiration (30 jours)
-  - Création des notifications d'expiration (7j, 3j, expirée)
+- ✅ ~~Validation des offres en attente~~ (SUPPRIMÉ - publication automatique)
 - ✅ Gestion des utilisateurs
 - ✅ **Gestion complète des comptes employeurs**
   - Vue détaillée de tous les employeurs avec leurs entreprises
@@ -176,7 +172,8 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
 
 ### Fonctionnement des crédits
 - **1 crédit = 1 annonce valide pendant 30 jours**
-- Les crédits sont déduits automatiquement lors de l'activation d'une annonce par l'admin
+- Les crédits sont déduits **automatiquement et immédiatement** lors de la publication
+- **Publication instantanée** : les annonces sont actives immédiatement, sans validation admin
 - Date d'expiration calculée automatiquement : `created_at + 30 jours`
 - Notifications d'expiration envoyées à 7 jours, 3 jours et le jour de l'expiration
 - Les annonces expirées peuvent être republiées (coûte 1 crédit)
