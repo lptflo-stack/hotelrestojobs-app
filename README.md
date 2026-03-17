@@ -23,22 +23,32 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
 ### Portail Employeur
 - ✅ Inscription et connexion
 - ✅ Gestion de l'entreprise (nom, description, coordonnées)
-- ✅ **Gestion des crédits d'annonces** (NOUVEAU)
+- ✅ **Gestion des crédits d'annonces**
   - Affichage visuel des crédits disponibles
   - Date d'expiration du forfait illimité sous le nom
   - Statistiques : crédits utilisés, annonces actives/expirées
   - Achat direct de forfaits depuis le portail
   - Explication : 1 crédit = 1 annonce valide 30 jours
-- ✅ Création d'offres d'emploi détaillées
+- ✅ **Création d'offres d'emploi avec vérification crédits** (NOUVEAU)
+  - **Vérification automatique des crédits** avant création
+  - **Blocage du formulaire** si 0 crédit (opacity 0.5, désactivé)
+  - **Alerte visuelle** selon niveau de crédits :
+    * Rouge + cadenas si 0 crédit (avec bouton "Acheter maintenant")
+    * Jaune si 1-5 crédits (avec suggestion d'achat)
+    * Vert si > 5 crédits
+    * Violet si forfait illimité (avec date d'expiration)
+  - **Double validation** : côté client ET serveur (API)
+  - **Message informatif** : crédits restants après création
+  - **Impossible de publier sans crédit** - obligation d'acheter
 - ✅ Gestion des offres actives (modification, suppression)
-- ✅ **Annonces expirées** (NOUVEAU)
+- ✅ **Annonces expirées**
   - Liste des annonces avec statut expiré
   - Republication en 1 clic (coûte 1 crédit)
   - Calcul automatique nouvelle date d'expiration (+30 jours)
   - Statistiques conservées (vues, candidatures)
 - ✅ Consultation des candidatures reçues
 - ✅ Gestion des candidatures (statut, notes)
-- ✅ **Historique des factures** (NOUVEAU)
+- ✅ **Historique des factures**
   - Toutes les transactions (achats, déductions, ajustements)
   - Détails : montant, crédits avant/après, date, description
   - Numéros de facture pour les achats
