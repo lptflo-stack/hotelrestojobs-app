@@ -648,6 +648,9 @@
                 loadPricingPlans();
             } else if (tabName === 'jobs') {
                 loadJobs();
+            } else if (tabName === 'create') {
+                // Vérifier les crédits quand on ouvre l'onglet Nouvelle Offre
+                checkCreditsOnCreateTab();
             } else if (tabName === 'expired') {
                 loadExpiredJobs();
             } else if (tabName === 'applications') {
@@ -749,9 +752,151 @@
             `;
         }
 
+        // Check Credits Before Creating Job
+        async function checkCreditsBeforeCreate() {
+            try {
+                const response = await axios.get(`/api/pricing/credits/${currentUser.id}`);
+                const credits = response.data;
+                
+                const hasUnlimited = credits.unlimited_until && new Date(credits.unlimited_until) > new Date();
+                const hasCredits = credits.credits_remaining > 0;
+                
+                return {
+                    canCreate: hasUnlimited || hasCredits,
+                    credits: credits.credits_remaining,
+                    unlimited: hasUnlimited,
+                    unlimited_until: credits.unlimited_until
+                };
+            } catch (error) {
+                console.error('Erreur vérification crédits:', error);
+                return { canCreate: false, credits: 0, unlimited: false };
+            }
+        }
+
+        // Check Credits on Create Tab
+        async function checkCreditsOnCreateTab() {
+            const creditCheck = await checkCreditsBeforeCreate();
+            
+            // Trouver ou créer la zone d'alerte
+            let alertDiv = document.getElementById('credits-alert');
+            if (!alertDiv) {
+                alertDiv = document.createElement('div');
+                alertDiv.id = 'credits-alert';
+                const createContent = document.getElementById('content-create');
+                const firstChild = createContent.firstElementChild;
+                firstChild.insertBefore(alertDiv, firstChild.firstChild);
+            }
+            
+            if (!creditCheck.canCreate) {
+                alertDiv.innerHTML = `
+                    <div class="bg-red-100 border-2 border-red-400 text-red-800 px-6 py-4 rounded-lg mb-6">
+                        <div class="flex items-start">
+                            <i class="fas fa-exclamation-triangle text-3xl mr-4"></i>
+                            <div class="flex-1">
+                                <h4 class="text-xl font-bold mb-2">
+                                    <i class="fas fa-lock mr-2"></i>
+                                    Aucun crédit disponible
+                                </h4>
+                                <p class="mb-3">
+                                    Vous n'avez pas de crédits pour publier une annonce.
+                                    Vous devez acheter un forfait pour continuer.
+                                </p>
+                                <p class="text-sm mb-4">
+                                    <strong>Rappel:</strong> 1 crédit = 1 annonce valide pendant 30 jours
+                                </p>
+                                <button onclick="showTab('credits')" 
+                                        class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
+                                    <i class="fas fa-shopping-cart mr-2"></i>
+                                    Acheter un forfait maintenant
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Désactiver le formulaire
+                const form = document.querySelector('#content-create form');
+                const inputs = form.querySelectorAll('input, textarea, select, button[type="submit"]');
+                inputs.forEach(input => {
+                    input.disabled = true;
+                    input.style.opacity = '0.5';
+                    input.style.cursor = 'not-allowed';
+                });
+            } else {
+                // Afficher un message de confirmation avec crédits disponibles
+                if (creditCheck.unlimited) {
+                    alertDiv.innerHTML = `
+                        <div class="bg-purple-100 border-2 border-purple-400 text-purple-800 px-6 py-4 rounded-lg mb-6">
+                            <div class="flex items-center">
+                                <i class="fas fa-infinity text-3xl mr-4"></i>
+                                <div>
+                                    <h4 class="text-lg font-bold">
+                                        Forfait illimité actif
+                                    </h4>
+                                    <p class="text-sm">
+                                        Vous pouvez publier autant d'annonces que vous voulez jusqu'au ${formatDate(creditCheck.unlimited_until)}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    const creditColor = creditCheck.credits > 5 ? 'green' : creditCheck.credits > 0 ? 'yellow' : 'red';
+                    alertDiv.innerHTML = `
+                        <div class="bg-${creditColor}-100 border-2 border-${creditColor}-400 text-${creditColor}-800 px-6 py-4 rounded-lg mb-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <i class="fas fa-coins text-3xl mr-4"></i>
+                                    <div>
+                                        <h4 class="text-lg font-bold">
+                                            ${creditCheck.credits} crédit${creditCheck.credits > 1 ? 's' : ''} disponible${creditCheck.credits > 1 ? 's' : ''}
+                                        </h4>
+                                        <p class="text-sm">
+                                            Cette annonce coûtera 1 crédit lors de sa validation par l'admin
+                                        </p>
+                                    </div>
+                                </div>
+                                ${creditCheck.credits <= 3 ? `
+                                    <button onclick="showTab('credits')" 
+                                            class="bg-${creditColor}-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-${creditColor}-700">
+                                        <i class="fas fa-plus mr-2"></i>
+                                        Acheter plus
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Réactiver le formulaire
+                const form = document.querySelector('#content-create form');
+                const inputs = form.querySelectorAll('input, textarea, select, button[type="submit"]');
+                inputs.forEach(input => {
+                    input.disabled = false;
+                    input.style.opacity = '1';
+                    input.style.cursor = '';
+                });
+            }
+        }
+
         // Create Job
         async function createJob(e) {
             e.preventDefault();
+            
+            // Vérifier les crédits AVANT de créer l'annonce
+            const creditCheck = await checkCreditsBeforeCreate();
+            
+            if (!creditCheck.canCreate) {
+                const message = `Vous n'avez pas de crédits disponibles pour publier une annonce.\n\n` +
+                    `Crédits restants: ${creditCheck.credits}\n\n` +
+                    `Voulez-vous acheter un forfait maintenant?`;
+                
+                if (confirm(message)) {
+                    showTab('credits');
+                    return;
+                }
+                return;
+            }
             
             const data = {
                 user_id: currentUser.id,
@@ -773,8 +918,13 @@
                 const response = await axios.post('/api/jobs', data);
                 
                 if (response.data.success) {
-                    alert('Offre créée avec succès ! Elle sera visible après validation par l\'administrateur.');
+                    if (creditCheck.unlimited) {
+                        alert('Offre créée avec succès ! (Forfait illimité)\n\nElle sera visible après validation par l\'administrateur.');
+                    } else {
+                        alert(`Offre créée avec succès !\n\nCrédits restants: ${creditCheck.credits - 1}\n\nElle sera visible après validation par l'administrateur.\nUn crédit sera déduit lors de l'activation.`);
+                    }
                     e.target.reset();
+                    await loadCredits(); // Rafraîchir l'affichage des crédits
                     showTab('jobs');
                 }
             } catch (error) {

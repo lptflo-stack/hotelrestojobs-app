@@ -130,6 +130,24 @@ jobs.post('/', async (c) => {
       return c.json({ error: 'Entreprise non trouvée' }, 404);
     }
 
+    // IMPORTANT: Vérifier les crédits AVANT de créer l'annonce
+    const credits = await c.env.DB.prepare(`
+      SELECT credits_remaining, unlimited_until
+      FROM employer_credits
+      WHERE user_id = ?
+    `).bind(user_id).first<any>();
+
+    const hasUnlimited = credits?.unlimited_until && new Date(credits.unlimited_until) > new Date();
+    const hasCredits = credits && credits.credits_remaining > 0;
+
+    if (!hasUnlimited && !hasCredits) {
+      return c.json({ 
+        error: 'Crédits insuffisants. Vous devez acheter un forfait pour publier une annonce.',
+        credits_remaining: credits?.credits_remaining || 0,
+        needs_purchase: true
+      }, 400);
+    }
+
     // Créer l'offre d'emploi
     const result = await c.env.DB.prepare(`
       INSERT INTO job_offers (
