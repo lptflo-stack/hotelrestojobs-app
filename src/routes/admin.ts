@@ -126,18 +126,124 @@ admin.post('/jobs/:id/validate', requireAdmin, async (c) => {
       return c.json({ error: 'Action invalide' }, 400);
     }
 
-    const newStatus = action === 'approve' ? 'active' : 'rejected';
+    if (action === 'approve') {
+      // Récupérer l'offre et l'employeur
+      const jobOffer = await c.env.DB.prepare(`
+        SELECT jo.*, c.user_id
+        FROM job_offers jo
+        JOIN companies c ON jo.company_id = c.id
+        WHERE jo.id = ?
+      `).bind(id).first<any>();
 
-    await c.env.DB.prepare(`
-      UPDATE job_offers 
-      SET status = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).bind(newStatus, id).run();
+      if (!jobOffer) {
+        return c.json({ error: 'Offre non trouvée' }, 404);
+      }
 
-    return c.json({
-      success: true,
-      message: action === 'approve' ? 'Offre approuvée' : 'Offre rejetée'
-    });
+      // Vérifier les crédits de l'employeur
+      const credits = await c.env.DB.prepare(`
+        SELECT credits_remaining, unlimited_until
+        FROM employer_credits
+        WHERE user_id = ?
+      `).bind(jobOffer.user_id).first<any>();
+
+      const hasUnlimited = credits?.unlimited_until && new Date(credits.unlimited_until) > new Date();
+      const hasCredits = credits?.credits_remaining && credits.credits_remaining > 0;
+
+      if (!hasUnlimited && !hasCredits) {
+        return c.json({ 
+          error: 'L\'employeur n\'a pas de crédits disponibles',
+          credits_remaining: credits?.credits_remaining || 0,
+          unlimited_until: credits?.unlimited_until
+        }, 400);
+      }
+
+      // Calculer la date d'expiration (30 jours)
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+
+      // Activer l'offre
+      await c.env.DB.prepare(`
+        UPDATE job_offers 
+        SET status = ?, expires_at = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).bind('active', expiresAt.toISOString(), id).run();
+
+      // Déduire un crédit si pas illimité
+      if (!hasUnlimited) {
+        const balanceBefore = credits?.credits_remaining || 0;
+        const balanceAfter = balanceBefore - 1;
+
+        await c.env.DB.prepare(`
+          UPDATE employer_credits 
+          SET credits_remaining = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = ?
+        `).bind(balanceAfter, jobOffer.user_id).run();
+
+        // Logger la transaction
+        await c.env.DB.prepare(`
+          INSERT INTO credit_transactions (
+            user_id,
+            transaction_type,
+            credits_amount,
+            balance_before,
+            balance_after,
+            job_offer_id,
+            description
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          jobOffer.user_id,
+          'deduction',
+          -1,
+          balanceBefore,
+          balanceAfter,
+          id,
+          `Publication de l'offre: ${jobOffer.title}`
+        ).run();
+      }
+
+      // Créer les notifications d'expiration (7 jours avant et jour d'expiration)
+      const warning7Days = new Date(expiresAt);
+      warning7Days.setDate(warning7Days.getDate() - 7);
+
+      const warning3Days = new Date(expiresAt);
+      warning3Days.setDate(warning3Days.getDate() - 3);
+
+      // TODO: Planifier les emails de notification
+      await c.env.DB.prepare(`
+        INSERT INTO expiration_notifications (user_id, job_offer_id, notification_type, email_status)
+        VALUES (?, ?, ?, ?)
+      `).bind(jobOffer.user_id, id, 'warning_7days', 'pending').run();
+
+      await c.env.DB.prepare(`
+        INSERT INTO expiration_notifications (user_id, job_offer_id, notification_type, email_status)
+        VALUES (?, ?, ?, ?)
+      `).bind(jobOffer.user_id, id, 'warning_3days', 'pending').run();
+
+      await c.env.DB.prepare(`
+        INSERT INTO expiration_notifications (user_id, job_offer_id, notification_type, email_status)
+        VALUES (?, ?, ?, ?)
+      `).bind(jobOffer.user_id, id, 'expired', 'pending').run();
+
+      return c.json({
+        success: true,
+        message: 'Offre approuvée et activée',
+        expires_at: expiresAt.toISOString(),
+        credits_deducted: hasUnlimited ? 0 : 1,
+        credits_remaining: hasUnlimited ? 'unlimited' : (credits?.credits_remaining || 0) - 1
+      });
+    } else {
+      // Rejeter l'offre
+      await c.env.DB.prepare(`
+        UPDATE job_offers 
+        SET status = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).bind('rejected', id).run();
+
+      return c.json({
+        success: true,
+        message: 'Offre rejetée'
+      });
+    }
   } catch (error) {
     console.error('Erreur validation emploi:', error);
     return c.json({ error: 'Erreur lors de la validation' }, 500);
