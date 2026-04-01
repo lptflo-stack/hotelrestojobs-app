@@ -95,9 +95,14 @@ jobs.get('/:id', async (c) => {
 // Créer une offre d'emploi (employeur)
 jobs.post('/', async (c) => {
   try {
-    const body = await c.req.json<CreateJobOfferRequest & { user_id: number }>();
+    const user_id = c.req.query('user_id');
+    
+    if (!user_id) {
+      return c.json({ error: 'user_id requis' }, 400);
+    }
+    
+    const body = await c.req.json<CreateJobOfferRequest>();
     const {
-      user_id,
       title,
       description,
       position_type,
@@ -112,23 +117,20 @@ jobs.post('/', async (c) => {
       benefits
     } = body;
 
-    // Vérifier que l'utilisateur est un employeur
+    // Vérifier que l'utilisateur est un employeur et récupérer company_id
     const user = await c.env.DB.prepare(`
-      SELECT role FROM users WHERE id = ?
-    `).bind(user_id).first<{ role: string }>();
+      SELECT role, company_id FROM users WHERE id = ?
+    `).bind(user_id).first<{ role: string; company_id: number }>();
 
     if (!user || user.role !== 'employer') {
       return c.json({ error: 'Non autorisé' }, 403);
     }
 
-    // Récupérer l'ID de l'entreprise
-    const company = await c.env.DB.prepare(`
-      SELECT id FROM companies WHERE user_id = ?
-    `).bind(user_id).first<{ id: number }>();
-
-    if (!company) {
+    if (!user.company_id) {
       return c.json({ error: 'Entreprise non trouvée' }, 404);
     }
+
+    const company_id = user.company_id;
 
     // IMPORTANT: Vérifier les crédits AVANT de créer l'annonce
     const credits = await c.env.DB.prepare(`
@@ -160,7 +162,7 @@ jobs.post('/', async (c) => {
         requirements, benefits, status, expires_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)
     `).bind(
-      company.id,
+      company_id,
       title,
       description,
       position_type,

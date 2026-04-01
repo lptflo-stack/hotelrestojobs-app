@@ -733,4 +733,32 @@ admin.get('/employers/:userId/details', requireAdmin, async (c) => {
   }
 });
 
+// Récupérer toutes les transactions (admin)
+admin.get('/transactions', requireAdmin, async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare(`
+      SELECT 
+        ct.*,
+        u.first_name,
+        u.last_name,
+        u.email,
+        c.name as company_name,
+        jo.title as job_title,
+        pp.name as plan_name
+      FROM credit_transactions ct
+      JOIN users u ON ct.user_id = u.id
+      LEFT JOIN companies c ON u.company_id = c.id
+      LEFT JOIN job_offers jo ON ct.job_offer_id = jo.id
+      LEFT JOIN pricing_plans pp ON ct.pricing_plan_id = pp.id
+      ORDER BY ct.created_at DESC
+      LIMIT 100
+    `).all();
+
+    return c.json({ transactions: results });
+  } catch (error) {
+    console.error('Erreur récupération transactions:', error);
+    return c.json({ error: 'Erreur lors de la récupération des transactions' }, 500);
+  }
+});
+
 export default admin;

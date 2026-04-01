@@ -215,4 +215,28 @@ pricing.get('/credits/:userId', async (c) => {
   }
 });
 
+// Récupérer les transactions d'un employeur
+pricing.get('/transactions/:userId', async (c) => {
+  try {
+    const userId = c.req.param('userId');
+    
+    const { results } = await c.env.DB.prepare(`
+      SELECT 
+        ct.*,
+        jo.title as job_title,
+        pp.name as plan_name
+      FROM credit_transactions ct
+      LEFT JOIN job_offers jo ON ct.job_offer_id = jo.id
+      LEFT JOIN pricing_plans pp ON ct.pricing_plan_id = pp.id
+      WHERE ct.user_id = ?
+      ORDER BY ct.created_at DESC
+    `).bind(userId).all();
+
+    return c.json({ transactions: results });
+  } catch (error) {
+    console.error('Erreur récupération transactions:', error);
+    return c.json({ error: 'Erreur lors de la récupération des transactions' }, 500);
+  }
+});
+
 export default pricing;
