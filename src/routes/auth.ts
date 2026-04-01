@@ -1,18 +1,19 @@
 import { Hono } from 'hono';
+import bcrypt from 'bcryptjs';
 import type { Bindings, User, CreateUserRequest, LoginRequest } from '../types';
+import { generateToken, requireAuth, getCurrentUser } from '../middleware/auth';
 
 const auth = new Hono<{ Bindings: Bindings }>();
 
-// Helper pour hasher les mots de passe (simplifié pour démo)
-// En production, utiliser bcrypt ou argon2
-function hashPassword(password: string): string {
-  // Pour la démo, on utilise un hash simple
-  // En production, utiliser une vraie librairie de hashing
-  return `$2a$10$${password}`;
+// Hasher un mot de passe avec bcrypt
+async function hashPassword(password: string): Promise<string> {
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, salt);
 }
 
-function verifyPassword(password: string, hash: string): boolean {
-  return hashPassword(password) === hash;
+// Vérifier un mot de passe avec bcrypt
+async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return await bcrypt.compare(password, hash);
 }
 
 // Inscription
@@ -39,8 +40,8 @@ auth.post('/register', async (c) => {
       return c.json({ error: 'Cet email est déjà utilisé' }, 409);
     }
 
-    // Hasher le mot de passe
-    const password_hash = hashPassword(password);
+    // Hasher le mot de passe avec bcrypt
+    const password_hash = await hashPassword(password);
 
     // Créer l'utilisateur
     const result = await c.env.DB.prepare(`
@@ -115,15 +116,23 @@ auth.post('/login', async (c) => {
       return c.json({ error: 'Votre compte est désactivé. Contactez votre administrateur.' }, 403);
     }
 
-    // Vérifier le mot de passe
-    if (!verifyPassword(password, user.password_hash)) {
+    // Vérifier le mot de passe avec bcrypt
+    const isPasswordValid = await verifyPassword(password, user.password_hash);
+    if (!isPasswordValid) {
       return c.json({ error: 'Email ou mot de passe incorrect' }, 401);
     }
 
-    // En production, générer un JWT token
-    // Pour la démo, on retourne juste les infos utilisateur
+    // Générer un JWT token sécurisé
+    const token = await generateToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      company_id: user.company_id || undefined
+    });
+
     return c.json({
       success: true,
+      token,
       user: {
         id: user.id,
         email: user.email,
@@ -140,16 +149,16 @@ auth.post('/login', async (c) => {
   }
 });
 
-// Récupérer le profil utilisateur
-auth.get('/profile/:userId', async (c) => {
+// Récupérer le profil utilisateur (protégé par JWT)
+auth.get('/profile', requireAuth, async (c) => {
   try {
-    const userId = c.req.param('userId');
+    const currentUser = getCurrentUser(c);
 
     const user = await c.env.DB.prepare(`
       SELECT id, email, first_name, last_name, role, phone, company_id, is_active, created_at
       FROM users
       WHERE id = ?
-    `).bind(userId).first<User>();
+    `).bind(currentUser.userId).first<User>();
 
     if (!user) {
       return c.json({ error: 'Utilisateur non trouvé' }, 404);
@@ -161,7 +170,7 @@ auth.get('/profile/:userId', async (c) => {
     if (user.role === 'candidate') {
       const candidateProfile = await c.env.DB.prepare(`
         SELECT * FROM candidate_profiles WHERE user_id = ?
-      `).bind(userId).first();
+      `).bind(currentUser.userId).first();
       profile.candidate_profile = candidateProfile;
     }
 
@@ -178,6 +187,13 @@ auth.get('/profile/:userId', async (c) => {
     console.error('Erreur profil:', error);
     return c.json({ error: 'Erreur lors de la récupération du profil' }, 500);
   }
+});
+
+// Ancienne route pour compatibilité (à supprimer après migration frontend)
+auth.get('/profile/:userId', async (c) => {
+  return c.json({ 
+    error: 'Cette route est dépréciée. Utilisez GET /api/auth/profile avec un token JWT' 
+  }, 410);
 });
 
 export default auth;
