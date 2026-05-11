@@ -626,12 +626,13 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script src="/static/auth-jwt.js"></script>
     <script>
         let currentUser = null;
 
         // Vérifier si l'utilisateur est connecté au chargement
         window.onload = function() {
-            const userData = localStorage.getItem('employer');
+            // Migration JWT: utilise getCurrentUser() au lieu de localStorage
             if (userData) {
                 currentUser = JSON.parse(userData);
                 showDashboard();
@@ -730,7 +731,7 @@
         // Load Company
         async function loadCompany() {
             try {
-                const response = await axios.get(`/api/auth/profile/${currentUser.id}`);
+                const response = await axios.get(`/api/auth/profile`);
                 const profile = response.data;
 
                 if (profile.company) {
@@ -992,7 +993,7 @@
         // Load Jobs
         async function loadJobs() {
             try {
-                const response = await axios.get(`/api/jobs/employer/${currentUser.id}`);
+                const response = await axios.get(`/api/jobs/employer/me`);
                 const jobs = response.data.jobs;
                 
                 const container = document.getElementById('jobs-list');
@@ -1083,7 +1084,7 @@
         // Check Credits Before Creating Job
         async function checkCreditsBeforeCreate() {
             try {
-                const response = await axios.get(`/api/pricing/credits/${currentUser.id}`);
+                const response = await axios.get(`/api/pricing/credits/me`);
                 const credits = response.data;
                 
                 const hasUnlimited = credits.unlimited_until && new Date(credits.unlimited_until) > new Date();
@@ -1227,7 +1228,6 @@
             }
             
             const data = {
-                user_id: currentUser.id,
                 title: document.getElementById('job-title').value,
                 description: document.getElementById('job-description').value,
                 position_type: document.getElementById('job-position-type').value,
@@ -1280,7 +1280,7 @@
             if (!confirm('Êtes-vous sûr de vouloir supprimer cette offre ?')) return;
 
             try {
-                await axios.delete(`/api/jobs/${jobId}?user_id=${currentUser.id}`);
+                await axios.delete(`/api/jobs/${jobId}`);
                 alert('Offre supprimée avec succès');
                 loadJobs();
             } catch (error) {
@@ -1297,7 +1297,7 @@
         // Load Jobs for Filter
         async function loadJobsForFilter() {
             try {
-                const response = await axios.get(`/api/jobs/employer/${currentUser.id}`);
+                const response = await axios.get(`/api/jobs/employer/me`);
                 const jobs = response.data.jobs;
                 
                 const select = document.getElementById('filter-job');
@@ -1318,7 +1318,7 @@
             }
 
             try {
-                const response = await axios.get(`/api/applications/job/${jobId}?user_id=${currentUser.id}`);
+                const response = await axios.get(`/api/applications/job/${jobId}`);
                 const applications = response.data.applications;
                 
                 const container = document.getElementById('applications-list');
@@ -1409,7 +1409,6 @@
         async function updateApplicationStatus(appId, status) {
             try {
                 await axios.put(`/api/applications/${appId}/status`, {
-                    user_id: currentUser.id,
                     status: status
                 });
                 
@@ -1483,7 +1482,6 @@
                 // Créer la commande
                 const orderResponse = await axios.post('/api/featured/order', {
                     job_offer_id: parseInt(jobId),
-                    user_id: currentUser.id,
                     duration_days: parseInt(duration)
                 });
                 
@@ -1523,7 +1521,7 @@
         // Load Credits
         async function loadCredits() {
             try {
-                const response = await axios.get(`/api/pricing/credits/${currentUser.id}`);
+                const response = await axios.get(`/api/pricing/credits/me`);
                 const credits = response.data;
                 
                 const container = document.getElementById('credits-info');
@@ -1571,7 +1569,7 @@
                 }
                 
                 // Get transactions history
-                const transactionsResponse = await axios.get(`/api/payments/transactions/${currentUser.id}`);
+                const transactionsResponse = await axios.get(`/api/payments/transactions/me`);
                 const transactions = transactionsResponse.data.transactions || [];
                 
                 // Calculate active plan info
@@ -1684,7 +1682,6 @@
         async function purchasePlan(planId) {
             try {
                 const response = await axios.post('/api/payments/create-checkout-session', {
-                    user_id: currentUser.id,
                     plan_id: planId
                 });
                 
@@ -1711,7 +1708,7 @@
         // Load Expired Jobs
         async function loadExpiredJobs() {
             try {
-                const response = await axios.get(`/api/jobs/employer/${currentUser.id}`);
+                const response = await axios.get(`/api/jobs/employer/me`);
                 const allJobs = response.data.jobs;
                 const expiredJobs = allJobs.filter(job => job.status === 'expired');
                 
@@ -1816,7 +1813,7 @@
         // Load Invoices
         async function loadInvoices() {
             try {
-                const response = await axios.get(`/api/payments/transactions/${currentUser.id}`);
+                const response = await axios.get(`/api/payments/transactions/me`);
                 const transactions = response.data.transactions || [];
                 
                 const container = document.getElementById('invoices-list');

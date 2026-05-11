@@ -1,19 +1,21 @@
 import { Hono } from 'hono';
 import type { Bindings } from '../types';
+import { requireAuth, requireEmployer, getCurrentUser } from '../middleware/auth';
 
 const payments = new Hono<{ Bindings: Bindings }>();
 
-// Créer une session de paiement Stripe
-payments.post('/create-checkout-session', async (c) => {
+// Créer une session de paiement Stripe - SÉCURISÉ JWT
+payments.post('/create-checkout-session', requireAuth, requireEmployer, async (c) => {
   try {
+    const currentUser = getCurrentUser(c);
+    const user_id = currentUser.userId;
     const body = await c.req.json<{
-      user_id: string;
       pricing_plan_id: number;
       success_url: string;
       cancel_url: string;
     }>();
 
-    const { user_id, pricing_plan_id, success_url, cancel_url } = body;
+    const { pricing_plan_id, success_url, cancel_url } = body;
 
     // Récupérer le plan de tarification
     const plan = await c.env.DB.prepare(`
@@ -315,9 +317,10 @@ payments.post('/complete/:sessionId', async (c) => {
 });
 
 // Récupérer l'historique des transactions d'un utilisateur
-payments.get('/transactions/:userId', async (c) => {
+payments.get('/transactions/me', requireAuth, requireEmployer, async (c) => {
   try {
-    const userId = c.req.param('userId');
+    const currentUser = getCurrentUser(c);
+    const userId = currentUser.userId;
 
     const { results } = await c.env.DB.prepare(`
       SELECT 

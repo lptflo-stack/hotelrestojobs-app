@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import type { Bindings } from '../types';
+import { requireAuth, requireAdmin, requireEmployer, getCurrentUser } from '../middleware/auth';
 
 const pricing = new Hono<{ Bindings: Bindings }>();
 
@@ -37,19 +38,9 @@ pricing.get('/:id', async (c) => {
   }
 });
 
-// Créer un nouveau tarif (admin)
-pricing.post('/', async (c) => {
+// Créer un nouveau tarif (admin) - SÉCURISÉ JWT
+pricing.post('/', requireAuth, requireAdmin, async (c) => {
   try {
-    const user_id = c.req.query('user_id');
-    
-    // Vérifier que c'est un admin
-    const user = await c.env.DB.prepare(`
-      SELECT role FROM users WHERE id = ?
-    `).bind(user_id).first<{ role: string }>();
-
-    if (!user || user.role !== 'admin') {
-      return c.json({ error: 'Non autorisé - accès admin requis' }, 403);
-    }
 
     const body = await c.req.json<{
       name: string;
@@ -87,20 +78,10 @@ pricing.post('/', async (c) => {
   }
 });
 
-// Mettre à jour un tarif (admin)
-pricing.put('/:id', async (c) => {
+// Mettre à jour un tarif (admin) - SÉCURISÉ JWT
+pricing.put('/:id', requireAuth, requireAdmin, async (c) => {
   try {
     const id = c.req.param('id');
-    const user_id = c.req.query('user_id');
-    
-    // Vérifier que c'est un admin
-    const user = await c.env.DB.prepare(`
-      SELECT role FROM users WHERE id = ?
-    `).bind(user_id).first<{ role: string }>();
-
-    if (!user || user.role !== 'admin') {
-      return c.json({ error: 'Non autorisé - accès admin requis' }, 403);
-    }
 
     const body = await c.req.json<{
       name?: string;
@@ -164,19 +145,9 @@ pricing.put('/:id', async (c) => {
 });
 
 // Supprimer un tarif (admin)
-pricing.delete('/:id', async (c) => {
+pricing.delete('/:id', requireAuth, requireAdmin, async (c) => {
   try {
     const id = c.req.param('id');
-    const user_id = c.req.query('user_id');
-    
-    // Vérifier que c'est un admin
-    const user = await c.env.DB.prepare(`
-      SELECT role FROM users WHERE id = ?
-    `).bind(user_id).first<{ role: string }>();
-
-    if (!user || user.role !== 'admin') {
-      return c.json({ error: 'Non autorisé - accès admin requis' }, 403);
-    }
 
     // Plutôt que de supprimer, on désactive
     await c.env.DB.prepare(`
@@ -190,10 +161,11 @@ pricing.delete('/:id', async (c) => {
   }
 });
 
-// Récupérer les crédits d'un employeur
-pricing.get('/credits/:userId', async (c) => {
+// Récupérer les crédits d'un employeur - SÉCURISÉ JWT
+pricing.get('/credits/me', requireAuth, requireEmployer, async (c) => {
   try {
-    const userId = c.req.param('userId');
+    const currentUser = getCurrentUser(c);
+    const userId = currentUser.userId;
     
     const credits = await c.env.DB.prepare(`
       SELECT * FROM employer_credits WHERE user_id = ?
@@ -215,10 +187,11 @@ pricing.get('/credits/:userId', async (c) => {
   }
 });
 
-// Récupérer les transactions d'un employeur
-pricing.get('/transactions/:userId', async (c) => {
+// Récupérer les transactions d'un employeur - SÉCURISÉ JWT
+pricing.get('/transactions/me', requireAuth, requireEmployer, async (c) => {
   try {
-    const userId = c.req.param('userId');
+    const currentUser = getCurrentUser(c);
+    const userId = currentUser.userId;
     
     const { results } = await c.env.DB.prepare(`
       SELECT 

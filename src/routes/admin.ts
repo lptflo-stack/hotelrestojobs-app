@@ -1,29 +1,14 @@
 import { Hono } from 'hono';
 import type { Bindings } from '../types';
+import { requireAuth, requireAdmin as requireAdminAuth, getCurrentUser } from '../middleware/auth';
+import bcrypt from 'bcryptjs';
 
 const admin = new Hono<{ Bindings: Bindings }>();
 
-// Middleware pour vérifier que l'utilisateur est admin
-const requireAdmin = async (c: any, next: any) => {
-  const userId = c.req.query('user_id');
-  
-  if (!userId) {
-    return c.json({ error: 'Non autorisé' }, 401);
-  }
+// Toutes les routes admin nécessitent requireAuth + requireAdminAuth
 
-  const user = await c.env.DB.prepare(`
-    SELECT role FROM users WHERE id = ?
-  `).bind(userId).first<{ role: string }>();
-
-  if (!user || user.role !== 'admin') {
-    return c.json({ error: 'Non autorisé - accès admin requis' }, 403);
-  }
-
-  await next();
-};
-
-// Statistiques globales
-admin.get('/stats', requireAdmin, async (c) => {
+// Statistiques globales - SÉCURISÉ JWT
+admin.get('/stats', requireAuth, requireAdminAuth, async (c) => {
   try {
     // Total utilisateurs
     const totalUsers = await c.env.DB.prepare(`
@@ -94,7 +79,7 @@ admin.get('/stats', requireAdmin, async (c) => {
 });
 
 // Lister toutes les offres en attente de validation
-admin.get('/jobs/pending', requireAdmin, async (c) => {
+admin.get('/jobs/pending', requireAuth, requireAdminAuth, async (c) => {
   try {
     const { results } = await c.env.DB.prepare(`
       SELECT 
@@ -116,7 +101,7 @@ admin.get('/jobs/pending', requireAdmin, async (c) => {
 });
 
 // Valider ou rejeter une offre d'emploi
-admin.post('/jobs/:id/validate', requireAdmin, async (c) => {
+admin.post('/jobs/:id/validate', requireAuth, requireAdminAuth, async (c) => {
   try {
     const id = c.req.param('id');
     const body = await c.req.json<{ action: 'approve' | 'reject'; reason?: string }>();
@@ -251,7 +236,7 @@ admin.post('/jobs/:id/validate', requireAdmin, async (c) => {
 });
 
 // Lister tous les utilisateurs
-admin.get('/users', requireAdmin, async (c) => {
+admin.get('/users', requireAuth, requireAdminAuth, async (c) => {
   try {
     const role = c.req.query('role');
     let query = 'SELECT id, email, first_name, last_name, role, phone, created_at FROM users';
@@ -275,7 +260,7 @@ admin.get('/users', requireAdmin, async (c) => {
 });
 
 // Supprimer un utilisateur
-admin.delete('/users/:id', requireAdmin, async (c) => {
+admin.delete('/users/:id', requireAuth, requireAdminAuth, async (c) => {
   try {
     const id = c.req.param('id');
 
@@ -298,7 +283,7 @@ admin.delete('/users/:id', requireAdmin, async (c) => {
 });
 
 // Récupérer un utilisateur spécifique
-admin.get('/users/:id', requireAdmin, async (c) => {
+admin.get('/users/:id', requireAuth, requireAdminAuth, async (c) => {
   try {
     const id = c.req.param('id');
     
@@ -320,7 +305,7 @@ admin.get('/users/:id', requireAdmin, async (c) => {
 });
 
 // Mettre à jour un utilisateur
-admin.put('/users/:id', requireAdmin, async (c) => {
+admin.put('/users/:id', requireAuth, requireAdminAuth, async (c) => {
   try {
     const id = c.req.param('id');
     const body = await c.req.json<{
@@ -356,8 +341,9 @@ admin.put('/users/:id', requireAdmin, async (c) => {
       bindings.push(phone);
     }
     if (password) {
-      // Simple hash pour la démo - en production utiliser bcrypt
-      const passwordHash = `$2a$10$${password}`;
+      // Hash sécurisé avec bcrypt
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(password, salt);
       updates.push('password_hash = ?');
       bindings.push(passwordHash);
     }
@@ -387,7 +373,7 @@ admin.put('/users/:id', requireAdmin, async (c) => {
 });
 
 // Lister les utilisateurs d'une entreprise
-admin.get('/companies/:companyId/users', requireAdmin, async (c) => {
+admin.get('/companies/:companyId/users', requireAuth, requireAdminAuth, async (c) => {
   try {
     const companyId = c.req.param('companyId');
 
@@ -414,7 +400,7 @@ admin.get('/companies/:companyId/users', requireAdmin, async (c) => {
 });
 
 // Créer un utilisateur pour une entreprise
-admin.post('/companies/:companyId/users', requireAdmin, async (c) => {
+admin.post('/companies/:companyId/users', requireAuth, requireAdminAuth, async (c) => {
   try {
     const companyId = c.req.param('companyId');
     const body = await c.req.json<{
@@ -448,8 +434,9 @@ admin.post('/companies/:companyId/users', requireAdmin, async (c) => {
       return c.json({ error: 'Cet email est déjà utilisé' }, 400);
     }
 
-    // Simple hash pour la démo - en production utiliser bcrypt
-    const passwordHash = `$2a$10$${password}`;
+    // Hash sécurisé avec bcrypt
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
 
     // Créer l'utilisateur
     await c.env.DB.prepare(`
@@ -477,7 +464,7 @@ admin.post('/companies/:companyId/users', requireAdmin, async (c) => {
 });
 
 // Lister toutes les commandes d'emplois vedettes
-admin.get('/featured-orders', requireAdmin, async (c) => {
+admin.get('/featured-orders', requireAuth, requireAdminAuth, async (c) => {
   try {
     const { results } = await c.env.DB.prepare(`
       SELECT 
@@ -503,7 +490,7 @@ admin.get('/featured-orders', requireAdmin, async (c) => {
 // ===== EMPLOYERS MANAGEMENT =====
 
 // Lister tous les employeurs avec détails
-admin.get('/employers', requireAdmin, async (c) => {
+admin.get('/employers', requireAuth, requireAdminAuth, async (c) => {
   try {
     const { results } = await c.env.DB.prepare(`
       SELECT 
@@ -535,7 +522,7 @@ admin.get('/employers', requireAdmin, async (c) => {
 });
 
 // Gérer les crédits d'un employeur
-admin.post('/employers/:userId/credits', requireAdmin, async (c) => {
+admin.post('/employers/:userId/credits', requireAuth, requireAdminAuth, async (c) => {
   try {
     const userId = c.req.param('userId');
     const body = await c.req.json<{
@@ -609,7 +596,7 @@ admin.post('/employers/:userId/credits', requireAdmin, async (c) => {
 });
 
 // Récupérer les informations d'une entreprise
-admin.get('/employers/:userId/company', requireAdmin, async (c) => {
+admin.get('/employers/:userId/company', requireAuth, requireAdminAuth, async (c) => {
   try {
     const userId = c.req.param('userId');
 
@@ -629,7 +616,7 @@ admin.get('/employers/:userId/company', requireAdmin, async (c) => {
 });
 
 // Mettre à jour les informations d'une entreprise
-admin.put('/employers/:userId/company', requireAdmin, async (c) => {
+admin.put('/employers/:userId/company', requireAuth, requireAdminAuth, async (c) => {
   try {
     const userId = c.req.param('userId');
     const body = await c.req.json<{
@@ -682,7 +669,7 @@ admin.put('/employers/:userId/company', requireAdmin, async (c) => {
 });
 
 // Récupérer les détails complets d'un employeur
-admin.get('/employers/:userId/details', requireAdmin, async (c) => {
+admin.get('/employers/:userId/details', requireAuth, requireAdminAuth, async (c) => {
   try {
     const userId = c.req.param('userId');
 
@@ -734,7 +721,7 @@ admin.get('/employers/:userId/details', requireAdmin, async (c) => {
 });
 
 // Récupérer toutes les transactions (admin)
-admin.get('/transactions', requireAdmin, async (c) => {
+admin.get('/transactions', requireAuth, requireAdminAuth, async (c) => {
   try {
     const { results } = await c.env.DB.prepare(`
       SELECT 

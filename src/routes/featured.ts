@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import type { Bindings, FeaturedOrderRequest } from '../types';
+import { requireAuth, requireEmployer, getCurrentUser } from '../middleware/auth';
 
 const featured = new Hono<{ Bindings: Bindings }>();
 
@@ -10,11 +11,13 @@ const FEATURED_PRICES = {
   30: 99.99   // 30 jours
 };
 
-// Créer une commande d'emploi vedette
-featured.post('/order', async (c) => {
+// Créer une commande d'emploi vedette - SÉCURISÉ JWT
+featured.post('/order', requireAuth, requireEmployer, async (c) => {
   try {
-    const body = await c.req.json<FeaturedOrderRequest & { user_id: number }>();
-    const { job_offer_id, user_id, duration_days } = body;
+    const currentUser = getCurrentUser(c);
+    const user_id = currentUser.userId;
+    const body = await c.req.json<FeaturedOrderRequest>();
+    const { job_offer_id, duration_days } = body;
 
     // Vérifier que la durée est valide
     if (![7, 15, 30].includes(duration_days)) {
@@ -23,18 +26,13 @@ featured.post('/order', async (c) => {
 
     // Vérifier que l'utilisateur est propriétaire de l'offre
     const job = await c.env.DB.prepare(`
-      SELECT jo.*, c.user_id
+      SELECT jo.*
       FROM job_offers jo
-      JOIN companies c ON jo.company_id = c.id
-      WHERE jo.id = ?
-    `).bind(job_offer_id).first<any>();
+      WHERE jo.id = ? AND jo.company_id = ?
+    `).bind(job_offer_id, currentUser.company_id).first<any>();
 
     if (!job) {
-      return c.json({ error: 'Offre d\'emploi non trouvée' }, 404);
-    }
-
-    if (job.user_id !== user_id) {
-      return c.json({ error: 'Non autorisé' }, 403);
+      return c.json({ error: 'Offre d\'emploi non trouvée ou non autorisée' }, 404);
     }
 
     if (job.status !== 'active') {
@@ -62,28 +60,23 @@ featured.post('/order', async (c) => {
   }
 });
 
-// Simuler le paiement (en production, utiliser Stripe)
-featured.post('/payment/:orderId', async (c) => {
+// Simuler le paiement (en production, utiliser Stripe) - SÉCURISÉ JWT
+featured.post('/payment/:orderId', requireAuth, requireEmployer, async (c) => {
   try {
     const orderId = c.req.param('orderId');
-    const body = await c.req.json<{ user_id: number }>();
-    const { user_id } = body;
+    const currentUser = getCurrentUser(c);
+    const user_id = currentUser.userId;
 
     // Récupérer la commande
     const order = await c.env.DB.prepare(`
-      SELECT fo.*, jo.id as job_id, c.user_id
+      SELECT fo.*, jo.id as job_id
       FROM featured_orders fo
       JOIN job_offers jo ON fo.job_offer_id = jo.id
-      JOIN companies c ON jo.company_id = c.id
-      WHERE fo.id = ?
-    `).bind(orderId).first<any>();
+      WHERE fo.id = ? AND jo.company_id = ?
+    `).bind(orderId, currentUser.company_id).first<any>();
 
     if (!order) {
-      return c.json({ error: 'Commande non trouvée' }, 404);
-    }
-
-    if (order.user_id !== user_id) {
-      return c.json({ error: 'Non autorisé' }, 403);
+      return c.json({ error: 'Commande non trouvée ou non autorisée' }, 404);
     }
 
     if (order.status !== 'pending') {

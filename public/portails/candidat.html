@@ -289,6 +289,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script src="/static/auth-jwt.js"></script>
     <script>
         let currentUser = null;
 
@@ -393,7 +394,7 @@
         // Load Profile
         async function loadProfile() {
             try {
-                const response = await axios.get(`/api/auth/profile/${currentUser.id}`);
+                const response = await axios.get(`/api/auth/profile`);
                 const profile = response.data;
 
                 document.getElementById('profile-firstname').value = profile.first_name || '';
@@ -533,7 +534,6 @@
             try {
                 const response = await axios.post('/api/applications', {
                     job_offer_id: parseInt(jobId),
-                    user_id: currentUser.id,
                     cover_letter: coverLetter
                 });
 
@@ -550,7 +550,7 @@
         // Load Applications
         async function loadApplications() {
             try {
-                const response = await axios.get(`/api/applications/candidate/${currentUser.id}`);
+                const response = await axios.get(`/api/applications/candidate/me`);
                 const applications = response.data.applications;
                 
                 const container = document.getElementById('applications-list');

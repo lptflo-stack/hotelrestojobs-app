@@ -1,22 +1,16 @@
 import { Hono } from 'hono';
 import type { Bindings, Application, CreateApplicationRequest } from '../types';
+import { requireAuth, requireCandidate, requireEmployer, getCurrentUser } from '../middleware/auth';
 
 const applications = new Hono<{ Bindings: Bindings }>();
 
-// Créer une candidature
-applications.post('/', async (c) => {
+// Créer une candidature - SÉCURISÉ JWT
+applications.post('/', requireAuth, requireCandidate, async (c) => {
   try {
-    const body = await c.req.json<CreateApplicationRequest & { user_id: number }>();
-    const { job_offer_id, user_id, cover_letter } = body;
-
-    // Vérifier que l'utilisateur est un candidat
-    const user = await c.env.DB.prepare(`
-      SELECT role FROM users WHERE id = ?
-    `).bind(user_id).first<{ role: string }>();
-
-    if (!user || user.role !== 'candidate') {
-      return c.json({ error: 'Non autorisé - vous devez être candidat' }, 403);
-    }
+    const currentUser = getCurrentUser(c);
+    const user_id = currentUser.userId;
+    const body = await c.req.json<CreateApplicationRequest>();
+    const { job_offer_id, cover_letter } = body;
 
     // Vérifier que l'offre existe et est active
     const job = await c.env.DB.prepare(`
@@ -63,10 +57,11 @@ applications.post('/', async (c) => {
   }
 });
 
-// Récupérer les candidatures d'un candidat
-applications.get('/candidate/:userId', async (c) => {
+// Récupérer les candidatures d'un candidat - SÉCURISÉ JWT
+applications.get('/candidate/me', requireAuth, requireCandidate, async (c) => {
   try {
-    const userId = c.req.param('userId');
+    const currentUser = getCurrentUser(c);
+    const userId = currentUser.userId;
 
     const { results } = await c.env.DB.prepare(`
       SELECT 
@@ -89,26 +84,21 @@ applications.get('/candidate/:userId', async (c) => {
   }
 });
 
-// Récupérer les candidatures pour une offre (employeur)
-applications.get('/job/:jobId', async (c) => {
+// Récupérer les candidatures pour une offre (employeur) - SÉCURISÉ JWT
+applications.get('/job/:jobId', requireAuth, requireEmployer, async (c) => {
   try {
     const jobId = c.req.param('jobId');
-    const userId = c.req.query('user_id');
+    const currentUser = getCurrentUser(c);
 
     // Vérifier que l'utilisateur est propriétaire de l'offre
     const job = await c.env.DB.prepare(`
-      SELECT jo.*, c.user_id
+      SELECT jo.*
       FROM job_offers jo
-      JOIN companies c ON jo.company_id = c.id
-      WHERE jo.id = ?
-    `).bind(jobId).first<any>();
+      WHERE jo.id = ? AND jo.company_id = ?
+    `).bind(jobId, currentUser.company_id).first<any>();
 
     if (!job) {
-      return c.json({ error: 'Offre non trouvée' }, 404);
-    }
-
-    if (job.user_id !== Number(userId)) {
-      return c.json({ error: 'Non autorisé' }, 403);
+      return c.json({ error: 'Offre non trouvée ou non autorisée' }, 404);
     }
 
     const { results } = await c.env.DB.prepare(`
@@ -136,12 +126,13 @@ applications.get('/job/:jobId', async (c) => {
   }
 });
 
-// Mettre à jour le statut d'une candidature (employeur)
-applications.put('/:id/status', async (c) => {
+// Mettre à jour le statut d'une candidature (employeur) - SÉCURISÉ JWT
+applications.put('/:id/status', requireAuth, requireEmployer, async (c) => {
   try {
     const id = c.req.param('id');
-    const body = await c.req.json<{ user_id: number; status: string; employer_notes?: string }>();
-    const { user_id, status, employer_notes } = body;
+    const currentUser = getCurrentUser(c);
+    const body = await c.req.json<{ status: string; employer_notes?: string }>();
+    const { status, employer_notes } = body;
 
     // Vérifier que le statut est valide
     const validStatuses = ['pending', 'reviewed', 'shortlisted', 'rejected', 'accepted'];
@@ -151,19 +142,14 @@ applications.put('/:id/status', async (c) => {
 
     // Vérifier que l'utilisateur est propriétaire de l'offre
     const application = await c.env.DB.prepare(`
-      SELECT a.*, jo.id as job_id, c.user_id
+      SELECT a.*, jo.id as job_id
       FROM applications a
       JOIN job_offers jo ON a.job_offer_id = jo.id
-      JOIN companies c ON jo.company_id = c.id
-      WHERE a.id = ?
-    `).bind(id).first<any>();
+      WHERE a.id = ? AND jo.company_id = ?
+    `).bind(id, currentUser.company_id).first<any>();
 
     if (!application) {
-      return c.json({ error: 'Candidature non trouvée' }, 404);
-    }
-
-    if (application.user_id !== user_id) {
-      return c.json({ error: 'Non autorisé' }, 403);
+      return c.json({ error: 'Candidature non trouvée ou non autorisée' }, 404);
     }
 
     await c.env.DB.prepare(`
@@ -179,23 +165,19 @@ applications.put('/:id/status', async (c) => {
   }
 });
 
-// Retirer une candidature (candidat)
-applications.delete('/:id', async (c) => {
+// Retirer une candidature (candidat) - SÉCURISÉ JWT
+applications.delete('/:id', requireAuth, requireCandidate, async (c) => {
   try {
     const id = c.req.param('id');
-    const user_id = c.req.query('user_id');
+    const currentUser = getCurrentUser(c);
 
     // Vérifier que l'utilisateur est propriétaire de la candidature
     const application = await c.env.DB.prepare(`
-      SELECT user_id, job_offer_id FROM applications WHERE id = ?
-    `).bind(id).first<{ user_id: number; job_offer_id: number }>();
+      SELECT user_id, job_offer_id FROM applications WHERE id = ? AND user_id = ?
+    `).bind(id, currentUser.userId).first<{ user_id: number; job_offer_id: number }>();
 
     if (!application) {
-      return c.json({ error: 'Candidature non trouvée' }, 404);
-    }
-
-    if (application.user_id !== Number(user_id)) {
-      return c.json({ error: 'Non autorisé' }, 403);
+      return c.json({ error: 'Candidature non trouvée ou non autorisée' }, 404);
     }
 
     await c.env.DB.prepare('DELETE FROM applications WHERE id = ?').bind(id).run();

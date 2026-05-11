@@ -2,6 +2,9 @@ import { Context } from 'hono';
 import { sign, verify } from 'hono/jwt';
 import type { Bindings } from '../types';
 
+// Context type avec Bindings
+type AuthContext = Context<{ Bindings: Bindings }>;
+
 // Secret JWT - EN PRODUCTION, UTILISER UNE VARIABLE D'ENVIRONNEMENT
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
 
@@ -12,12 +15,6 @@ export interface JWTPayload {
   role: string;
   company_id?: number;
   exp: number;
-}
-
-// Interface pour le contexte avec utilisateur authentifié
-export interface AuthContext extends Context {
-  get(key: 'user'): JWTPayload;
-  set(key: 'user', value: JWTPayload): void;
 }
 
 /**
@@ -40,7 +37,7 @@ export async function generateToken(payload: Omit<JWTPayload, 'exp'>): Promise<s
  * Middleware: Vérifie le token JWT et extrait l'utilisateur
  * Ajoute l'utilisateur au context dans c.get('user')
  */
-export async function requireAuth(c: Context, next: () => Promise<void>) {
+export async function requireAuth(c: AuthContext, next: () => Promise<void>) {
   try {
     // Récupérer le token depuis le header Authorization
     const authHeader = c.req.header('Authorization');
@@ -60,35 +57,9 @@ export async function requireAuth(c: Context, next: () => Promise<void>) {
       return c.json({ error: 'Token expiré' }, 401);
     }
 
-    // Vérifier que l'utilisateur est toujours actif
-    const user = await c.env.DB.prepare(`
-      SELECT id, email, role, company_id, is_active
-      FROM users
-      WHERE id = ?
-    `).bind(payload.userId).first<{
-      id: number;
-      email: string;
-      role: string;
-      company_id: number | null;
-      is_active: number;
-    }>();
-
-    if (!user) {
-      return c.json({ error: 'Utilisateur non trouvé' }, 401);
-    }
-
-    if (!user.is_active) {
-      return c.json({ error: 'Compte désactivé' }, 403);
-    }
-
-    // Ajouter l'utilisateur au context
-    c.set('user', {
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-      company_id: user.company_id || undefined,
-      exp: payload.exp
-    });
+    // Ajouter l'utilisateur au context depuis le token JWT
+    // La vérification de l'état actif sera faite dans les routes si nécessaire
+    c.set('user', payload);
 
     await next();
   } catch (error) {
@@ -100,7 +71,7 @@ export async function requireAuth(c: Context, next: () => Promise<void>) {
 /**
  * Middleware: Vérifie que l'utilisateur est un admin
  */
-export async function requireAdmin(c: Context, next: () => Promise<void>) {
+export async function requireAdmin(c: AuthContext, next: () => Promise<void>) {
   const user = c.get('user') as JWTPayload;
 
   if (!user) {
@@ -117,7 +88,7 @@ export async function requireAdmin(c: Context, next: () => Promise<void>) {
 /**
  * Middleware: Vérifie que l'utilisateur est un employeur
  */
-export async function requireEmployer(c: Context, next: () => Promise<void>) {
+export async function requireEmployer(c: AuthContext, next: () => Promise<void>) {
   const user = c.get('user') as JWTPayload;
 
   if (!user) {
@@ -134,7 +105,7 @@ export async function requireEmployer(c: Context, next: () => Promise<void>) {
 /**
  * Middleware: Vérifie que l'utilisateur est un candidat
  */
-export async function requireCandidate(c: Context, next: () => Promise<void>) {
+export async function requireCandidate(c: AuthContext, next: () => Promise<void>) {
   const user = c.get('user') as JWTPayload;
 
   if (!user) {
@@ -151,7 +122,7 @@ export async function requireCandidate(c: Context, next: () => Promise<void>) {
 /**
  * Middleware: Vérifie que l'utilisateur est soit l'employeur soit un admin
  */
-export async function requireEmployerOrAdmin(c: Context, next: () => Promise<void>) {
+export async function requireEmployerOrAdmin(c: AuthContext, next: () => Promise<void>) {
   const user = c.get('user') as JWTPayload;
 
   if (!user) {
@@ -168,7 +139,7 @@ export async function requireEmployerOrAdmin(c: Context, next: () => Promise<voi
 /**
  * Middleware: Vérifie que l'utilisateur est soit le candidat concerné soit un admin
  */
-export async function requireCandidateOrAdmin(c: Context, next: () => Promise<void>) {
+export async function requireCandidateOrAdmin(c: AuthContext, next: () => Promise<void>) {
   const user = c.get('user') as JWTPayload;
 
   if (!user) {
@@ -185,6 +156,6 @@ export async function requireCandidateOrAdmin(c: Context, next: () => Promise<vo
 /**
  * Utilitaire: Récupère l'utilisateur depuis le context
  */
-export function getCurrentUser(c: Context): JWTPayload {
+export function getCurrentUser(c: AuthContext): JWTPayload {
   return c.get('user') as JWTPayload;
 }

@@ -1,16 +1,14 @@
 import { Hono } from 'hono';
 import type { Bindings } from '../types';
+import { requireAuth, requireCandidate, getCurrentUser } from '../middleware/auth';
 
 const candidate = new Hono<{ Bindings: Bindings }>();
 
-// Mettre à jour le profil candidat
-candidate.put('/profile', async (c) => {
+// Mettre à jour le profil candidat - SÉCURISÉ JWT
+candidate.put('/profile', requireAuth, requireCandidate, async (c) => {
   try {
-    const user_id = c.req.query('user_id');
-    
-    if (!user_id) {
-      return c.json({ error: 'user_id requis' }, 400);
-    }
+    const currentUser = getCurrentUser(c);
+    const user_id = currentUser.userId;
 
     const body = await c.req.json<{
       bio?: string;
@@ -29,15 +27,6 @@ candidate.put('/profile', async (c) => {
       desired_salary_min,
       desired_salary_max
     } = body;
-
-    // Vérifier que l'utilisateur est un candidat
-    const user = await c.env.DB.prepare(`
-      SELECT role FROM users WHERE id = ?
-    `).bind(user_id).first<{ role: string }>();
-
-    if (!user || user.role !== 'candidate') {
-      return c.json({ error: 'Non autorisé' }, 403);
-    }
 
     // Vérifier si un profil existe
     const existingProfile = await c.env.DB.prepare(`

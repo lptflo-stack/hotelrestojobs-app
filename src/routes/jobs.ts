@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import type { Bindings, JobOffer, CreateJobOfferRequest } from '../types';
+import { requireAuth, requireEmployer, getCurrentUser } from '../middleware/auth';
 
 const jobs = new Hono<{ Bindings: Bindings }>();
 
@@ -92,14 +93,11 @@ jobs.get('/:id', async (c) => {
   }
 });
 
-// Créer une offre d'emploi (employeur)
-jobs.post('/', async (c) => {
+// Créer une offre d'emploi (employeur) - SÉCURISÉ JWT
+jobs.post('/', requireAuth, requireEmployer, async (c) => {
   try {
-    const user_id = c.req.query('user_id');
-    
-    if (!user_id) {
-      return c.json({ error: 'user_id requis' }, 400);
-    }
+    const currentUser = getCurrentUser(c);
+    const user_id = currentUser.userId;
     
     const body = await c.req.json<CreateJobOfferRequest>();
     const {
@@ -117,20 +115,12 @@ jobs.post('/', async (c) => {
       benefits
     } = body;
 
-    // Vérifier que l'utilisateur est un employeur et récupérer company_id
-    const user = await c.env.DB.prepare(`
-      SELECT role, company_id FROM users WHERE id = ?
-    `).bind(user_id).first<{ role: string; company_id: number }>();
-
-    if (!user || user.role !== 'employer') {
-      return c.json({ error: 'Non autorisé' }, 403);
-    }
-
-    if (!user.company_id) {
+    // Récupérer company_id depuis le token JWT
+    if (!currentUser.company_id) {
       return c.json({ error: 'Entreprise non trouvée' }, 404);
     }
 
-    const company_id = user.company_id;
+    const company_id = currentUser.company_id;
 
     // IMPORTANT: Vérifier les crédits AVANT de créer l'annonce
     const credits = await c.env.DB.prepare(`
@@ -236,32 +226,27 @@ jobs.post('/', async (c) => {
   }
 });
 
-// Mettre à jour une offre d'emploi
-jobs.put('/:id', async (c) => {
+// Mettre à jour une offre d'emploi - SÉCURISÉ JWT
+jobs.put('/:id', requireAuth, requireEmployer, async (c) => {
   try {
     const id = c.req.param('id');
-    const body = await c.req.json<Partial<CreateJobOfferRequest> & { user_id: number }>();
-    const { user_id, ...updates } = body;
+    const currentUser = getCurrentUser(c);
+    const body = await c.req.json<Partial<CreateJobOfferRequest>>();
 
-    // Vérifier que l'utilisateur est propriétaire de l'offre
+    // Vérifier que l'utilisateur est propriétaire de l'offre via company_id
     const job = await c.env.DB.prepare(`
-      SELECT jo.*, c.user_id
+      SELECT jo.*
       FROM job_offers jo
-      JOIN companies c ON jo.company_id = c.id
-      WHERE jo.id = ?
-    `).bind(id).first<any>();
+      WHERE jo.id = ? AND jo.company_id = ?
+    `).bind(id, currentUser.company_id).first<any>();
 
     if (!job) {
-      return c.json({ error: 'Offre non trouvée' }, 404);
-    }
-
-    if (job.user_id !== user_id) {
-      return c.json({ error: 'Non autorisé' }, 403);
+      return c.json({ error: 'Offre non trouvée ou non autorisée' }, 404);
     }
 
     // Construire la requête de mise à jour
-    const fields = Object.keys(updates).map(key => `${key} = ?`).join(', ');
-    const values = Object.values(updates);
+    const fields = Object.keys(body).map(key => `${key} = ?`).join(', ');
+    const values = Object.values(body);
 
     await c.env.DB.prepare(`
       UPDATE job_offers SET ${fields}, updated_at = CURRENT_TIMESTAMP WHERE id = ?
@@ -274,26 +259,21 @@ jobs.put('/:id', async (c) => {
   }
 });
 
-// Supprimer une offre d'emploi
-jobs.delete('/:id', async (c) => {
+// Supprimer une offre d'emploi - SÉCURISÉ JWT
+jobs.delete('/:id', requireAuth, requireEmployer, async (c) => {
   try {
     const id = c.req.param('id');
-    const user_id = c.req.query('user_id');
+    const currentUser = getCurrentUser(c);
 
-    // Vérifier que l'utilisateur est propriétaire de l'offre
+    // Vérifier que l'utilisateur est propriétaire de l'offre via company_id
     const job = await c.env.DB.prepare(`
-      SELECT jo.*, c.user_id
+      SELECT jo.*
       FROM job_offers jo
-      JOIN companies c ON jo.company_id = c.id
-      WHERE jo.id = ?
-    `).bind(id).first<any>();
+      WHERE jo.id = ? AND jo.company_id = ?
+    `).bind(id, currentUser.company_id).first<any>();
 
     if (!job) {
-      return c.json({ error: 'Offre non trouvée' }, 404);
-    }
-
-    if (job.user_id !== Number(user_id)) {
-      return c.json({ error: 'Non autorisé' }, 403);
+      return c.json({ error: 'Offre non trouvée ou non autorisée' }, 404);
     }
 
     await c.env.DB.prepare('DELETE FROM job_offers WHERE id = ?').bind(id).run();
@@ -305,18 +285,17 @@ jobs.delete('/:id', async (c) => {
   }
 });
 
-// Récupérer les emplois d'un employeur
-jobs.get('/employer/:userId', async (c) => {
+// Récupérer les emplois d'un employeur - SÉCURISÉ JWT
+jobs.get('/employer/me', requireAuth, requireEmployer, async (c) => {
   try {
-    const userId = c.req.param('userId');
+    const currentUser = getCurrentUser(c);
 
     const { results } = await c.env.DB.prepare(`
       SELECT jo.*
       FROM job_offers jo
-      JOIN companies c ON jo.company_id = c.id
-      WHERE c.user_id = ?
+      WHERE jo.company_id = ?
       ORDER BY jo.created_at DESC
-    `).bind(userId).all();
+    `).bind(currentUser.company_id).all();
 
     return c.json({ jobs: results });
   } catch (error) {
@@ -325,26 +304,22 @@ jobs.get('/employer/:userId', async (c) => {
   }
 });
 
-// Republier une annonce expirée
-jobs.post('/:id/republish', async (c) => {
+// Republier une annonce expirée - SÉCURISÉ JWT
+jobs.post('/:id/republish', requireAuth, requireEmployer, async (c) => {
   try {
     const id = c.req.param('id');
-    const { user_id } = await c.req.json();
+    const currentUser = getCurrentUser(c);
+    const user_id = currentUser.userId;
 
     // Vérifier que l'offre existe et appartient à l'utilisateur
     const job = await c.env.DB.prepare(`
-      SELECT jo.*, c.user_id
+      SELECT jo.*
       FROM job_offers jo
-      JOIN companies c ON jo.company_id = c.id
-      WHERE jo.id = ?
-    `).bind(id).first<any>();
+      WHERE jo.id = ? AND jo.company_id = ?
+    `).bind(id, currentUser.company_id).first<any>();
 
     if (!job) {
-      return c.json({ error: 'Offre non trouvée' }, 404);
-    }
-
-    if (job.user_id !== Number(user_id)) {
-      return c.json({ error: 'Non autorisé' }, 403);
+      return c.json({ error: 'Offre non trouvée ou non autorisée' }, 404);
     }
 
     // Vérifier que l'annonce est expirée
