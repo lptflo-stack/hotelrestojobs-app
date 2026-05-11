@@ -48,8 +48,8 @@ export async function requireAuth(c: AuthContext, next: () => Promise<void>) {
 
     const token = authHeader.substring(7); // Enlever "Bearer "
 
-    // Vérifier et décoder le token
-    const payload = await verify(token, JWT_SECRET) as JWTPayload;
+    // Vérifier et décoder le token avec l'algorithme HS256
+    const payload = await verify(token, JWT_SECRET, 'HS256') as JWTPayload;
 
     // Vérifier l'expiration
     const now = Math.floor(Date.now() / 1000);
