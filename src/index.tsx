@@ -15,6 +15,8 @@ import candidate from './routes/candidate';
 import resume from './routes/resume';
 import blog from './routes/blog';
 import newsletter from './routes/newsletter';
+import categories from './routes/categories';
+import employerNewsletter from './routes/employer-newsletter';
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -37,6 +39,8 @@ app.route('/api/candidate', candidate);
 app.route('/api/resume', resume);
 app.route('/api/blog', blog);
 app.route('/api/newsletter', newsletter);
+app.route('/api/categories', categories);
+app.route('/api/employer-newsletter', employerNewsletter);
 
 // Page d'accueil
 app.get('/', (c) => {
