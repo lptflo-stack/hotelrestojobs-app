@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnostic - HotelRestoJobs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">
+                <i class="fas fa-wrench text-blue-600 mr-2"></i>
+                Diagnostic Système
+            </h1>
+
+            <div class="space-y-6">
+                <!-- API Test -->
+                <div class="border-b pb-4">
+                    <h2 class="text-xl font-bold text-gray-800 mb-3">
+                        <i class="fas fa-plug mr-2"></i>
+                        Test API Backend
+                    </h2>
+                    <button onclick="testAPI()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-play mr-2"></i>Tester l'API
+                    </button>
+                    <div id="api-result" class="mt-3"></div>
+                </div>
+
+                <!-- Portals Test -->
+                <div class="border-b pb-4">
+                    <h2 class="text-xl font-bold text-gray-800 mb-3">
+                        <i class="fas fa-door-open mr-2"></i>
+                        Liens Portails
+                    </h2>
+                    <div class="space-y-2">
+                        <a href="/portails/admin" target="_blank" class="block text-blue-600 hover:underline">
+                            <i class="fas fa-shield-alt mr-2"></i>Portail Admin (sans .html)
+                        </a>
+                        <a href="/portails/employeur" target="_blank" class="block text-blue-600 hover:underline">
+                            <i class="fas fa-briefcase mr-2"></i>Portail Employeur (sans .html)
+                        </a>
+                        <a href="/portails/candidat" target="_blank" class="block text-blue-600 hover:underline">
+                            <i class="fas fa-user mr-2"></i>Portail Candidat (sans .html)
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Static Files Test -->
+                <div class="border-b pb-4">
+                    <h2 class="text-xl font-bold text-gray-800 mb-3">
+                        <i class="fas fa-file mr-2"></i>
+                        Fichiers Statiques
+                    </h2>
+                    <button onclick="testStatic()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+                        <i class="fas fa-play mr-2"></i>Tester les fichiers
+                    </button>
+                    <div id="static-result" class="mt-3"></div>
+                </div>
+
+                <!-- Auth Test -->
+                <div class="pb-4">
+                    <h2 class="text-xl font-bold text-gray-800 mb-3">
+                        <i class="fas fa-key mr-2"></i>
+                        Test Authentification
+                    </h2>
+                    <button onclick="testAuth()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700">
+                        <i class="fas fa-play mr-2"></i>Tester auth-jwt.js
+                    </button>
+                    <div id="auth-result" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script>
+        async function testAPI() {
+            const result = document.getElementById('api-result');
+            result.innerHTML = '<div class="text-blue-600">Test en cours...</div>';
+            
+            try {
+                const response = await axios.get('/api/jobs');
+                if (response.data && response.data.jobs) {
+                    result.innerHTML = `
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            ✅ API fonctionne ! ${response.data.jobs.length} offres d'emploi trouvées
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        <i class="fas fa-times-circle mr-2"></i>
+                        ❌ Erreur API : ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testStatic() {
+            const result = document.getElementById('static-result');
+            result.innerHTML = '<div class="text-blue-600">Test en cours...</div>';
+            
+            const files = [
+                '/static/auth-jwt.js',
+                '/static/style.css',
+                '/portails/admin',
+                '/portails/employeur',
+                '/portails/candidat'
+            ];
+            
+            let html = '<div class="space-y-2">';
+            
+            for (const file of files) {
+                try {
+                    const response = await fetch(file, { method: 'HEAD' });
+                    if (response.ok) {
+                        html += `
+                            <div class="text-green-600">
+                                <i class="fas fa-check mr-2"></i>${file}
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="text-red-600">
+                                <i class="fas fa-times mr-2"></i>${file} (${response.status})
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    html += `
+                        <div class="text-red-600">
+                            <i class="fas fa-times mr-2"></i>${file} (erreur)
+                        </div>
+                    `;
+                }
+            }
+            
+            html += '</div>';
+            result.innerHTML = html;
+        }
+
+        async function testAuth() {
+            const result = document.getElementById('auth-result');
+            result.innerHTML = '<div class="text-blue-600">Test en cours...</div>';
+            
+            try {
+                // Charger auth-jwt.js dynamiquement
+                const response = await fetch('/static/auth-jwt.js');
+                const content = await response.text();
+                
+                if (content.includes('function getCurrentUser')) {
+                    result.innerHTML = `
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            ✅ auth-jwt.js est accessible et contient les fonctions
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            ⚠️ auth-jwt.js est accessible mais incomplet
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        <i class="fas fa-times-circle mr-2"></i>
+                        ❌ Erreur : ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

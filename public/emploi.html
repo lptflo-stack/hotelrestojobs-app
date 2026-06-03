@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails de l'offre - HotelRestoJobs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <a href="/" class="flex items-center space-x-2">
+                    <i class="fas fa-utensils text-3xl"></i>
+                    <h1 class="text-2xl font-bold">HotelRestoJobs</h1>
+                </a>
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="/" class="hover:text-blue-200 transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour aux offres
+                    </a>
+                    <a href="/portails/candidat" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors">
+                        Postuler
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Loading -->
+    <div id="loading" class="container mx-auto px-4 py-12">
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
+            <p class="text-gray-600">Chargement de l'offre...</p>
+        </div>
+    </div>
+
+    <!-- Job Detail -->
+    <div id="job-detail" class="hidden container mx-auto px-4 py-12">
+        <div class="max-w-4xl mx-auto">
+            <!-- Job Card -->
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-6">
+                <!-- Company Logo -->
+                <div id="company-logo-container" class="mb-6"></div>
+
+                <!-- Job Title -->
+                <div class="mb-6">
+                    <div id="featured-badge" class="hidden mb-3">
+                        <span class="bg-yellow-500 text-white px-4 py-2 rounded-full text-sm font-semibold inline-block">
+                            <i class="fas fa-star mr-1"></i>OFFRE VEDETTE
+                        </span>
+                    </div>
+                    <h1 id="job-title" class="text-4xl font-bold text-gray-800 mb-4"></h1>
+                    <div class="flex flex-wrap gap-4 text-gray-600">
+                        <span id="job-location" class="flex items-center">
+                            <i class="fas fa-map-marker-alt mr-2"></i>
+                        </span>
+                        <span id="job-type" class="flex items-center">
+                            <i class="fas fa-briefcase mr-2"></i>
+                        </span>
+                        <span id="job-employment" class="flex items-center">
+                            <i class="fas fa-clock mr-2"></i>
+                        </span>
+                        <span id="job-salary" class="flex items-center">
+                            <i class="fas fa-dollar-sign mr-2"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 bg-gray-50 rounded-lg p-4">
+                    <div class="text-center">
+                        <div id="job-views" class="text-2xl font-bold text-blue-600">0</div>
+                        <div class="text-sm text-gray-600">Vues</div>
+                    </div>
+                    <div class="text-center">
+                        <div id="job-applications" class="text-2xl font-bold text-green-600">0</div>
+                        <div class="text-sm text-gray-600">Candidatures</div>
+                    </div>
+                    <div class="text-center">
+                        <div id="job-posted" class="text-sm font-bold text-gray-800"></div>
+                        <div class="text-sm text-gray-600">Publiée le</div>
+                    </div>
+                    <div class="text-center">
+                        <div id="job-expires" class="text-sm font-bold text-gray-800"></div>
+                        <div class="text-sm text-gray-600">Expire le</div>
+                    </div>
+                </div>
+
+                <!-- Apply Button -->
+                <div class="mb-8">
+                    <a href="/portails/candidat" class="inline-block bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-bold text-lg transition-colors shadow-lg">
+                        <i class="fas fa-paper-plane mr-2"></i>
+                        Postuler maintenant
+                    </a>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-file-alt mr-2"></i>
+                        Description du poste
+                    </h2>
+                    <div id="job-description" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></div>
+                </div>
+
+                <!-- Requirements -->
+                <div id="requirements-section" class="mb-8 hidden">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-check-square mr-2"></i>
+                        Exigences
+                    </h2>
+                    <div id="job-requirements" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></div>
+                </div>
+
+                <!-- Benefits -->
+                <div id="benefits-section" class="mb-8 hidden">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-gift mr-2"></i>
+                        Avantages
+                    </h2>
+                    <div id="job-benefits" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></div>
+                </div>
+
+                <!-- Company Info -->
+                <div class="border-t pt-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-building mr-2"></i>
+                        À propos de l'entreprise
+                    </h2>
+                    <div id="company-info" class="text-gray-700">
+                        <h3 id="company-name" class="text-xl font-bold mb-2"></h3>
+                        <p id="company-description" class="mb-4"></p>
+                        <a id="company-website" href="#" target="_blank" class="text-blue-600 hover:underline hidden">
+                            <i class="fas fa-external-link-alt mr-2"></i>
+                            Visiter le site web
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Apply Button Bottom -->
+                <div class="mt-8 text-center border-t pt-8">
+                    <a href="/portails/candidat" class="inline-block bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-bold text-lg transition-colors shadow-lg">
+                        <i class="fas fa-paper-plane mr-2"></i>
+                        Postuler maintenant
+                    </a>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="text-center">
+                <a href="/" class="inline-block bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Retour aux offres
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error -->
+    <div id="error" class="hidden container mx-auto px-4 py-12">
+        <div class="max-w-2xl mx-auto bg-red-50 border border-red-200 rounded-lg p-8 text-center">
+            <i class="fas fa-exclamation-triangle text-4xl text-red-600 mb-4"></i>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Offre introuvable</h2>
+            <p class="text-gray-600 mb-6">Cette offre d'emploi n'existe pas ou a été supprimée.</p>
+            <a href="/" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold">
+                Voir toutes les offres
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script>
+        // Get job ID from URL
+        function getJobIdFromURL() {
+            const path = window.location.pathname;
+            const match = path.match(/\/emploi\/(\d+)/);
+            return match ? match[1] : null;
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('fr-FR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Load job details
+        async function loadJobDetails() {
+            const jobId = getJobIdFromURL();
+            
+            if (!jobId) {
+                showError();
+                return;
+            }
+
+            try {
+                const response = await axios.get(`/api/jobs/${jobId}`);
+                const job = response.data.job;
+                
+                if (!job) {
+                    showError();
+                    return;
+                }
+
+                // Display job details
+                displayJob(job);
+                
+                // Hide loading, show content
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('job-detail').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Erreur chargement offre:', error);
+                showError();
+            }
+        }
+
+        // Display job
+        function displayJob(job) {
+            // Title
+            document.getElementById('job-title').textContent = job.title;
+            document.title = `${job.title} - HotelRestoJobs`;
+            
+            // Featured badge
+            if (job.is_featured) {
+                document.getElementById('featured-badge').classList.remove('hidden');
+            }
+            
+            // Location
+            document.getElementById('job-location').innerHTML = `
+                <i class="fas fa-map-marker-alt mr-2"></i>
+                ${job.city}, ${job.province}
+            `;
+            
+            // Position type
+            document.getElementById('job-type').innerHTML = `
+                <i class="fas fa-briefcase mr-2"></i>
+                ${job.position_type}
+            `;
+            
+            // Employment type
+            const employmentTypes = {
+                'full-time': 'Temps plein',
+                'part-time': 'Temps partiel',
+                'contract': 'Contrat',
+                'temporary': 'Temporaire'
+            };
+            document.getElementById('job-employment').innerHTML = `
+                <i class="fas fa-clock mr-2"></i>
+                ${employmentTypes[job.employment_type] || job.employment_type}
+            `;
+            
+            // Salary
+            let salaryText = 'À discuter';
+            if (job.salary_min && job.salary_max) {
+                const salaryType = job.salary_type === 'yearly' ? '/an' : '/heure';
+                salaryText = `${job.salary_min}$ - ${job.salary_max}$ ${salaryType}`;
+            } else if (job.salary_min) {
+                const salaryType = job.salary_type === 'yearly' ? '/an' : '/heure';
+                salaryText = `À partir de ${job.salary_min}$ ${salaryType}`;
+            }
+            document.getElementById('job-salary').innerHTML = `
+                <i class="fas fa-dollar-sign mr-2"></i>
+                ${salaryText}
+            `;
+            
+            // Stats
+            document.getElementById('job-views').textContent = job.views_count || 0;
+            document.getElementById('job-applications').textContent = job.applications_count || 0;
+            document.getElementById('job-posted').textContent = formatDate(job.created_at);
+            document.getElementById('job-expires').textContent = formatDate(job.expires_at);
+            
+            // Description
+            document.getElementById('job-description').textContent = job.description || 'Aucune description disponible.';
+            
+            // Requirements
+            if (job.requirements) {
+                document.getElementById('requirements-section').classList.remove('hidden');
+                document.getElementById('job-requirements').textContent = job.requirements;
+            }
+            
+            // Benefits
+            if (job.benefits) {
+                document.getElementById('benefits-section').classList.remove('hidden');
+                document.getElementById('job-benefits').textContent = job.benefits;
+            }
+            
+            // Company info
+            if (job.company_name) {
+                document.getElementById('company-name').textContent = job.company_name;
+            }
+            
+            if (job.company_description) {
+                document.getElementById('company-description').textContent = job.company_description;
+            }
+            
+            if (job.company_website) {
+                const websiteLink = document.getElementById('company-website');
+                websiteLink.href = job.company_website;
+                websiteLink.classList.remove('hidden');
+            }
+            
+            // Company logo
+            if (job.company_logo) {
+                document.getElementById('company-logo-container').innerHTML = `
+                    <img src="${job.company_logo}" alt="${job.company_name}" class="h-20 object-contain">
+                `;
+            }
+        }
+
+        // Show error
+        function showError() {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error').classList.remove('hidden');
+        }
+
+        // Initialize
+        window.onload = function() {
+            loadJobDetails();
+        };
+    </script>
+</body>
+</html>

@@ -383,7 +383,7 @@ app.get('/emploi/:id', (c) => {
             async function loadJobDetail() {
                 try {
                     const response = await axios.get(\`/api/jobs/\${jobId}\`);
-                    const job = response.data;
+                    const job = response.data.job;
                     
                     const container = document.getElementById('job-detail');
                     container.innerHTML = \`
