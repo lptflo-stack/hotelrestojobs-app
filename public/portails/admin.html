@@ -109,8 +109,14 @@
                     <button onclick="showTab('blog')" id="tab-blog" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
                         <i class="fas fa-newspaper mr-2"></i>Blog
                     </button>
+                    <button onclick="showTab('categories')" id="tab-categories" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-tags mr-2"></i>Catégories
+                    </button>
                     <button onclick="showTab('newsletters')" id="tab-newsletters" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
                         <i class="fas fa-envelope mr-2"></i>Newsletters
+                    </button>
+                    <button onclick="showTab('employer-newsletters')" id="tab-employer-newsletters" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-briefcase mr-2"></i>Infolettre Employeurs
                     </button>
                 </div>
             </div>
@@ -407,6 +413,72 @@
 
                     <div id="newsletters-list" class="space-y-4">
                         <!-- Les newsletters seront affichées ici -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories Tab -->
+            <div id="content-categories" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">
+                            <i class="fas fa-tags mr-2"></i>
+                            Gestion des catégories de blog
+                        </h3>
+                        <button onclick="openAddCategoryModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">
+                            <i class="fas fa-plus mr-2"></i>Nouvelle catégorie
+                        </button>
+                    </div>
+                    
+                    <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+                        <p class="text-sm text-blue-700">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Les catégories permettent de classer vos articles de blog par thématique. Chaque article peut avoir plusieurs catégories.
+                        </p>
+                    </div>
+
+                    <div id="categories-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Les catégories seront affichées ici -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employer Newsletters Tab -->
+            <div id="content-employer-newsletters" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">
+                            <i class="fas fa-briefcase mr-2"></i>
+                            Infolettres Employeurs
+                        </h3>
+                        <button onclick="openAddEmployerNewsletterModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">
+                            <i class="fas fa-plus mr-2"></i>Nouvelle infolettre
+                        </button>
+                    </div>
+
+                    <div class="mb-6 p-4 bg-green-50 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <i class="fas fa-building text-green-600 mr-2"></i>
+                                <span class="text-gray-700 font-semibold">Employeurs abonnés:</span>
+                            </div>
+                            <span id="employer-subscribers-count" class="text-2xl font-bold text-green-600">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <select id="filter-employer-newsletter-status" onchange="loadEmployerNewsletters()" 
+                                class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tous les statuts</option>
+                            <option value="draft">Brouillon</option>
+                            <option value="scheduled">Programmée</option>
+                            <option value="sent">Envoyée</option>
+                            <option value="cancelled">Annulée</option>
+                        </select>
+                    </div>
+
+                    <div id="employer-newsletters-list" class="space-y-4">
+                        <!-- Les infolettres employeurs seront affichées ici -->
                     </div>
                 </div>
             </div>
@@ -814,9 +886,14 @@
                 loadPricing();
             } else if (tabName === 'blog') {
                 loadArticles();
+            } else if (tabName === 'categories') {
+                loadCategories();
             } else if (tabName === 'newsletters') {
                 loadNewsletters();
                 loadSubscribersCount();
+            } else if (tabName === 'employer-newsletters') {
+                loadEmployerNewsletters();
+                loadEmployerSubscribersCount();
             }
         }
 
@@ -2136,14 +2213,43 @@
             document.getElementById('article-modal-title').textContent = 'Nouvel article';
             document.getElementById('article-form').reset();
             document.getElementById('article-id').value = '';
+            loadCategoriesForArticle();
             document.getElementById('article-modal').classList.remove('hidden');
+        }
+
+        // Load categories for article selection
+        async function loadCategoriesForArticle(selectedCategoryIds = []) {
+            try {
+                const response = await axios.get('/api/categories');
+                const categories = response.data.categories || [];
+                
+                const container = document.getElementById('article-categories-list');
+                if (categories.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-sm">Aucune catégorie disponible</p>';
+                    return;
+                }
+                
+                container.innerHTML = categories.map(cat => `
+                    <label class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                        <input type="checkbox" name="article_category_ids[]" value="${cat.id}" 
+                               ${selectedCategoryIds.includes(cat.id) ? 'checked' : ''}
+                               class="w-4 h-4 text-blue-600">
+                        <div class="flex items-center space-x-2">
+                            ${cat.icon ? `<i class="${cat.icon}" style="color: ${cat.color};"></i>` : ''}
+                            <span class="font-semibold">${cat.name}</span>
+                        </div>
+                    </label>
+                `).join('');
+            } catch (error) {
+                console.error('Erreur chargement catégories:', error);
+            }
         }
 
         // Edit article
         async function editArticle(articleId) {
             try {
-                const response = await axios.get('/api/blog/admin/all');
-                const article = response.data.posts.find(p => p.id === articleId);
+                const response = await axios.get(`/api/blog/${articleId}`);
+                const article = response.data.post;
                 
                 if (!article) {
                     alert('Article non trouvé');
@@ -2159,6 +2265,19 @@
                 document.getElementById('article-image-url').value = article.featured_image_url || '';
                 document.getElementById('article-status').value = article.status;
                 
+                // SEO fields
+                document.getElementById('article-meta-title').value = article.meta_title || '';
+                document.getElementById('article-meta-description').value = article.meta_description || '';
+                document.getElementById('article-keywords').value = article.keywords || '';
+                document.getElementById('article-og-title').value = article.og_title || '';
+                document.getElementById('article-og-description').value = article.og_description || '';
+                document.getElementById('article-og-image').value = article.og_image || '';
+                document.getElementById('article-canonical-url').value = article.canonical_url || '';
+                
+                // Load categories with selections
+                const selectedCategoryIds = article.categories ? article.categories.map(c => c.id) : [];
+                await loadCategoriesForArticle(selectedCategoryIds);
+                
                 document.getElementById('article-modal').classList.remove('hidden');
             } catch (error) {
                 console.error('Erreur chargement article:', error);
@@ -2171,13 +2290,27 @@
             event.preventDefault();
             
             const articleId = document.getElementById('article-id').value;
+            
+            // Récupérer les catégories sélectionnées
+            const checkboxes = document.querySelectorAll('input[name="article_category_ids[]"]:checked');
+            const categoryIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            
             const articleData = {
                 title: document.getElementById('article-title').value,
                 slug: document.getElementById('article-slug').value,
                 excerpt: document.getElementById('article-excerpt').value,
                 content: document.getElementById('article-content').value,
                 featured_image_url: document.getElementById('article-image-url').value,
-                status: document.getElementById('article-status').value
+                status: document.getElementById('article-status').value,
+                category_ids: categoryIds,
+                // SEO fields
+                meta_title: document.getElementById('article-meta-title').value,
+                meta_description: document.getElementById('article-meta-description').value,
+                keywords: document.getElementById('article-keywords').value,
+                og_title: document.getElementById('article-og-title').value,
+                og_description: document.getElementById('article-og-description').value,
+                og_image: document.getElementById('article-og-image').value,
+                canonical_url: document.getElementById('article-canonical-url').value
             };
             
             try {
@@ -2449,6 +2582,363 @@
         function closeNewsletterModal() {
             document.getElementById('newsletter-modal').classList.add('hidden');
         }
+
+        // ===== CATEGORIES MANAGEMENT =====
+
+        // Load categories
+        async function loadCategories() {
+            try {
+                const response = await axios.get('/api/categories');
+                const categories = response.data.categories || [];
+                
+                const container = document.getElementById('categories-list');
+                if (categories.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-8 col-span-full">Aucune catégorie trouvée</p>';
+                    return;
+                }
+                
+                container.innerHTML = categories.map(cat => createCategoryCard(cat)).join('');
+            } catch (error) {
+                console.error('Erreur chargement catégories:', error);
+                alert('Erreur lors du chargement des catégories');
+            }
+        }
+
+        // Create category card
+        function createCategoryCard(category) {
+            return `
+                <div class="bg-white border-2 rounded-lg p-4 hover:shadow-lg transition-shadow" style="border-color: ${category.color}">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-2">
+                            ${category.icon ? `<i class="${category.icon}" style="color: ${category.color}; font-size: 24px;"></i>` : ''}
+                            <h4 class="text-lg font-bold text-gray-800">${category.name}</h4>
+                        </div>
+                        <span class="text-2xl font-bold" style="color: ${category.color}">${category.posts_count || 0}</span>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-3">${category.description || 'Pas de description'}</p>
+                    <div class="text-xs text-gray-500 mb-3">
+                        Slug: <code class="bg-gray-100 px-2 py-1 rounded">${category.slug}</code>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="editCategory(${category.id})" class="flex-1 text-blue-600 hover:bg-blue-50 px-3 py-2 rounded font-semibold text-sm">
+                            <i class="fas fa-edit mr-1"></i>Modifier
+                        </button>
+                        <button onclick="deleteCategory(${category.id})" class="flex-1 text-red-600 hover:bg-red-50 px-3 py-2 rounded font-semibold text-sm">
+                            <i class="fas fa-trash mr-1"></i>Supprimer
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Open add category modal
+        function openAddCategoryModal() {
+            document.getElementById('category-modal-title').textContent = 'Nouvelle catégorie';
+            document.getElementById('category-form').reset();
+            document.getElementById('category-id').value = '';
+            document.getElementById('category-color').value = '#2563eb';
+            document.getElementById('category-modal').classList.remove('hidden');
+        }
+
+        // Edit category
+        async function editCategory(categoryId) {
+            try {
+                const response = await axios.get(`/api/categories/${categoryId}`);
+                const category = response.data.category;
+                
+                if (!category) {
+                    alert('Catégorie non trouvée');
+                    return;
+                }
+                
+                document.getElementById('category-modal-title').textContent = 'Modifier la catégorie';
+                document.getElementById('category-id').value = category.id;
+                document.getElementById('category-name').value = category.name;
+                document.getElementById('category-slug').value = category.slug;
+                document.getElementById('category-description').value = category.description || '';
+                document.getElementById('category-color').value = category.color || '#2563eb';
+                document.getElementById('category-icon').value = category.icon || '';
+                document.getElementById('category-order').value = category.display_order || 0;
+                
+                document.getElementById('category-modal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Erreur chargement catégorie:', error);
+                alert('Erreur lors du chargement de la catégorie');
+            }
+        }
+
+        // Save category
+        async function saveCategory(event) {
+            event.preventDefault();
+            
+            const categoryId = document.getElementById('category-id').value;
+            const categoryData = {
+                name: document.getElementById('category-name').value,
+                slug: document.getElementById('category-slug').value,
+                description: document.getElementById('category-description').value,
+                color: document.getElementById('category-color').value,
+                icon: document.getElementById('category-icon').value,
+                display_order: parseInt(document.getElementById('category-order').value) || 0
+            };
+            
+            try {
+                if (categoryId) {
+                    // Update
+                    await axios.put(`/api/categories/${categoryId}`, categoryData);
+                    alert('Catégorie modifiée avec succès');
+                } else {
+                    // Create
+                    await axios.post('/api/categories', categoryData);
+                    alert('Catégorie créée avec succès');
+                }
+                
+                closeCategoryModal();
+                loadCategories();
+            } catch (error) {
+                console.error('Erreur sauvegarde catégorie:', error);
+                alert(error.response?.data?.error || 'Erreur lors de la sauvegarde');
+            }
+        }
+
+        // Delete category
+        async function deleteCategory(categoryId) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ? Les articles associés ne seront pas supprimés.')) return;
+            
+            try {
+                await axios.delete(`/api/categories/${categoryId}`);
+                alert('Catégorie supprimée avec succès');
+                loadCategories();
+            } catch (error) {
+                console.error('Erreur suppression catégorie:', error);
+                alert(error.response?.data?.error || 'Erreur lors de la suppression');
+            }
+        }
+
+        // Close category modal
+        function closeCategoryModal() {
+            document.getElementById('category-modal').classList.add('hidden');
+        }
+
+        // ===== EMPLOYER NEWSLETTERS MANAGEMENT =====
+
+        // Load employer newsletters
+        async function loadEmployerNewsletters() {
+            try {
+                const status = document.getElementById('filter-employer-newsletter-status').value;
+                const url = status ? `/api/employer-newsletter?status=${status}` : '/api/employer-newsletter';
+                const response = await axios.get(url);
+                const newsletters = response.data.newsletters || [];
+                
+                const container = document.getElementById('employer-newsletters-list');
+                if (newsletters.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-8">Aucune infolettre trouvée</p>';
+                    return;
+                }
+                
+                container.innerHTML = newsletters.map(newsletter => createEmployerNewsletterCard(newsletter)).join('');
+            } catch (error) {
+                console.error('Erreur chargement infolettres employeurs:', error);
+                alert('Erreur lors du chargement des infolettres');
+            }
+        }
+
+        // Load employer subscribers count
+        async function loadEmployerSubscribersCount() {
+            try {
+                const response = await axios.get('/api/employer-newsletter/subscribers/count');
+                document.getElementById('employer-subscribers-count').textContent = response.data.count || 0;
+            } catch (error) {
+                console.error('Erreur comptage employeurs:', error);
+            }
+        }
+
+        // Create employer newsletter card (similar to regular newsletter)
+        function createEmployerNewsletterCard(newsletter) {
+            const statusColors = {
+                'draft': 'bg-gray-100 text-gray-800',
+                'scheduled': 'bg-yellow-100 text-yellow-800',
+                'sent': 'bg-green-100 text-green-800',
+                'cancelled': 'bg-red-100 text-red-800'
+            };
+            
+            const statusLabels = {
+                'draft': 'Brouillon',
+                'scheduled': 'Programmée',
+                'sent': 'Envoyée',
+                'cancelled': 'Annulée'
+            };
+            
+            return `
+                <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <h4 class="text-xl font-bold text-gray-800 mb-2">${newsletter.title}</h4>
+                            <p class="text-gray-600 text-sm mb-2"><strong>Sujet:</strong> ${newsletter.subject}</p>
+                            ${newsletter.preview_text ? `<p class="text-gray-600 text-sm mb-2">${newsletter.preview_text}</p>` : ''}
+                            <div class="flex flex-wrap gap-3 text-sm text-gray-600">
+                                <span><i class="fas fa-calendar mr-1"></i>Créée le ${formatDate(newsletter.created_at)}</span>
+                                ${newsletter.sent_at ? `<span><i class="fas fa-check-circle mr-1"></i>Envoyée le ${formatDate(newsletter.sent_at)}</span>` : ''}
+                            </div>
+                        </div>
+                        <span class="${statusColors[newsletter.status]} px-4 py-2 rounded-full font-semibold text-sm">
+                            ${statusLabels[newsletter.status]}
+                        </span>
+                    </div>
+                    
+                    ${newsletter.status === 'sent' ? `
+                        <div class="grid grid-cols-3 gap-4 mb-4 text-center">
+                            <div class="bg-white rounded p-3 border border-gray-200">
+                                <div class="text-2xl font-bold text-blue-600">${newsletter.recipients_count}</div>
+                                <div class="text-sm text-gray-600">Envois</div>
+                            </div>
+                            <div class="bg-white rounded p-3 border border-gray-200">
+                                <div class="text-2xl font-bold text-green-600">${newsletter.opened_count}</div>
+                                <div class="text-sm text-gray-600">Ouvertures</div>
+                            </div>
+                            <div class="bg-white rounded p-3 border border-gray-200">
+                                <div class="text-2xl font-bold text-purple-600">${newsletter.clicked_count}</div>
+                                <div class="text-sm text-gray-600">Clics</div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="flex flex-wrap gap-3">
+                        ${newsletter.status === 'draft' ? `
+                            <button onclick="editEmployerNewsletter(${newsletter.id})" class="text-blue-600 hover:text-blue-800 font-semibold px-4 py-2">
+                                <i class="fas fa-edit mr-1"></i>Modifier
+                            </button>
+                        ` : ''}
+                        <button onclick="previewEmployerNewsletter(${newsletter.id})" class="text-purple-600 hover:text-purple-800 font-semibold px-4 py-2">
+                            <i class="fas fa-eye mr-1"></i>Prévisualiser
+                        </button>
+                        ${newsletter.status === 'draft' ? `
+                            <button onclick="sendEmployerNewsletter(${newsletter.id})" class="text-green-600 hover:text-green-800 font-semibold px-4 py-2">
+                                <i class="fas fa-paper-plane mr-1"></i>Envoyer
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Open add employer newsletter modal
+        function openAddEmployerNewsletterModal() {
+            document.getElementById('employer-newsletter-modal-title').textContent = 'Nouvelle infolettre employeurs';
+            document.getElementById('employer-newsletter-form').reset();
+            document.getElementById('employer-newsletter-id').value = '';
+            loadArticlesForEmployerNewsletter();
+            document.getElementById('employer-newsletter-modal').classList.remove('hidden');
+        }
+
+        // Load articles for employer newsletter
+        async function loadArticlesForEmployerNewsletter() {
+            try {
+                const response = await axios.get('/api/blog/admin/all');
+                const articles = response.data.posts.filter(p => p.status === 'published');
+                
+                const container = document.getElementById('employer-newsletter-articles-list');
+                if (articles.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-sm">Aucun article publié</p>';
+                    return;
+                }
+                
+                container.innerHTML = articles.map(article => `
+                    <label class="flex items-center space-x-3 p-3 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer">
+                        <input type="checkbox" name="employer_article_ids[]" value="${article.id}" class="w-5 h-5 text-blue-600">
+                        <div class="flex-1">
+                            <div class="font-semibold text-gray-800">${article.title}</div>
+                            <div class="text-sm text-gray-600">${article.excerpt || ''}</div>
+                        </div>
+                    </label>
+                `).join('');
+            } catch (error) {
+                console.error('Erreur chargement articles:', error);
+            }
+        }
+
+        // Edit employer newsletter
+        async function editEmployerNewsletter(newsletterId) {
+            try {
+                const response = await axios.get('/api/employer-newsletter');
+                const newsletter = response.data.newsletters.find(n => n.id === newsletterId);
+                
+                if (!newsletter) {
+                    alert('Infolettre non trouvée');
+                    return;
+                }
+                
+                document.getElementById('employer-newsletter-modal-title').textContent = 'Modifier l\'infolettre';
+                document.getElementById('employer-newsletter-id').value = newsletter.id;
+                document.getElementById('employer-newsletter-title').value = newsletter.title;
+                document.getElementById('employer-newsletter-subject').value = newsletter.subject;
+                document.getElementById('employer-newsletter-preview-text').value = newsletter.preview_text || '';
+                document.getElementById('employer-newsletter-template-type').value = newsletter.template_type;
+                
+                document.getElementById('employer-newsletter-modal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Erreur chargement infolettre:', error);
+                alert('Erreur lors du chargement de l\'infolettre');
+            }
+        }
+
+        // Save employer newsletter
+        async function saveEmployerNewsletter(event) {
+            event.preventDefault();
+            
+            const newsletterId = document.getElementById('employer-newsletter-id').value;
+            const checkboxes = document.querySelectorAll('input[name="employer_article_ids[]"]:checked');
+            const articleIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            
+            const newsletterData = {
+                title: document.getElementById('employer-newsletter-title').value,
+                subject: document.getElementById('employer-newsletter-subject').value,
+                preview_text: document.getElementById('employer-newsletter-preview-text').value,
+                template_type: document.getElementById('employer-newsletter-template-type').value,
+                article_ids: articleIds
+            };
+            
+            try {
+                if (newsletterId) {
+                    // Update
+                    await axios.put(`/api/employer-newsletter/${newsletterId}`, newsletterData);
+                    alert('Infolettre modifiée avec succès');
+                } else {
+                    // Create
+                    await axios.post('/api/employer-newsletter', newsletterData);
+                    alert('Infolettre créée avec succès');
+                }
+                
+                closeEmployerNewsletterModal();
+                loadEmployerNewsletters();
+            } catch (error) {
+                console.error('Erreur sauvegarde infolettre:', error);
+                alert(error.response?.data?.error || 'Erreur lors de la sauvegarde');
+            }
+        }
+
+        // Preview employer newsletter
+        async function previewEmployerNewsletter(newsletterId) {
+            window.open(`/api/employer-newsletter/${newsletterId}/preview`, '_blank');
+        }
+
+        // Send employer newsletter
+        async function sendEmployerNewsletter(newsletterId) {
+            if (!confirm('Êtes-vous sûr de vouloir envoyer cette infolettre à tous les employeurs abonnés ?')) return;
+            
+            try {
+                const response = await axios.post(`/api/employer-newsletter/${newsletterId}/send`);
+                alert(`Infolettre envoyée à ${response.data.recipients_count} employeurs !`);
+                loadEmployerNewsletters();
+            } catch (error) {
+                console.error('Erreur envoi infolettre:', error);
+                alert(error.response?.data?.error || 'Erreur lors de l\'envoi');
+            }
+        }
+
+        // Close employer newsletter modal
+        function closeEmployerNewsletterModal() {
+            document.getElementById('employer-newsletter-modal').classList.add('hidden');
+        }
     </script>
 
     <!-- Modal Article -->
@@ -2493,6 +2983,73 @@
                     <label class="block text-gray-700 font-semibold mb-2">URL de l'image vedette</label>
                     <input type="url" id="article-image-url" placeholder="https://example.com/image.jpg" 
                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Catégories</label>
+                    <div id="article-categories-list" class="border border-gray-200 rounded-lg p-4 max-h-48 overflow-y-auto">
+                        <!-- Categories checkboxes will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- SEO Fields -->
+                <div class="mb-4 border-t pt-4">
+                    <h4 class="text-lg font-bold text-gray-800 mb-3">
+                        <i class="fas fa-search mr-2"></i>Référencement SEO
+                    </h4>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Meta Title</label>
+                            <input type="text" id="article-meta-title" 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="Laissez vide pour utiliser le titre de l'article">
+                            <p class="text-sm text-gray-500 mt-1">Max 60 caractères recommandés</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Meta Description</label>
+                            <textarea id="article-meta-description" rows="2" 
+                                      class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Laissez vide pour utiliser l'extrait"></textarea>
+                            <p class="text-sm text-gray-500 mt-1">Max 160 caractères recommandés</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Mots-clés SEO (séparés par virgules)</label>
+                            <input type="text" id="article-keywords" 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="Ex: recrutement, hôtellerie, emploi">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Open Graph Title</label>
+                            <input type="text" id="article-og-title" 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="Titre pour partage sur réseaux sociaux">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Open Graph Description</label>
+                            <textarea id="article-og-description" rows="2" 
+                                      class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Description pour partage sur réseaux sociaux"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Open Graph Image URL</label>
+                            <input type="url" id="article-og-image" 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="https://example.com/og-image.jpg">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">URL Canonique</label>
+                            <input type="url" id="article-canonical-url" 
+                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="https://hotelrestojobs.com/blog/mon-article">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mb-6">
@@ -2571,6 +3128,144 @@
                         <i class="fas fa-save mr-2"></i>Enregistrer
                     </button>
                     <button type="button" onclick="closeNewsletterModal()" class="px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50">
+                        Annuler
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Category -->
+    <div id="category-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-8 my-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 id="category-modal-title" class="text-2xl font-bold text-gray-800">Nouvelle catégorie</h3>
+                <button onclick="closeCategoryModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <form id="category-form" onsubmit="saveCategory(event)">
+                <input type="hidden" id="category-id">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Nom *</label>
+                        <input type="text" id="category-name" required 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Ex: Recrutement">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Slug (URL) *</label>
+                        <input type="text" id="category-slug" required 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Ex: recrutement">
+                        <p class="text-sm text-gray-500 mt-1">Lettres minuscules, chiffres et tirets uniquement</p>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Description</label>
+                    <textarea id="category-description" rows="3" 
+                              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Brève description de la catégorie"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Couleur</label>
+                        <input type="color" id="category-color" value="#2563eb" 
+                               class="w-full h-12 px-2 border rounded-lg cursor-pointer">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Icône Font Awesome</label>
+                        <input type="text" id="category-icon" 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Ex: fa-utensils">
+                        <p class="text-sm text-gray-500 mt-1">
+                            <a href="https://fontawesome.com/icons" target="_blank" class="text-blue-600 hover:underline">
+                                Voir icônes →
+                            </a>
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Ordre d'affichage</label>
+                        <input type="number" id="category-order" value="0" 
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">
+                        <i class="fas fa-save mr-2"></i>Enregistrer
+                    </button>
+                    <button type="button" onclick="closeCategoryModal()" class="px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50">
+                        Annuler
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Employer Newsletter -->
+    <div id="employer-newsletter-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full p-8 my-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 id="employer-newsletter-modal-title" class="text-2xl font-bold text-gray-800">Nouvelle infolettre employeurs</h3>
+                <button onclick="closeEmployerNewsletterModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <form id="employer-newsletter-form" onsubmit="saveEmployerNewsletter(event)">
+                <input type="hidden" id="employer-newsletter-id">
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Titre (interne) *</label>
+                    <input type="text" id="employer-newsletter-title" required 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Ex: Infolettre Juin 2026">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Sujet de l'email *</label>
+                    <input type="text" id="employer-newsletter-subject" required 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Ex: Nouveaux articles et conseils pour employeurs">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Texte de prévisualisation</label>
+                    <input type="text" id="employer-newsletter-preview-text" 
+                           placeholder="Ce texte s'affiche dans l'aperçu de l'email"
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Type de contenu</label>
+                    <select id="employer-newsletter-template-type" required 
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="mixed">Articles de blog + Offres récentes</option>
+                        <option value="blog_only">Articles de blog uniquement</option>
+                        <option value="jobs_only">Offres d'emploi uniquement</option>
+                    </select>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-semibold mb-2">Sélectionner les articles de blog</label>
+                    <div id="employer-newsletter-articles-list" class="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-4">
+                        <!-- Articles will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">
+                        <i class="fas fa-save mr-2"></i>Enregistrer
+                    </button>
+                    <button type="button" onclick="closeEmployerNewsletterModal()" class="px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50">
                         Annuler
                     </button>
                 </div>
