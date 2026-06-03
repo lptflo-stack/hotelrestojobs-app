@@ -146,6 +146,9 @@
                     <button onclick="showTab('users')" id="tab-users" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
                         <i class="fas fa-user-friends mr-2"></i>Utilisateurs
                     </button>
+                    <button onclick="showTab('newsletter')" id="tab-newsletter" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-envelope mr-2"></i>Infolettre
+                    </button>
                 </div>
             </div>
 
@@ -528,6 +531,101 @@
             </div>
         </div>
     </div>
+
+    <!-- Newsletter Tab -->
+            <div id="content-newsletter" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-envelope text-green-600 mr-2"></i>
+                        Infolettre Employeurs
+                    </h3>
+
+                    <div class="mb-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 class="text-lg font-bold text-blue-800 mb-2">
+                                    <i class="fas fa-newspaper mr-2"></i>
+                                    Abonnement à l'infolettre
+                                </h4>
+                                <p class="text-blue-700">
+                                    Recevez nos derniers articles de blog et conseils pour employeurs directement dans votre boîte de réception
+                                </p>
+                            </div>
+                            <div id="newsletter-subscription-status" class="text-right">
+                                <!-- Status will be loaded here -->
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg p-4">
+                            <h5 class="font-semibold text-gray-800 mb-3">
+                                <i class="fas fa-list-check mr-2"></i>
+                                Ce que vous recevrez :
+                            </h5>
+                            <ul class="space-y-2 text-gray-700">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-600 mr-3 mt-1"></i>
+                                    <span>Nos derniers articles de blog sur le recrutement et la gestion du personnel</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-600 mr-3 mt-1"></i>
+                                    <span>Conseils et bonnes pratiques pour l'hôtellerie et la restauration</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-600 mr-3 mt-1"></i>
+                                    <span>Tendances du marché et actualités du secteur</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-600 mr-3 mt-1"></i>
+                                    <span>Aperçu des offres d'emploi les plus récentes</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-4 flex items-center justify-between">
+                            <div class="text-sm text-blue-700">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Vous pouvez vous désabonner à tout moment
+                            </div>
+                            <button id="newsletter-toggle-btn" onclick="toggleNewsletterSubscription()" 
+                                    class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                                <i class="fas fa-envelope-open-text mr-2"></i>
+                                <span id="newsletter-toggle-text">Charger...</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                        <h4 class="text-lg font-bold text-gray-800 mb-4">
+                            <i class="fas fa-chart-line mr-2"></i>
+                            Avantages de l'infolettre
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-white rounded-lg p-4 text-center">
+                                <div class="text-3xl text-blue-600 mb-2">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </div>
+                                <h5 class="font-semibold text-gray-800 mb-1">Formation continue</h5>
+                                <p class="text-sm text-gray-600">Restez à jour sur les meilleures pratiques de gestion</p>
+                            </div>
+                            <div class="bg-white rounded-lg p-4 text-center">
+                                <div class="text-3xl text-green-600 mb-2">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                                <h5 class="font-semibold text-gray-800 mb-1">Idées innovantes</h5>
+                                <p class="text-sm text-gray-600">Découvrez de nouvelles stratégies de recrutement</p>
+                            </div>
+                            <div class="bg-white rounded-lg p-4 text-center">
+                                <div class="text-3xl text-purple-600 mb-2">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <h5 class="font-semibold text-gray-800 mb-1">Gain de temps</h5>
+                                <p class="text-sm text-gray-600">Contenu sélectionné et résumé pour vous</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     <!-- Modal View Application -->
     <div id="application-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -994,6 +1092,8 @@
                 loadInvoices();
             } else if (tabName === 'company') {
                 showCompanyTab('info');
+            } else if (tabName === 'newsletter') {
+                loadNewsletterStatus();
             }
         }
 
@@ -1928,6 +2028,81 @@
                     ` : ''}
                 </div>
             `;
+        }
+
+        // =====================================================
+        // Newsletter Subscription Functions
+        // =====================================================
+
+        async function loadNewsletterStatus() {
+            try {
+                const response = await axios.get('/api/employer-newsletter/subscription/status');
+                const subscribed = response.data.subscribed;
+                
+                updateNewsletterUI(subscribed);
+            } catch (error) {
+                console.error('Erreur chargement statut newsletter:', error);
+                // Par défaut, on affiche comme non abonné
+                updateNewsletterUI(false);
+            }
+        }
+
+        function updateNewsletterUI(subscribed) {
+            const statusDiv = document.getElementById('newsletter-subscription-status');
+            const toggleBtn = document.getElementById('newsletter-toggle-btn');
+            const toggleText = document.getElementById('newsletter-toggle-text');
+            
+            if (subscribed) {
+                statusDiv.innerHTML = `
+                    <div class="inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full font-semibold">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        Abonné
+                    </div>
+                `;
+                toggleBtn.className = 'bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors';
+                toggleText.textContent = 'Se désabonner';
+                toggleBtn.innerHTML = '<i class="fas fa-times mr-2"></i>' + toggleText.textContent;
+            } else {
+                statusDiv.innerHTML = `
+                    <div class="inline-flex items-center bg-gray-100 text-gray-800 px-4 py-2 rounded-full font-semibold">
+                        <i class="fas fa-times-circle mr-2"></i>
+                        Non abonné
+                    </div>
+                `;
+                toggleBtn.className = 'bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors';
+                toggleText.textContent = 'S\'abonner maintenant';
+                toggleBtn.innerHTML = '<i class="fas fa-envelope-open-text mr-2"></i>' + toggleText.textContent;
+            }
+        }
+
+        async function toggleNewsletterSubscription() {
+            try {
+                // Get current status first
+                const statusResponse = await axios.get('/api/employer-newsletter/subscription/status');
+                const currentlySubscribed = statusResponse.data.subscribed;
+                
+                if (currentlySubscribed) {
+                    // Unsubscribe
+                    if (!confirm('Êtes-vous sûr de vouloir vous désabonner de l\'infolettre employeurs ?')) {
+                        return;
+                    }
+                    await axios.post('/api/employer-newsletter/unsubscribe');
+                    alert('Vous avez été désabonné de l\'infolettre.');
+                    updateNewsletterUI(false);
+                } else {
+                    // Subscribe
+                    await axios.post('/api/employer-newsletter/subscribe');
+                    alert('Vous êtes maintenant abonné à l\'infolettre employeurs ! Vous recevrez nos prochains articles et conseils directement par email.');
+                    updateNewsletterUI(true);
+                }
+            } catch (error) {
+                console.error('Erreur toggle newsletter:', error);
+                if (error.response && error.response.data && error.response.data.error) {
+                    alert('Erreur : ' + error.response.data.error);
+                } else {
+                    alert('Une erreur est survenue. Veuillez réessayer.');
+                }
+            }
         }
     </script>
 </body>

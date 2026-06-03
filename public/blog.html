@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - HotelRestoJobs</title>
+    <meta name="description" content="Découvrez nos articles sur le recrutement, l'hôtellerie et la restauration">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <a href="/" class="flex items-center space-x-2">
+                    <i class="fas fa-utensils text-3xl"></i>
+                    <h1 class="text-2xl font-bold">HotelRestoJobs</h1>
+                </a>
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="/" class="hover:text-blue-200 transition-colors">Accueil</a>
+                    <a href="/blog.html" class="font-semibold border-b-2 border-white">Blog</a>
+                    <a href="/portails/candidat.html" class="hover:text-blue-200 transition-colors">Candidats</a>
+                    <a href="/portails/employeur.html" class="hover:text-blue-200 transition-colors">Employeurs</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-12">
+        <!-- Hero Section -->
+        <div class="mb-12 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-newspaper text-blue-600 mr-3"></i>
+                Blog HotelRestoJobs
+            </h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Conseils, tendances et actualités pour les professionnels de l'hôtellerie et de la restauration
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- Sidebar - Filters -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-lg p-6 sticky top-4">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-filter mr-2"></i>
+                        Filtres
+                    </h3>
+
+                    <!-- Search -->
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-2">
+                            <i class="fas fa-search mr-2"></i>
+                            Rechercher
+                        </label>
+                        <input type="text" id="search-input" placeholder="Mots-clés..." 
+                               onkeyup="handleSearchKeyup(event)"
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Categories -->
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-3">
+                            <i class="fas fa-tags mr-2"></i>
+                            Catégories
+                        </label>
+                        <div id="categories-filter" class="space-y-2">
+                            <!-- Categories will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Sort -->
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-2">
+                            <i class="fas fa-sort mr-2"></i>
+                            Trier par
+                        </label>
+                        <select id="sort-select" onchange="loadArticles()" 
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="date">Plus récent</option>
+                            <option value="views">Plus populaire</option>
+                            <option value="title">Titre (A-Z)</option>
+                        </select>
+                    </div>
+
+                    <!-- Reset Filters -->
+                    <button onclick="resetFilters()" 
+                            class="w-full bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+                        <i class="fas fa-redo mr-2"></i>
+                        Réinitialiser
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Content - Articles List -->
+            <div class="lg:col-span-3">
+                <!-- Results Summary -->
+                <div class="mb-6 flex items-center justify-between">
+                    <p id="results-summary" class="text-gray-600">
+                        <i class="fas fa-file-alt mr-2"></i>
+                        Chargement des articles...
+                    </p>
+                </div>
+
+                <!-- Articles Grid -->
+                <div id="articles-list" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- Articles will be loaded here -->
+                </div>
+
+                <!-- Load More Button -->
+                <div id="load-more-container" class="hidden text-center">
+                    <button onclick="loadMoreArticles()" 
+                            class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-arrow-down mr-2"></i>
+                        Charger plus d'articles
+                    </button>
+                </div>
+
+                <!-- No Results -->
+                <div id="no-results" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center">
+                    <i class="fas fa-search text-4xl text-yellow-600 mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Aucun article trouvé</h3>
+                    <p class="text-gray-600 mb-4">Essayez de modifier vos filtres de recherche</p>
+                    <button onclick="resetFilters()" 
+                            class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">
+                        Réinitialiser les filtres
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-16">
+        <div class="container mx-auto px-4 text-center">
+            <p class="mb-2">&copy; 2024 HotelRestoJobs. Tous droits réservés.</p>
+            <p class="text-gray-400 text-sm">Votre partenaire pour le recrutement dans l'hôtellerie et la restauration</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script>
+        let currentOffset = 0;
+        const limit = 10;
+        let currentCategory = '';
+        let currentSearch = '';
+        let allLoaded = false;
+
+        // Load categories for filter
+        async function loadCategories() {
+            try {
+                const response = await axios.get('/api/categories');
+                const categories = response.data.categories || [];
+                
+                const container = document.getElementById('categories-filter');
+                container.innerHTML = `
+                    <button onclick="filterByCategory('')" 
+                            class="category-filter-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors font-semibold ${currentCategory === '' ? 'bg-blue-100 text-blue-700' : 'text-gray-700'}">
+                        <i class="fas fa-th mr-2"></i>
+                        Toutes les catégories
+                    </button>
+                    ${categories.map(cat => `
+                        <button onclick="filterByCategory('${cat.slug}')" 
+                                class="category-filter-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors ${currentCategory === cat.slug ? 'bg-blue-100 text-blue-700' : 'text-gray-700'}">
+                            ${cat.icon ? `<i class="${cat.icon} mr-2" style="color: ${cat.color};"></i>` : ''}
+                            ${cat.name}
+                            ${cat.posts_count > 0 ? `<span class="text-xs text-gray-500 ml-2">(${cat.posts_count})</span>` : ''}
+                        </button>
+                    `).join('')}
+                `;
+            } catch (error) {
+                console.error('Erreur chargement catégories:', error);
+            }
+        }
+
+        // Load articles
+        async function loadArticles(append = false) {
+            try {
+                if (!append) {
+                    currentOffset = 0;
+                    allLoaded = false;
+                }
+
+                const sort = document.getElementById('sort-select').value;
+                let url = `/api/blog?limit=${limit}&offset=${currentOffset}&sort=${sort}`;
+                
+                if (currentCategory) {
+                    url += `&category=${currentCategory}`;
+                }
+                
+                if (currentSearch) {
+                    url += `&search=${encodeURIComponent(currentSearch)}`;
+                }
+
+                const response = await axios.get(url);
+                const articles = response.data.posts || [];
+                
+                const container = document.getElementById('articles-list');
+                const noResults = document.getElementById('no-results');
+                const loadMoreContainer = document.getElementById('load-more-container');
+                
+                if (articles.length === 0 && !append) {
+                    container.innerHTML = '';
+                    noResults.classList.remove('hidden');
+                    loadMoreContainer.classList.add('hidden');
+                    document.getElementById('results-summary').textContent = 'Aucun article trouvé';
+                    return;
+                }
+                
+                noResults.classList.add('hidden');
+                
+                if (!append) {
+                    container.innerHTML = articles.map(article => createArticleCard(article)).join('');
+                } else {
+                    container.innerHTML += articles.map(article => createArticleCard(article)).join('');
+                }
+                
+                // Update results summary
+                const totalShown = currentOffset + articles.length;
+                document.getElementById('results-summary').innerHTML = `
+                    <i class="fas fa-file-alt mr-2"></i>
+                    ${totalShown} article${totalShown > 1 ? 's' : ''} affiché${totalShown > 1 ? 's' : ''}
+                `;
+                
+                // Show/hide load more button
+                if (articles.length < limit) {
+                    allLoaded = true;
+                    loadMoreContainer.classList.add('hidden');
+                } else {
+                    loadMoreContainer.classList.remove('hidden');
+                }
+                
+            } catch (error) {
+                console.error('Erreur chargement articles:', error);
+                document.getElementById('articles-list').innerHTML = `
+                    <div class="col-span-full bg-red-50 border border-red-200 rounded-lg p-6 text-center text-red-700">
+                        <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                        <p>Erreur lors du chargement des articles</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Create article card
+        function createArticleCard(article) {
+            const date = new Date(article.published_at).toLocaleDateString('fr-FR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            return `
+                <article class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                    ${article.featured_image_url ? `
+                        <a href="/article.html?slug=${article.slug}">
+                            <img src="${article.featured_image_url}" 
+                                 alt="${article.title}" 
+                                 class="w-full h-48 object-cover">
+                        </a>
+                    ` : ''}
+                    
+                    <div class="p-6">
+                        ${article.categories && article.categories.length > 0 ? `
+                            <div class="flex flex-wrap gap-2 mb-3">
+                                ${article.categories.map(cat => `
+                                    <button onclick="filterByCategory('${cat.slug}')" 
+                                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white hover:opacity-80 transition-opacity" 
+                                            style="background-color: ${cat.color};">
+                                        ${cat.icon ? `<i class="${cat.icon} mr-1"></i>` : ''}
+                                        ${cat.name}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        <a href="/article.html?slug=${article.slug}">
+                            <h3 class="text-xl font-bold text-gray-800 mb-3 hover:text-blue-600 transition-colors">
+                                ${article.title}
+                            </h3>
+                        </a>
+                        
+                        <p class="text-gray-600 mb-4 line-clamp-3">${article.excerpt || ''}</p>
+                        
+                        <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
+                            <div class="flex items-center space-x-4">
+                                <span>
+                                    <i class="far fa-calendar mr-1"></i>
+                                    ${date}
+                                </span>
+                                ${article.reading_time > 0 ? `
+                                    <span>
+                                        <i class="far fa-clock mr-1"></i>
+                                        ${article.reading_time} min
+                                    </span>
+                                ` : ''}
+                                ${article.views_count > 0 ? `
+                                    <span>
+                                        <i class="far fa-eye mr-1"></i>
+                                        ${article.views_count}
+                                    </span>
+                                ` : ''}
+                            </div>
+                        </div>
+                        
+                        <a href="/article.html?slug=${article.slug}" 
+                           class="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                            Lire l'article
+                            <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </article>
+            `;
+        }
+
+        // Filter by category
+        function filterByCategory(slug) {
+            currentCategory = slug;
+            loadArticles(false);
+            loadCategories(); // Reload to update active state
+        }
+
+        // Handle search keyup
+        function handleSearchKeyup(event) {
+            if (event.key === 'Enter') {
+                performSearch();
+            }
+        }
+
+        // Perform search
+        function performSearch() {
+            currentSearch = document.getElementById('search-input').value.trim();
+            loadArticles(false);
+        }
+
+        // Reset filters
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('sort-select').value = 'date';
+            currentSearch = '';
+            currentCategory = '';
+            loadArticles(false);
+            loadCategories(); // Reload to update active state
+        }
+
+        // Load more articles
+        function loadMoreArticles() {
+            if (!allLoaded) {
+                currentOffset += limit;
+                loadArticles(true);
+            }
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            loadCategories();
+            loadArticles();
+        };
+    </script>
+</body>
+</html>

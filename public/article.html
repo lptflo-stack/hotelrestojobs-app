@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Basic Meta Tags - Will be replaced by JS -->
+    <title>Article - HotelRestoJobs</title>
+    <meta name="description" content="Blog HotelRestoJobs">
+    
+    <!-- Open Graph Meta Tags - Will be replaced by JS -->
+    <meta property="og:title" content="Article - HotelRestoJobs">
+    <meta property="og:description" content="Blog HotelRestoJobs">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+    <meta property="og:site_name" content="HotelRestoJobs">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Article - HotelRestoJobs">
+    <meta name="twitter:description" content="Blog HotelRestoJobs">
+    <meta name="twitter:image" content="">
+    
+    <!-- Canonical URL - Will be replaced by JS -->
+    <link rel="canonical" href="">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* Article Content Styles */
+        .article-content {
+            line-height: 1.8;
+        }
+        .article-content h2 {
+            font-size: 1.875rem;
+            font-weight: bold;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+        .article-content h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #374151;
+        }
+        .article-content p {
+            margin-bottom: 1rem;
+            color: #4b5563;
+        }
+        .article-content ul, .article-content ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+        .article-content li {
+            margin-bottom: 0.5rem;
+        }
+        .article-content a {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+        .article-content a:hover {
+            color: #1d4ed8;
+        }
+        .article-content blockquote {
+            border-left: 4px solid #2563eb;
+            padding-left: 1rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: #6b7280;
+        }
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            margin: 2rem 0;
+            border-radius: 0.5rem;
+        }
+        .article-content code {
+            background-color: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
+        .article-content pre {
+            background-color: #1f2937;
+            color: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+        .article-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Loading Spinner -->
+    <div id="loading" class="fixed inset-0 bg-white flex items-center justify-center z-50">
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
+            <p class="text-gray-600">Chargement de l'article...</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <a href="/" class="flex items-center space-x-2">
+                    <i class="fas fa-utensils text-3xl"></i>
+                    <h1 class="text-2xl font-bold">HotelRestoJobs</h1>
+                </a>
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="/" class="hover:text-blue-200 transition-colors">Accueil</a>
+                    <a href="/blog.html" class="hover:text-blue-200 transition-colors">Blog</a>
+                    <a href="/portails/candidat.html" class="hover:text-blue-200 transition-colors">Candidats</a>
+                    <a href="/portails/employeur.html" class="hover:text-blue-200 transition-colors">Employeurs</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Article Content -->
+    <div id="article-container" class="hidden">
+        <article class="container mx-auto px-4 py-12 max-w-4xl">
+            <!-- Breadcrumb -->
+            <nav class="mb-6 text-sm">
+                <a href="/" class="text-blue-600 hover:text-blue-800">Accueil</a>
+                <span class="text-gray-500 mx-2">/</span>
+                <a href="/blog.html" class="text-blue-600 hover:text-blue-800">Blog</a>
+                <span class="text-gray-500 mx-2">/</span>
+                <span id="breadcrumb-category" class="text-gray-700"></span>
+            </nav>
+
+            <!-- Article Header -->
+            <header class="mb-8">
+                <!-- Categories -->
+                <div id="article-categories" class="flex flex-wrap gap-2 mb-4">
+                    <!-- Categories will be loaded here -->
+                </div>
+
+                <!-- Title -->
+                <h1 id="article-title" class="text-4xl md:text-5xl font-bold text-gray-800 mb-4"></h1>
+
+                <!-- Excerpt -->
+                <p id="article-excerpt" class="text-xl text-gray-600 mb-6"></p>
+
+                <!-- Meta Info -->
+                <div class="flex flex-wrap items-center gap-6 text-gray-600 border-t border-b border-gray-200 py-4 mb-6">
+                    <div class="flex items-center">
+                        <i class="far fa-calendar mr-2"></i>
+                        <span id="article-date"></span>
+                    </div>
+                    <div id="article-author-container" class="flex items-center">
+                        <i class="far fa-user mr-2"></i>
+                        <span id="article-author"></span>
+                    </div>
+                    <div id="article-reading-time-container" class="flex items-center">
+                        <i class="far fa-clock mr-2"></i>
+                        <span id="article-reading-time"></span>
+                    </div>
+                    <div id="article-views-container" class="flex items-center">
+                        <i class="far fa-eye mr-2"></i>
+                        <span id="article-views"></span>
+                    </div>
+                </div>
+
+                <!-- Featured Image -->
+                <div id="article-featured-image-container" class="mb-8">
+                    <!-- Featured image will be loaded here -->
+                </div>
+            </header>
+
+            <!-- Article Body -->
+            <div id="article-content" class="article-content prose prose-lg max-w-none bg-white rounded-lg shadow-lg p-8 mb-12">
+                <!-- Content will be loaded here -->
+            </div>
+
+            <!-- Social Share -->
+            <div class="bg-gray-100 rounded-lg p-6 mb-12">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">
+                    <i class="fas fa-share-alt mr-2"></i>
+                    Partager cet article
+                </h3>
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="shareOnFacebook()" 
+                            class="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fab fa-facebook-f mr-2"></i>
+                        Facebook
+                    </button>
+                    <button onclick="shareOnTwitter()" 
+                            class="flex items-center bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors">
+                        <i class="fab fa-twitter mr-2"></i>
+                        Twitter
+                    </button>
+                    <button onclick="shareOnLinkedIn()" 
+                            class="flex items-center bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors">
+                        <i class="fab fa-linkedin-in mr-2"></i>
+                        LinkedIn
+                    </button>
+                    <button onclick="copyLink()" 
+                            class="flex items-center bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-link mr-2"></i>
+                        Copier le lien
+                    </button>
+                </div>
+            </div>
+
+            <!-- Related Articles -->
+            <div id="related-articles-section" class="hidden">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-newspaper mr-2"></i>
+                    Articles connexes
+                </h3>
+                <div id="related-articles" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Related articles will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Back to Blog -->
+            <div class="mt-12 text-center">
+                <a href="/blog.html" 
+                   class="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Retour au blog
+                </a>
+            </div>
+        </article>
+    </div>
+
+    <!-- Error Message -->
+    <div id="error-container" class="hidden container mx-auto px-4 py-12 max-w-2xl">
+        <div class="bg-red-50 border border-red-200 rounded-lg p-8 text-center">
+            <i class="fas fa-exclamation-triangle text-4xl text-red-600 mb-4"></i>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Article introuvable</h2>
+            <p class="text-gray-600 mb-6">Désolé, cet article n'existe pas ou a été supprimé.</p>
+            <a href="/blog.html" 
+               class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
+                Retour au blog
+            </a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-16">
+        <div class="container mx-auto px-4 text-center">
+            <p class="mb-2">&copy; 2024 HotelRestoJobs. Tous droits réservés.</p>
+            <p class="text-gray-400 text-sm">Votre partenaire pour le recrutement dans l'hôtellerie et la restauration</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script>
+        let currentArticle = null;
+
+        // Get slug from URL
+        function getSlugFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('slug');
+        }
+
+        // Update SEO meta tags
+        function updateMetaTags(article) {
+            const baseUrl = window.location.origin;
+            const articleUrl = `${baseUrl}/article.html?slug=${article.slug}`;
+            
+            // Basic meta tags
+            document.title = article.meta_title || article.title;
+            document.querySelector('meta[name="description"]').setAttribute('content', 
+                article.meta_description || article.excerpt || '');
+            
+            // Open Graph tags
+            document.querySelector('meta[property="og:title"]').setAttribute('content', 
+                article.og_title || article.meta_title || article.title);
+            document.querySelector('meta[property="og:description"]').setAttribute('content', 
+                article.og_description || article.meta_description || article.excerpt || '');
+            document.querySelector('meta[property="og:url"]').setAttribute('content', articleUrl);
+            
+            if (article.og_image || article.featured_image_url) {
+                document.querySelector('meta[property="og:image"]').setAttribute('content', 
+                    article.og_image || article.featured_image_url);
+            }
+            
+            // Twitter Card tags
+            document.querySelector('meta[name="twitter:title"]').setAttribute('content', 
+                article.og_title || article.meta_title || article.title);
+            document.querySelector('meta[name="twitter:description"]').setAttribute('content', 
+                article.og_description || article.meta_description || article.excerpt || '');
+            
+            if (article.og_image || article.featured_image_url) {
+                document.querySelector('meta[name="twitter:image"]').setAttribute('content', 
+                    article.og_image || article.featured_image_url);
+            }
+            
+            // Canonical URL
+            const canonicalUrl = article.canonical_url || articleUrl;
+            document.querySelector('link[rel="canonical"]').setAttribute('href', canonicalUrl);
+            
+            // Keywords (if provided)
+            if (article.keywords) {
+                let keywordsMeta = document.querySelector('meta[name="keywords"]');
+                if (!keywordsMeta) {
+                    keywordsMeta = document.createElement('meta');
+                    keywordsMeta.setAttribute('name', 'keywords');
+                    document.head.appendChild(keywordsMeta);
+                }
+                keywordsMeta.setAttribute('content', article.keywords);
+            }
+        }
+
+        // Load article
+        async function loadArticle() {
+            const slug = getSlugFromURL();
+            
+            if (!slug) {
+                showError();
+                return;
+            }
+
+            try {
+                const response = await axios.get(`/api/blog/slug/${slug}`);
+                currentArticle = response.data.post;
+                
+                // Update SEO meta tags
+                updateMetaTags(currentArticle);
+                
+                // Display article
+                displayArticle(currentArticle);
+                
+                // Load related articles
+                loadRelatedArticles(currentArticle);
+                
+                // Hide loading, show content
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('article-container').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Erreur chargement article:', error);
+                showError();
+            }
+        }
+
+        // Display article
+        function displayArticle(article) {
+            // Categories
+            if (article.categories && article.categories.length > 0) {
+                document.getElementById('article-categories').innerHTML = article.categories.map(cat => `
+                    <a href="/blog.html?category=${cat.slug}" 
+                       class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold text-white hover:opacity-80 transition-opacity" 
+                       style="background-color: ${cat.color};">
+                        ${cat.icon ? `<i class="${cat.icon} mr-1"></i>` : ''}
+                        ${cat.name}
+                    </a>
+                `).join('');
+                
+                // Breadcrumb
+                document.getElementById('breadcrumb-category').textContent = article.categories[0].name;
+            }
+            
+            // Title & Excerpt
+            document.getElementById('article-title').textContent = article.title;
+            document.getElementById('article-excerpt').textContent = article.excerpt || '';
+            
+            // Date
+            const date = new Date(article.published_at).toLocaleDateString('fr-FR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('article-date').textContent = date;
+            
+            // Author
+            if (article.author_name) {
+                document.getElementById('article-author').textContent = article.author_name;
+            } else {
+                document.getElementById('article-author-container').classList.add('hidden');
+            }
+            
+            // Reading time
+            if (article.reading_time > 0) {
+                document.getElementById('article-reading-time').textContent = `${article.reading_time} min de lecture`;
+            } else {
+                document.getElementById('article-reading-time-container').classList.add('hidden');
+            }
+            
+            // Views
+            if (article.views_count > 0) {
+                document.getElementById('article-views').textContent = `${article.views_count} vues`;
+            } else {
+                document.getElementById('article-views-container').classList.add('hidden');
+            }
+            
+            // Featured image
+            if (article.featured_image_url) {
+                document.getElementById('article-featured-image-container').innerHTML = `
+                    <img src="${article.featured_image_url}" 
+                         alt="${article.title}" 
+                         class="w-full h-auto rounded-lg shadow-lg">
+                `;
+            }
+            
+            // Content
+            document.getElementById('article-content').innerHTML = article.content;
+        }
+
+        // Load related articles (same category)
+        async function loadRelatedArticles(article) {
+            if (!article.categories || article.categories.length === 0) return;
+            
+            try {
+                const category = article.categories[0].slug;
+                const response = await axios.get(`/api/blog?category=${category}&limit=3`);
+                const articles = response.data.posts.filter(a => a.id !== article.id).slice(0, 3);
+                
+                if (articles.length > 0) {
+                    document.getElementById('related-articles-section').classList.remove('hidden');
+                    document.getElementById('related-articles').innerHTML = articles.map(createRelatedArticleCard).join('');
+                }
+            } catch (error) {
+                console.error('Erreur chargement articles connexes:', error);
+            }
+        }
+
+        // Create related article card
+        function createRelatedArticleCard(article) {
+            const date = new Date(article.published_at).toLocaleDateString('fr-FR', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            
+            return `
+                <a href="/article.html?slug=${article.slug}" 
+                   class="block bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden">
+                    ${article.featured_image_url ? `
+                        <img src="${article.featured_image_url}" 
+                             alt="${article.title}" 
+                             class="w-full h-40 object-cover">
+                    ` : ''}
+                    <div class="p-4">
+                        <h4 class="font-bold text-gray-800 mb-2 line-clamp-2">${article.title}</h4>
+                        <p class="text-sm text-gray-600">
+                            <i class="far fa-calendar mr-1"></i>
+                            ${date}
+                        </p>
+                    </div>
+                </a>
+            `;
+        }
+
+        // Show error
+        function showError() {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error-container').classList.remove('hidden');
+        }
+
+        // Social sharing functions
+        function shareOnFacebook() {
+            if (!currentArticle) return;
+            const url = encodeURIComponent(window.location.href);
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=600,height=400');
+        }
+
+        function shareOnTwitter() {
+            if (!currentArticle) return;
+            const url = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent(currentArticle.title);
+            window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=600,height=400');
+        }
+
+        function shareOnLinkedIn() {
+            if (!currentArticle) return;
+            const url = encodeURIComponent(window.location.href);
+            window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank', 'width=600,height=400');
+        }
+
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                alert('Lien copié dans le presse-papiers !');
+            });
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            loadArticle();
+        };
+    </script>
+</body>
+</html>
