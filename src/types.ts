@@ -97,6 +97,7 @@ export interface CreateUserRequest {
   last_name: string;
   role: 'candidate' | 'employer';
   phone?: string;
+  company_name?: string;
 }
 
 export interface LoginRequest {

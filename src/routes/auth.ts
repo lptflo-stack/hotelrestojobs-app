@@ -20,7 +20,7 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
 auth.post('/register', async (c) => {
   try {
     const body = await c.req.json<CreateUserRequest>();
-    const { email, password, first_name, last_name, role, phone } = body;
+    const { email, password, first_name, last_name, role, phone, company_name } = body;
 
     // Validation
     if (!email || !password || !first_name || !last_name || !role) {
@@ -29,6 +29,11 @@ auth.post('/register', async (c) => {
 
     if (!['candidate', 'employer'].includes(role)) {
       return c.json({ error: 'Rôle invalide' }, 400);
+    }
+    
+    // Validation pour employeur : company_name requis
+    if (role === 'employer' && !company_name) {
+      return c.json({ error: 'Le nom de l\'entreprise est requis pour les employeurs' }, 400);
     }
 
     // Vérifier si l'email existe déjà
@@ -56,7 +61,7 @@ auth.post('/register', async (c) => {
       const companyResult = await c.env.DB.prepare(`
         INSERT INTO companies (user_id, name)
         VALUES (?, ?)
-      `).bind(userId, `${first_name} ${last_name}`).run();
+      `).bind(userId, company_name || `${first_name} ${last_name}`).run();
       
       const companyId = companyResult.meta.last_row_id;
       
