@@ -86,7 +86,7 @@ jobs.get('/:id', async (c) => {
       UPDATE job_offers SET views_count = views_count + 1 WHERE id = ?
     `).bind(id).run();
 
-    return c.json(job);
+    return c.json({ job });
   } catch (error) {
     console.error('Erreur détail emploi:', error);
     return c.json({ error: 'Erreur lors de la récupération de l\'emploi' }, 500);
@@ -389,6 +389,67 @@ jobs.post('/:id/republish', requireAuth, requireEmployer, async (c) => {
   } catch (error) {
     console.error('Erreur republication emploi:', error);
     return c.json({ error: 'Erreur lors de la republication' }, 500);
+  }
+});
+
+// Modifier une offre d'emploi (employeur) - SÉCURISÉ JWT
+jobs.put('/:id', requireAuth, requireEmployer, async (c) => {
+  try {
+    const currentUser = getCurrentUser(c);
+    const user_id = currentUser.userId;
+    const id = c.req.param('id');
+
+    // Vérifier que l'offre appartient à l'employeur
+    const job = await c.env.DB.prepare(`
+      SELECT * FROM job_offers WHERE id = ? AND employer_id = ?
+    `).bind(id, user_id).first();
+
+    if (!job) {
+      return c.json({ error: 'Offre non trouvée ou accès refusé' }, 404);
+    }
+
+    const data: CreateJobOfferRequest = await c.req.json();
+
+    // Mise à jour de l'offre
+    await c.env.DB.prepare(`
+      UPDATE job_offers
+      SET title = ?,
+          description = ?,
+          position_type = ?,
+          employment_type = ?,
+          salary_min = ?,
+          salary_max = ?,
+          salary_type = ?,
+          location = ?,
+          city = ?,
+          province = ?,
+          requirements = ?,
+          benefits = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(
+      data.title,
+      data.description,
+      data.position_type,
+      data.employment_type,
+      data.salary_min,
+      data.salary_max,
+      data.salary_type,
+      data.location,
+      data.city,
+      data.province,
+      data.requirements,
+      data.benefits,
+      id
+    ).run();
+
+    return c.json({ 
+      success: true, 
+      message: 'Offre modifiée avec succès'
+    });
+  } catch (error) {
+    console.error('Erreur modification emploi:', error);
+    return c.json({ error: 'Erreur lors de la modification de l\'offre' }, 500);
   }
 });
 
