@@ -494,11 +494,15 @@
 
         // Logout
         function logout() {
-            localStorage.removeItem('user');
-            currentUser = null;
-            document.getElementById('auth-section').classList.remove('hidden');
-            document.getElementById('dashboard-section').classList.add('hidden');
-            document.getElementById('user-menu').classList.add('hidden');
+            if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+                clearAuth(); // Utiliser clearAuth() de auth-jwt.js
+                currentUser = null;
+                document.getElementById('auth-section').classList.remove('hidden');
+                document.getElementById('dashboard-section').classList.add('hidden');
+                document.getElementById('user-menu').classList.add('hidden');
+                // Recharger pour s'assurer que tout est réinitialisé
+                window.location.reload();
+            }
         }
 
         // Show Dashboard
