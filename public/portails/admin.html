@@ -652,8 +652,9 @@
         // Vérifier si l'utilisateur est connecté au chargement
         window.onload = function() {
             // Migration JWT: utilise getCurrentUser() au lieu de localStorage
-            if (userData) {
-                currentUser = JSON.parse(userData);
+            const userData = getCurrentUser();
+            if (userData && userData.role === 'admin') {
+                currentUser = userData;
                 showDashboard();
             }
         };
@@ -665,17 +666,15 @@
             const password = document.getElementById('login-password').value;
 
             try {
-                const response = await axios.post('/api/auth/login', {
-                    email,
-                    password
-                });
-
-                if (response.data.success && response.data.user.role === 'admin') {
-                    currentUser = response.data.user;
-                    localStorage.setItem('admin', JSON.stringify(currentUser));
+                // Utiliser loginUser() de auth-jwt.js
+                const userData = await loginUser(email, password);
+                
+                if (userData.role === 'admin') {
+                    currentUser = userData;
                     showDashboard();
                 } else {
                     showError('login-error', 'Accès réservé aux administrateurs uniquement');
+                    logoutUser(); // Déconnecter si ce n'est pas un admin
                 }
             } catch (error) {
                 showError('login-error', error.response?.data?.error || 'Erreur de connexion');
@@ -684,7 +683,7 @@
 
         // Logout
         function logout() {
-            localStorage.removeItem('admin');
+            logoutUser(); // Utiliser logoutUser() de auth-jwt.js
             currentUser = null;
             document.getElementById('auth-section').classList.remove('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
