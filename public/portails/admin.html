@@ -106,6 +106,12 @@
                     <button onclick="showTab('pricing')" id="tab-pricing" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
                         <i class="fas fa-tags mr-2"></i>Tarification
                     </button>
+                    <button onclick="showTab('blog')" id="tab-blog" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-newspaper mr-2"></i>Blog
+                    </button>
+                    <button onclick="showTab('newsletters')" id="tab-newsletters" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
+                        <i class="fas fa-envelope mr-2"></i>Newsletters
+                    </button>
                 </div>
             </div>
 
@@ -329,6 +335,78 @@
                     
                     <div id="expired-jobs-list" class="space-y-4">
                         <!-- Les annonces expirées seront affichées ici -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blog Tab -->
+            <div id="content-blog" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">
+                            <i class="fas fa-newspaper mr-2"></i>
+                            Gestion des articles de blog
+                        </h3>
+                        <button onclick="openAddArticleModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">
+                            <i class="fas fa-plus mr-2"></i>Nouvel article
+                        </button>
+                    </div>
+                    
+                    <div class="mb-4 flex gap-4">
+                        <input type="text" id="search-articles" placeholder="Rechercher des articles..." 
+                               onkeyup="searchArticles()"
+                               class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="filter-article-status" onchange="loadArticles()" 
+                                class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tous les statuts</option>
+                            <option value="draft">Brouillon</option>
+                            <option value="published">Publié</option>
+                            <option value="archived">Archivé</option>
+                        </select>
+                    </div>
+
+                    <div id="articles-list" class="space-y-4">
+                        <!-- Les articles seront affichés ici -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Newsletters Tab -->
+            <div id="content-newsletters" class="hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">
+                            <i class="fas fa-envelope mr-2"></i>
+                            Gestion des newsletters
+                        </h3>
+                        <button onclick="openAddNewsletterModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">
+                            <i class="fas fa-plus mr-2"></i>Nouvelle newsletter
+                        </button>
+                    </div>
+
+                    <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                                <span class="text-gray-700 font-semibold">Abonnés actifs:</span>
+                            </div>
+                            <span id="subscribers-count" class="text-2xl font-bold text-blue-600">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <select id="filter-newsletter-status" onchange="loadNewsletters()" 
+                                class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tous les statuts</option>
+                            <option value="draft">Brouillon</option>
+                            <option value="scheduled">Programmée</option>
+                            <option value="sent">Envoyée</option>
+                            <option value="cancelled">Annulée</option>
+                        </select>
+                    </div>
+
+                    <div id="newsletters-list" class="space-y-4">
+                        <!-- Les newsletters seront affichées ici -->
                     </div>
                 </div>
             </div>
@@ -734,6 +812,11 @@
                 loadFeaturedOrders();
             } else if (tabName === 'pricing') {
                 loadPricing();
+            } else if (tabName === 'blog') {
+                loadArticles();
+            } else if (tabName === 'newsletters') {
+                loadNewsletters();
+                loadSubscribersCount();
             }
         }
 
@@ -1965,6 +2048,534 @@
                 alert(error.response?.data?.error || 'Erreur lors de la suppression');
             }
         }
+
+        // ===== BLOG MANAGEMENT =====
+
+        // Load articles
+        async function loadArticles() {
+            try {
+                const status = document.getElementById('filter-article-status').value;
+                const url = '/api/blog/admin/all';
+                const response = await axios.get(url);
+                const articles = status ? response.data.posts.filter(p => p.status === status) : response.data.posts;
+                
+                const container = document.getElementById('articles-list');
+                if (articles.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-8">Aucun article trouvé</p>';
+                    return;
+                }
+                
+                container.innerHTML = articles.map(article => createArticleCard(article)).join('');
+            } catch (error) {
+                console.error('Erreur chargement articles:', error);
+                alert('Erreur lors du chargement des articles');
+            }
+        }
+
+        // Create article card
+        function createArticleCard(article) {
+            const statusColors = {
+                'draft': 'bg-gray-100 text-gray-800',
+                'published': 'bg-green-100 text-green-800',
+                'archived': 'bg-red-100 text-red-800'
+            };
+            
+            const statusLabels = {
+                'draft': 'Brouillon',
+                'published': 'Publié',
+                'archived': 'Archivé'
+            };
+            
+            return `
+                <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <h4 class="text-xl font-bold text-gray-800 mb-2">${article.title}</h4>
+                            <p class="text-gray-600 text-sm mb-2">${article.excerpt || 'Pas d\'extrait'}</p>
+                            <div class="flex flex-wrap gap-3 text-sm text-gray-600">
+                                <span><i class="fas fa-calendar mr-1"></i>${formatDate(article.created_at)}</span>
+                                <span><i class="fas fa-eye mr-1"></i>${article.views_count} vues</span>
+                                ${article.published_at ? `<span><i class="fas fa-check-circle mr-1"></i>Publié le ${formatDate(article.published_at)}</span>` : ''}
+                            </div>
+                        </div>
+                        <span class="${statusColors[article.status]} px-4 py-2 rounded-full font-semibold text-sm">
+                            ${statusLabels[article.status]}
+                        </span>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="editArticle(${article.id})" class="text-blue-600 hover:text-blue-800 font-semibold px-4 py-2">
+                            <i class="fas fa-edit mr-1"></i>Modifier
+                        </button>
+                        ${article.status === 'published' ? `
+                            <a href="/api/blog/slug/${article.slug}" target="_blank" class="text-green-600 hover:text-green-800 font-semibold px-4 py-2">
+                                <i class="fas fa-external-link-alt mr-1"></i>Voir
+                            </a>
+                        ` : ''}
+                        <button onclick="deleteArticle(${article.id})" class="text-red-600 hover:text-red-800 font-semibold px-4 py-2">
+                            <i class="fas fa-trash mr-1"></i>Supprimer
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Search articles
+        function searchArticles() {
+            const search = document.getElementById('search-articles').value.toLowerCase();
+            const cards = document.querySelectorAll('#articles-list > div');
+            
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(search) ? '' : 'none';
+            });
+        }
+
+        // Open add article modal
+        function openAddArticleModal() {
+            document.getElementById('article-modal-title').textContent = 'Nouvel article';
+            document.getElementById('article-form').reset();
+            document.getElementById('article-id').value = '';
+            document.getElementById('article-modal').classList.remove('hidden');
+        }
+
+        // Edit article
+        async function editArticle(articleId) {
+            try {
+                const response = await axios.get('/api/blog/admin/all');
+                const article = response.data.posts.find(p => p.id === articleId);
+                
+                if (!article) {
+                    alert('Article non trouvé');
+                    return;
+                }
+                
+                document.getElementById('article-modal-title').textContent = 'Modifier l\'article';
+                document.getElementById('article-id').value = article.id;
+                document.getElementById('article-title').value = article.title;
+                document.getElementById('article-slug').value = article.slug;
+                document.getElementById('article-excerpt').value = article.excerpt || '';
+                document.getElementById('article-content').value = article.content;
+                document.getElementById('article-image-url').value = article.featured_image_url || '';
+                document.getElementById('article-status').value = article.status;
+                
+                document.getElementById('article-modal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Erreur chargement article:', error);
+                alert('Erreur lors du chargement de l\'article');
+            }
+        }
+
+        // Save article
+        async function saveArticle(event) {
+            event.preventDefault();
+            
+            const articleId = document.getElementById('article-id').value;
+            const articleData = {
+                title: document.getElementById('article-title').value,
+                slug: document.getElementById('article-slug').value,
+                excerpt: document.getElementById('article-excerpt').value,
+                content: document.getElementById('article-content').value,
+                featured_image_url: document.getElementById('article-image-url').value,
+                status: document.getElementById('article-status').value
+            };
+            
+            try {
+                if (articleId) {
+                    // Update
+                    await axios.put(`/api/blog/${articleId}`, articleData);
+                    alert('Article modifié avec succès');
+                } else {
+                    // Create
+                    await axios.post('/api/blog', articleData);
+                    alert('Article créé avec succès');
+                }
+                
+                closeArticleModal();
+                loadArticles();
+            } catch (error) {
+                console.error('Erreur sauvegarde article:', error);
+                alert(error.response?.data?.error || 'Erreur lors de la sauvegarde');
+            }
+        }
+
+        // Delete article
+        async function deleteArticle(articleId) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) return;
+            
+            try {
+                await axios.delete(`/api/blog/${articleId}`);
+                alert('Article supprimé avec succès');
+                loadArticles();
+            } catch (error) {
+                console.error('Erreur suppression article:', error);
+                alert(error.response?.data?.error || 'Erreur lors de la suppression');
+            }
+        }
+
+        // Close article modal
+        function closeArticleModal() {
+            document.getElementById('article-modal').classList.add('hidden');
+        }
+
+        // ===== NEWSLETTER MANAGEMENT =====
+
+        // Load newsletters
+        async function loadNewsletters() {
+            try {
+                const status = document.getElementById('filter-newsletter-status').value;
+                const url = status ? `/api/newsletter?status=${status}` : '/api/newsletter';
+                const response = await axios.get(url);
+                const newsletters = response.data.newsletters || [];
+                
+                const container = document.getElementById('newsletters-list');
+                if (newsletters.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-8">Aucune newsletter trouvée</p>';
+                    return;
+                }
+                
+                container.innerHTML = newsletters.map(newsletter => createNewsletterCard(newsletter)).join('');
+            } catch (error) {
+                console.error('Erreur chargement newsletters:', error);
+                alert('Erreur lors du chargement des newsletters');
+            }
+        }
+
+        // Load subscribers count
+        async function loadSubscribersCount() {
+            try {
+                const response = await axios.get('/api/newsletter/subscribers/count');
+                document.getElementById('subscribers-count').textContent = response.data.count || 0;
+            } catch (error) {
+                console.error('Erreur chargement abonnés:', error);
+            }
+        }
+
+        // Create newsletter card
+        function createNewsletterCard(newsletter) {
+            const statusColors = {
+                'draft': 'bg-gray-100 text-gray-800',
+                'scheduled': 'bg-yellow-100 text-yellow-800',
+                'sent': 'bg-green-100 text-green-800',
+                'cancelled': 'bg-red-100 text-red-800'
+            };
+            
+            const statusLabels = {
+                'draft': 'Brouillon',
+                'scheduled': 'Programmée',
+                'sent': 'Envoyée',
+                'cancelled': 'Annulée'
+            };
+            
+            return `
+                <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <h4 class="text-xl font-bold text-gray-800 mb-2">${newsletter.title}</h4>
+                            <p class="text-gray-600 text-sm mb-2"><strong>Sujet:</strong> ${newsletter.subject}</p>
+                            ${newsletter.preview_text ? `<p class="text-gray-600 text-sm mb-2">${newsletter.preview_text}</p>` : ''}
+                            <div class="flex flex-wrap gap-3 text-sm text-gray-600">
+                                <span><i class="fas fa-calendar mr-1"></i>Créée le ${formatDate(newsletter.created_at)}</span>
+                                ${newsletter.sent_at ? `<span><i class="fas fa-check-circle mr-1"></i>Envoyée le ${formatDate(newsletter.sent_at)}</span>` : ''}
+                            </div>
+                        </div>
+                        <span class="${statusColors[newsletter.status]} px-4 py-2 rounded-full font-semibold text-sm">
+                            ${statusLabels[newsletter.status]}
+                        </span>
+                    </div>
+                    
+                    ${newsletter.status === 'sent' ? `
+                        <div class="grid grid-cols-3 gap-4 mb-4 text-center">
+                            <div class="bg-white rounded p-3 border border-gray-200">
+                                <div class="text-2xl font-bold text-blue-600">${newsletter.recipients_count}</div>
+                                <div class="text-sm text-gray-600">Envois</div>
+                            </div>
+                            <div class="bg-white rounded p-3 border border-gray-200">
+                                <div class="text-2xl font-bold text-green-600">${newsletter.opened_count}</div>
+                                <div class="text-sm text-gray-600">Ouvertures</div>
+                            </div>
+                            <div class="bg-white rounded p-3 border border-gray-200">
+                                <div class="text-2xl font-bold text-purple-600">${newsletter.clicked_count}</div>
+                                <div class="text-sm text-gray-600">Clics</div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="flex flex-wrap gap-3">
+                        ${newsletter.status === 'draft' ? `
+                            <button onclick="editNewsletter(${newsletter.id})" class="text-blue-600 hover:text-blue-800 font-semibold px-4 py-2">
+                                <i class="fas fa-edit mr-1"></i>Modifier
+                            </button>
+                        ` : ''}
+                        <button onclick="previewNewsletter(${newsletter.id})" class="text-purple-600 hover:text-purple-800 font-semibold px-4 py-2">
+                            <i class="fas fa-eye mr-1"></i>Prévisualiser
+                        </button>
+                        ${newsletter.status === 'draft' ? `
+                            <button onclick="sendNewsletter(${newsletter.id})" class="text-green-600 hover:text-green-800 font-semibold px-4 py-2">
+                                <i class="fas fa-paper-plane mr-1"></i>Envoyer
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Open add newsletter modal
+        function openAddNewsletterModal() {
+            document.getElementById('newsletter-modal-title').textContent = 'Nouvelle newsletter';
+            document.getElementById('newsletter-form').reset();
+            document.getElementById('newsletter-id').value = '';
+            loadArticlesForNewsletter();
+            document.getElementById('newsletter-modal').classList.remove('hidden');
+        }
+
+        // Load articles for newsletter selection
+        async function loadArticlesForNewsletter() {
+            try {
+                const response = await axios.get('/api/blog/admin/all');
+                const articles = response.data.posts.filter(p => p.status === 'published');
+                
+                const container = document.getElementById('newsletter-articles-list');
+                if (articles.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-sm">Aucun article publié</p>';
+                    return;
+                }
+                
+                container.innerHTML = articles.map(article => `
+                    <label class="flex items-center space-x-3 p-3 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer">
+                        <input type="checkbox" name="article_ids[]" value="${article.id}" class="w-5 h-5 text-blue-600">
+                        <div class="flex-1">
+                            <div class="font-semibold text-gray-800">${article.title}</div>
+                            <div class="text-sm text-gray-600">${article.excerpt || ''}</div>
+                        </div>
+                    </label>
+                `).join('');
+            } catch (error) {
+                console.error('Erreur chargement articles:', error);
+            }
+        }
+
+        // Edit newsletter
+        async function editNewsletter(newsletterId) {
+            try {
+                const response = await axios.get('/api/newsletter');
+                const newsletter = response.data.newsletters.find(n => n.id === newsletterId);
+                
+                if (!newsletter) {
+                    alert('Newsletter non trouvée');
+                    return;
+                }
+                
+                document.getElementById('newsletter-modal-title').textContent = 'Modifier la newsletter';
+                document.getElementById('newsletter-id').value = newsletter.id;
+                document.getElementById('newsletter-title').value = newsletter.title;
+                document.getElementById('newsletter-subject').value = newsletter.subject;
+                document.getElementById('newsletter-preview-text').value = newsletter.preview_text || '';
+                document.getElementById('newsletter-template-type').value = newsletter.template_type;
+                
+                await loadArticlesForNewsletter();
+                
+                // Pre-select associated articles
+                if (newsletter.article_ids) {
+                    const articleIds = JSON.parse(newsletter.article_ids);
+                    articleIds.forEach(id => {
+                        const checkbox = document.querySelector(`input[name="article_ids[]"][value="${id}"]`);
+                        if (checkbox) checkbox.checked = true;
+                    });
+                }
+                
+                document.getElementById('newsletter-modal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Erreur chargement newsletter:', error);
+                alert('Erreur lors du chargement de la newsletter');
+            }
+        }
+
+        // Save newsletter
+        async function saveNewsletter(event) {
+            event.preventDefault();
+            
+            const newsletterId = document.getElementById('newsletter-id').value;
+            const checkboxes = document.querySelectorAll('input[name="article_ids[]"]:checked');
+            const articleIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            
+            const newsletterData = {
+                title: document.getElementById('newsletter-title').value,
+                subject: document.getElementById('newsletter-subject').value,
+                preview_text: document.getElementById('newsletter-preview-text').value,
+                template_type: document.getElementById('newsletter-template-type').value,
+                article_ids: articleIds
+            };
+            
+            try {
+                if (newsletterId) {
+                    // Update
+                    await axios.put(`/api/newsletter/${newsletterId}`, newsletterData);
+                    alert('Newsletter modifiée avec succès');
+                } else {
+                    // Create
+                    await axios.post('/api/newsletter', newsletterData);
+                    alert('Newsletter créée avec succès');
+                }
+                
+                closeNewsletterModal();
+                loadNewsletters();
+            } catch (error) {
+                console.error('Erreur sauvegarde newsletter:', error);
+                alert(error.response?.data?.error || 'Erreur lors de la sauvegarde');
+            }
+        }
+
+        // Preview newsletter
+        async function previewNewsletter(newsletterId) {
+            window.open(`/api/newsletter/${newsletterId}/preview`, '_blank');
+        }
+
+        // Send newsletter
+        async function sendNewsletter(newsletterId) {
+            if (!confirm('Êtes-vous sûr de vouloir envoyer cette newsletter à tous les abonnés ?')) return;
+            
+            try {
+                const response = await axios.post(`/api/newsletter/${newsletterId}/send`);
+                alert(`Newsletter envoyée à ${response.data.recipients_count} destinataires !`);
+                loadNewsletters();
+            } catch (error) {
+                console.error('Erreur envoi newsletter:', error);
+                alert(error.response?.data?.error || 'Erreur lors de l\'envoi');
+            }
+        }
+
+        // Close newsletter modal
+        function closeNewsletterModal() {
+            document.getElementById('newsletter-modal').classList.add('hidden');
+        }
     </script>
+
+    <!-- Modal Article -->
+    <div id="article-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full p-8 my-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 id="article-modal-title" class="text-2xl font-bold text-gray-800">Nouvel article</h3>
+                <button onclick="closeArticleModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <form id="article-form" onsubmit="saveArticle(event)">
+                <input type="hidden" id="article-id">
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Titre</label>
+                    <input type="text" id="article-title" required 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Slug (URL)</label>
+                    <input type="text" id="article-slug" placeholder="laissez vide pour génération automatique" 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <p class="text-sm text-gray-500 mt-1">Exemple: mon-article-de-blog</p>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Extrait</label>
+                    <textarea id="article-excerpt" rows="2" 
+                              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Contenu</label>
+                    <textarea id="article-content" rows="10" required 
+                              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">URL de l'image vedette</label>
+                    <input type="url" id="article-image-url" placeholder="https://example.com/image.jpg" 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-semibold mb-2">Statut</label>
+                    <select id="article-status" required 
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="draft">Brouillon</option>
+                        <option value="published">Publié</option>
+                        <option value="archived">Archivé</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">
+                        <i class="fas fa-save mr-2"></i>Enregistrer
+                    </button>
+                    <button type="button" onclick="closeArticleModal()" class="px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50">
+                        Annuler
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Newsletter -->
+    <div id="newsletter-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full p-8 my-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 id="newsletter-modal-title" class="text-2xl font-bold text-gray-800">Nouvelle newsletter</h3>
+                <button onclick="closeNewsletterModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <form id="newsletter-form" onsubmit="saveNewsletter(event)">
+                <input type="hidden" id="newsletter-id">
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Titre (interne)</label>
+                    <input type="text" id="newsletter-title" required 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Sujet de l'email</label>
+                    <input type="text" id="newsletter-subject" required 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Texte de prévisualisation</label>
+                    <input type="text" id="newsletter-preview-text" 
+                           placeholder="Ce texte s'affiche dans l'aperçu de l'email"
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">Type de contenu</label>
+                    <select id="newsletter-template-type" required 
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="mixed">Offres d'emploi + Articles de blog</option>
+                        <option value="jobs_only">Offres d'emploi uniquement</option>
+                        <option value="blog_only">Articles de blog uniquement</option>
+                    </select>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-semibold mb-2">Sélectionner les articles de blog</label>
+                    <div id="newsletter-articles-list" class="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-4">
+                        <!-- Articles will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">
+                        <i class="fas fa-save mr-2"></i>Enregistrer
+                    </button>
+                    <button type="button" onclick="closeNewsletterModal()" class="px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50">
+                        Annuler
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

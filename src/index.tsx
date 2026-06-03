@@ -13,6 +13,8 @@ import pricing from './routes/pricing';
 import payments from './routes/payments';
 import candidate from './routes/candidate';
 import resume from './routes/resume';
+import blog from './routes/blog';
+import newsletter from './routes/newsletter';
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -33,6 +35,8 @@ app.route('/api/pricing', pricing);
 app.route('/api/payments', payments);
 app.route('/api/candidate', candidate);
 app.route('/api/resume', resume);
+app.route('/api/blog', blog);
+app.route('/api/newsletter', newsletter);
 
 // Page d'accueil
 app.get('/', (c) => {

@@ -282,6 +282,55 @@
                             </div>
                         </div>
 
+                        <!-- Newsletter Subscription Section -->
+                        <div class="mb-6 border-t pt-6">
+                            <h4 class="text-lg font-bold text-gray-800 mb-4">
+                                <i class="fas fa-envelope mr-2 text-blue-500"></i>
+                                Newsletter
+                            </h4>
+                            
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                                <div class="flex items-start space-x-4 mb-4">
+                                    <div class="flex items-center h-6">
+                                        <input type="checkbox" id="newsletter-subscribe" 
+                                               class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                                               onchange="toggleNewsletterPreferences()">
+                                    </div>
+                                    <div class="flex-1">
+                                        <label for="newsletter-subscribe" class="font-semibold text-gray-800 cursor-pointer">
+                                            Je souhaite recevoir la newsletter HotelRestoJobs
+                                        </label>
+                                        <p class="text-sm text-gray-600 mt-1">
+                                            Recevez les dernières offres d'emploi qui vous correspondent et nos articles de blog
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Newsletter Preferences (hidden by default) -->
+                                <div id="newsletter-preferences" class="hidden mt-4 pl-9 space-y-3">
+                                    <p class="text-sm font-semibold text-gray-700 mb-2">Préférences de contenu :</p>
+                                    
+                                    <label class="flex items-center space-x-3 cursor-pointer">
+                                        <input type="checkbox" id="pref-job-alerts" checked
+                                               class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700">Offres d'emploi correspondant à mes candidatures</span>
+                                    </label>
+                                    
+                                    <label class="flex items-center space-x-3 cursor-pointer">
+                                        <input type="checkbox" id="pref-blog-updates" checked
+                                               class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700">Articles de blog et conseils carrière</span>
+                                    </label>
+                                    
+                                    <label class="flex items-center space-x-3 cursor-pointer">
+                                        <input type="checkbox" id="pref-weekly-digest" checked
+                                               class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700">Résumé hebdomadaire des nouvelles opportunités</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
                         <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700">
                             <i class="fas fa-save mr-2"></i>Enregistrer les modifications
                         </button>
@@ -487,6 +536,9 @@
 
                 // Load CV info
                 loadCVInfo();
+                
+                // Load newsletter subscription status
+                loadNewsletterStatus();
             } catch (error) {
                 console.error('Erreur chargement profil:', error);
             }
@@ -495,7 +547,16 @@
         // Update Profile (à implémenter côté API)
         async function updateProfile(e) {
             e.preventDefault();
-            alert('Fonctionnalité de mise à jour du profil à venir !');
+            
+            try {
+                // Save newsletter subscription first
+                await saveNewsletterSubscription();
+                
+                alert('Profil et préférences enregistrés avec succès !');
+            } catch (error) {
+                console.error('Erreur sauvegarde profil:', error);
+                alert(error.response?.data?.error || 'Erreur lors de la sauvegarde');
+            }
         }
 
         // Show Tab
@@ -809,6 +870,76 @@
                 }
             } catch (error) {
                 console.error('Erreur chargement CV:', error);
+            }
+        }
+
+        // ===== NEWSLETTER SUBSCRIPTION =====
+
+        // Toggle newsletter preferences visibility
+        function toggleNewsletterPreferences() {
+            const subscribeCheckbox = document.getElementById('newsletter-subscribe');
+            const preferencesDiv = document.getElementById('newsletter-preferences');
+            
+            if (subscribeCheckbox.checked) {
+                preferencesDiv.classList.remove('hidden');
+            } else {
+                preferencesDiv.classList.add('hidden');
+            }
+        }
+
+        // Load newsletter subscription status
+        async function loadNewsletterStatus() {
+            try {
+                const response = await axios.get('/api/newsletter/subscription/status');
+                const { subscribed, preferences } = response.data;
+                
+                document.getElementById('newsletter-subscribe').checked = subscribed;
+                
+                if (subscribed && preferences) {
+                    document.getElementById('newsletter-preferences').classList.remove('hidden');
+                    
+                    // Set preferences
+                    if (preferences.job_alerts !== undefined) {
+                        document.getElementById('pref-job-alerts').checked = preferences.job_alerts;
+                    }
+                    if (preferences.blog_updates !== undefined) {
+                        document.getElementById('pref-blog-updates').checked = preferences.blog_updates;
+                    }
+                    if (preferences.weekly_digest !== undefined) {
+                        document.getElementById('pref-weekly-digest').checked = preferences.weekly_digest;
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur chargement statut newsletter:', error);
+            }
+        }
+
+        // Save newsletter subscription (called within updateProfile)
+        async function saveNewsletterSubscription() {
+            const subscribeCheckbox = document.getElementById('newsletter-subscribe');
+            
+            if (subscribeCheckbox.checked) {
+                // Subscribe with preferences
+                const preferences = {
+                    job_alerts: document.getElementById('pref-job-alerts').checked,
+                    blog_updates: document.getElementById('pref-blog-updates').checked,
+                    weekly_digest: document.getElementById('pref-weekly-digest').checked
+                };
+                
+                try {
+                    await axios.post('/api/newsletter/subscribe', { preferences });
+                } catch (error) {
+                    console.error('Erreur abonnement newsletter:', error);
+                    throw error;
+                }
+            } else {
+                // Unsubscribe
+                try {
+                    await axios.post('/api/newsletter/unsubscribe');
+                } catch (error) {
+                    console.error('Erreur désabonnement newsletter:', error);
+                    throw error;
+                }
             }
         }
     </script>
