@@ -58,6 +58,9 @@ app.get('/', (c) => {
                         <a href="/candidat/login" class="hover:text-blue-200">Espace Candidat</a>
                         <a href="/employeur/login" class="hover:text-blue-200">Espace Employeur</a>
                         <a href="/admin/login" class="hover:text-blue-200">Admin</a>
+                        <a href="/employeur/login" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 py-2 rounded-lg font-semibold transition-colors">
+                            <i class="fas fa-plus-circle mr-2"></i>Publier une offre
+                        </a>
                     </nav>
                     <div class="md:hidden">
                         <button id="mobile-menu-btn" class="text-white">
@@ -75,6 +78,9 @@ app.get('/', (c) => {
                 <a href="/candidat/login" class="block hover:bg-blue-600 px-4 py-2 rounded">Espace Candidat</a>
                 <a href="/employeur/login" class="block hover:bg-blue-600 px-4 py-2 rounded">Espace Employeur</a>
                 <a href="/admin/login" class="block hover:bg-blue-600 px-4 py-2 rounded">Admin</a>
+                <a href="/employeur/login" class="block bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 py-2 rounded font-semibold">
+                    <i class="fas fa-plus-circle mr-2"></i>Publier une offre
+                </a>
             </div>
         </div>
 
@@ -87,6 +93,13 @@ app.get('/', (c) => {
                 <p class="text-xl mb-8">
                     La plateforme #1 pour les professionnels de l'hôtellerie et de la restauration
                 </p>
+                
+                <!-- CTA Button for Employers -->
+                <div class="mb-8">
+                    <a href="/employeur/login" class="inline-block bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-8 py-4 rounded-lg font-bold text-lg shadow-lg transition-all transform hover:scale-105">
+                        <i class="fas fa-briefcase mr-2"></i>Vous recrutez ? Publiez une offre gratuitement !
+                    </a>
+                </div>
                 
                 <!-- Search Bar -->
                 <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-xl p-4">
@@ -341,6 +354,11 @@ app.get('/emploi/:id', (c) => {
                 </div>
             </div>
         </header>
+
+        <!-- Floating Action Button for employers -->
+        <a href="/employeur/login" class="fixed bottom-8 right-8 bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-6 py-4 rounded-full font-bold shadow-2xl transition-all transform hover:scale-110 z-50">
+            <i class="fas fa-plus-circle mr-2"></i>Publier une offre
+        </a>
 
         <div class="container mx-auto px-4 py-8">
             <div id="job-detail" class="max-w-4xl mx-auto">

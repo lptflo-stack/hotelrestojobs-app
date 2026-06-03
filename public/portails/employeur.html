@@ -131,8 +131,8 @@
                     <button onclick="showTab('expired')" id="tab-expired" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
                         <i class="fas fa-clock mr-2"></i>Annonces Expirées
                     </button>
-                    <button onclick="showTab('create')" id="tab-create" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
-                        <i class="fas fa-plus-circle mr-2"></i>Nouvelle Offre
+                    <button onclick="showTab('create')" id="tab-create" class="px-6 py-4 font-semibold bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-lg whitespace-nowrap">
+                        <i class="fas fa-plus-circle mr-2"></i>✨ Publier une Offre
                     </button>
                     <button onclick="showTab('applications')" id="tab-applications" class="px-6 py-4 font-semibold text-gray-600 hover:text-gray-800 whitespace-nowrap">
                         <i class="fas fa-users mr-2"></i>Candidatures
@@ -159,6 +159,14 @@
                     
                     <div id="credits-info" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <!-- Credits info will be loaded here -->
+                    </div>
+                    
+                    <!-- Big CTA Button -->
+                    <div class="mb-8 text-center">
+                        <button onclick="showTab('create')" class="inline-block bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-8 py-4 rounded-lg font-bold text-lg shadow-lg transition-all transform hover:scale-105">
+                            <i class="fas fa-plus-circle mr-2"></i>Publier une offre d'emploi maintenant !
+                        </button>
+                        <p class="text-gray-600 mt-2 text-sm">Publiez votre offre en quelques minutes</p>
                     </div>
                     
                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
