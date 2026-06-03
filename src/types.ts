@@ -132,4 +132,17 @@ export interface FeaturedOrderRequest {
 // Type pour les bindings Cloudflare
 export type Bindings = {
   DB: D1Database;
+  RESUMES: R2Bucket;
 };
+
+// Type pour le payload JWT
+export interface JWTPayload {
+  userId: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: 'candidate' | 'employer' | 'admin';
+  companyId?: number;
+  exp: number;
+  iat: number;
+}

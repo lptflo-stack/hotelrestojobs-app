@@ -12,5 +12,11 @@
       "database_name": "webapp-production",
       "database_id": "local-only-for-development"
     }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "RESUMES",
+      "bucket_name": "hotelrestojobs-resumes"
+    }
   ]
 }
