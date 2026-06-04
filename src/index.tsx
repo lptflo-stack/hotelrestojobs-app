@@ -53,6 +53,8 @@ app.get('/', (c) => {
         <title>HotelRestoJobs - Emplois en Hôtellerie-Restauration</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <script src="/static/i18n.js"></script>
+        <script src="/static/language-selector.js"></script>
     </head>
     <body class="bg-gray-50">
         <!-- Header -->
@@ -64,12 +66,13 @@ app.get('/', (c) => {
                         <h1 class="text-2xl font-bold">HotelRestoJobs</h1>
                     </div>
                     <nav class="hidden md:flex items-center space-x-6">
-                        <a href="/" class="hover:text-blue-200">Emplois</a>
-                        <a href="/candidat/login" class="hover:text-blue-200">Espace Candidat</a>
-                        <a href="/employeur/login" class="hover:text-blue-200">Espace Employeur</a>
-                        <a href="/admin/login" class="hover:text-blue-200">Admin</a>
+                        <div id="language-selector-container"></div>
+                        <a href="/" class="hover:text-blue-200" data-i18n="nav.jobs">Emplois</a>
+                        <a href="/candidat/login" class="hover:text-blue-200" data-i18n="nav.candidate">Espace Candidat</a>
+                        <a href="/employeur/login" class="hover:text-blue-200" data-i18n="nav.employer">Espace Employeur</a>
+                        <a href="/admin/login" class="hover:text-blue-200" data-i18n="nav.admin">Admin</a>
                         <a href="/employeur/login" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 py-2 rounded-lg font-semibold transition-colors">
-                            <i class="fas fa-plus-circle mr-2"></i>Publier une offre
+                            <i class="fas fa-plus-circle mr-2"></i><span data-i18n="nav.post_job">Publier une offre</span>
                         </a>
                     </nav>
                     <div class="md:hidden">
@@ -97,29 +100,29 @@ app.get('/', (c) => {
         <!-- Hero Section -->
         <section class="bg-gradient-to-r from-blue-500 to-blue-700 text-white py-16">
             <div class="container mx-auto px-4 text-center">
-                <h2 class="text-4xl md:text-5xl font-bold mb-4">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4" data-i18n="hero.title">
                     Trouvez votre emploi de rêve dans l'hôtellerie-restauration
                 </h2>
-                <p class="text-xl mb-8">
+                <p class="text-xl mb-8" data-i18n="hero.subtitle">
                     La plateforme #1 pour les professionnels de l'hôtellerie et de la restauration
                 </p>
                 
                 <!-- CTA Button for Employers -->
                 <div class="mb-8">
                     <a href="/employeur/login" class="inline-block bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-8 py-4 rounded-lg font-bold text-lg shadow-lg transition-all transform hover:scale-105">
-                        <i class="fas fa-briefcase mr-2"></i>Vous recrutez ? Publiez une offre gratuitement !
+                        <i class="fas fa-briefcase mr-2"></i><span data-i18n="hero.cta_employer">Vous recrutez ? Publiez une offre gratuitement !</span>
                     </a>
                 </div>
                 
                 <!-- Search Bar -->
                 <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-xl p-4">
                     <div class="flex flex-col md:flex-row gap-3">
-                        <input type="text" id="search-keywords" placeholder="Mots-clés (ex: Chef, Serveur...)" 
+                        <input type="text" id="search-keywords" data-i18n-placeholder="hero.search_keywords" placeholder="Mots-clés (ex: Chef, Serveur...)" 
                                class="flex-1 px-4 py-3 rounded border text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <input type="text" id="search-city" placeholder="Ville" 
+                        <input type="text" id="search-city" data-i18n-placeholder="hero.search_city" placeholder="Ville" 
                                class="flex-1 px-4 py-3 rounded border text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <button onclick="searchJobs()" class="bg-blue-600 text-white px-8 py-3 rounded font-semibold hover:bg-blue-700">
-                            <i class="fas fa-search mr-2"></i>Rechercher
+                            <i class="fas fa-search mr-2"></i><span data-i18n="hero.search_button">Rechercher</span>
                         </button>
                     </div>
                 </div>
@@ -131,7 +134,7 @@ app.get('/', (c) => {
             <div class="flex items-center justify-between mb-8">
                 <h3 class="text-3xl font-bold text-gray-800">
                     <i class="fas fa-star text-yellow-500 mr-2"></i>
-                    Emplois Vedettes
+                    <span data-i18n="jobs.featured">Emplois Vedettes</span>
                 </h3>
             </div>
             <div id="featured-jobs" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -141,13 +144,13 @@ app.get('/', (c) => {
 
         <!-- All Jobs Section -->
         <section class="container mx-auto px-4 py-12">
-            <h3 class="text-3xl font-bold text-gray-800 mb-8">Dernières offres d'emploi</h3>
+            <h3 class="text-3xl font-bold text-gray-800 mb-8" data-i18n="jobs.latest">Dernières offres d'emploi</h3>
             <div id="all-jobs" class="space-y-4">
                 <!-- Les emplois seront chargés ici -->
             </div>
             <div class="text-center mt-8">
                 <button onclick="loadMoreJobs()" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700">
-                    Voir plus d'offres
+                    <span data-i18n="jobs.see_more">Voir plus d'offres</span>
                 </button>
             </div>
         </section>
@@ -158,19 +161,19 @@ app.get('/', (c) => {
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
                     <div>
                         <div class="text-4xl font-bold mb-2">500+</div>
-                        <div class="text-blue-200">Offres d'emploi</div>
+                        <div class="text-blue-200" data-i18n="stats.total_jobs">Offres d'emploi</div>
                     </div>
                     <div>
                         <div class="text-4xl font-bold mb-2">1000+</div>
-                        <div class="text-blue-200">Candidats</div>
+                        <div class="text-blue-200" data-i18n="stats.total_candidates">Candidats</div>
                     </div>
                     <div>
                         <div class="text-4xl font-bold mb-2">200+</div>
-                        <div class="text-blue-200">Employeurs</div>
+                        <div class="text-blue-200" data-i18n="stats.total_employers">Employeurs</div>
                     </div>
                     <div>
                         <div class="text-4xl font-bold mb-2">95%</div>
-                        <div class="text-blue-200">Satisfaction</div>
+                        <div class="text-blue-200" data-i18n="stats.satisfaction">Satisfaction</div>
                     </div>
                 </div>
             </div>
@@ -182,18 +185,18 @@ app.get('/', (c) => {
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div>
                         <h4 class="text-xl font-bold mb-4">HotelRestoJobs</h4>
-                        <p class="text-gray-400">La plateforme de recrutement spécialisée en hôtellerie-restauration au Québec.</p>
+                        <p class="text-gray-400" data-i18n="footer.tagline">La plateforme de recrutement spécialisée en hôtellerie-restauration au Québec.</p>
                     </div>
                     <div>
-                        <h4 class="text-xl font-bold mb-4">Liens rapides</h4>
+                        <h4 class="text-xl font-bold mb-4" data-i18n="footer.quick_links">Liens rapides</h4>
                         <ul class="space-y-2 text-gray-400">
-                            <li><a href="/" class="hover:text-white">Rechercher un emploi</a></li>
-                            <li><a href="/candidat/login" class="hover:text-white">Espace Candidat</a></li>
-                            <li><a href="/employeur/login" class="hover:text-white">Publier une offre</a></li>
+                            <li><a href="/" class="hover:text-white" data-i18n="footer.search_job">Rechercher un emploi</a></li>
+                            <li><a href="/candidat/login" class="hover:text-white" data-i18n="footer.candidate_space">Espace Candidat</a></li>
+                            <li><a href="/employeur/login" class="hover:text-white" data-i18n="footer.post_job">Publier une offre</a></li>
                         </ul>
                     </div>
                     <div>
-                        <h4 class="text-xl font-bold mb-4">Contact</h4>
+                        <h4 class="text-xl font-bold mb-4" data-i18n="footer.contact">Contact</h4>
                         <ul class="space-y-2 text-gray-400">
                             <li><i class="fas fa-envelope mr-2"></i>contact@hotelrestojobs.com</li>
                             <li><i class="fas fa-phone mr-2"></i>514-555-0000</li>
@@ -201,7 +204,7 @@ app.get('/', (c) => {
                     </div>
                 </div>
                 <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-                    <p>&copy; 2024 HotelRestoJobs. Tous droits réservés.</p>
+                    <p>&copy; 2024 HotelRestoJobs. <span data-i18n="footer.rights">Tous droits réservés.</span></p>
                 </div>
             </div>
         </footer>
@@ -245,7 +248,7 @@ app.get('/', (c) => {
                     <div class="bg-gradient-to-br from-yellow-50 to-white border-2 border-yellow-400 rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow">
                         <div class="flex items-start justify-between mb-3">
                             <div class="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                                <i class="fas fa-star mr-1"></i>VEDETTE
+                                <i class="fas fa-star mr-1"></i><span data-i18n="jobs.featured_badge">VEDETTE</span>
                             </div>
                             <span class="text-gray-500 text-sm">\${formatDate(job.created_at)}</span>
                         </div>
@@ -262,7 +265,7 @@ app.get('/', (c) => {
                             <span>\${job.employment_type}</span>
                         </div>
                         <a href="/emploi/\${job.id}" class="block w-full bg-blue-600 text-white text-center py-2 rounded-lg font-semibold hover:bg-blue-700">
-                            Voir les détails
+                            <span data-i18n="jobs.view_details">Voir les détails</span>
                         </a>
                     </div>
                 \`;
@@ -281,13 +284,13 @@ app.get('/', (c) => {
                                 <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
                                     <span><i class="fas fa-map-marker-alt mr-1"></i>\${job.city}, \${job.province}</span>
                                     <span><i class="fas fa-briefcase mr-1"></i>\${job.employment_type}</span>
-                                    <span><i class="fas fa-eye mr-1"></i>\${job.views_count} vues</span>
+                                    <span><i class="fas fa-eye mr-1"></i>\${job.views_count} <span data-i18n="jobs.views">vues</span></span>
                                 </div>
                                 <p class="text-gray-700 line-clamp-2">\${job.description.substring(0, 150)}...</p>
                             </div>
                             <div class="ml-4">
                                 <a href="/emploi/\${job.id}" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 whitespace-nowrap">
-                                    Voir détails
+                                    <span data-i18n="jobs.view_details">Voir détails</span>
                                 </a>
                             </div>
                         </div>
