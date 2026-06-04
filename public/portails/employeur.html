@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
     <script src="/static/i18n.js"></script>
     <script src="/static/language-selector.js"></script>
+    <script src="/static/bilingual-form-helper.js"></script>
 </head>
 <body class="bg-gray-50">
     <!-- Header -->
@@ -247,104 +248,193 @@
                     <h3 class="text-2xl font-bold text-gray-800 mb-6">Créer une nouvelle offre d'emploi</h3>
                     
                     <form onsubmit="createJob(event)">
-                        <div class="mb-6">
-                            <label class="block text-gray-700 font-semibold mb-2">Titre du poste *</label>
-                            <input type="text" id="job-title" required 
-                                   placeholder="Ex: Chef de Cuisine, Serveur/Serveuse..."
-                                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <!-- Langue de l'offre -->
+                        <div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <label class="block text-gray-800 font-bold mb-3">
+                                <i class="fas fa-language mr-2 text-blue-600"></i>
+                                Langue de l'offre *
+                            </label>
+                            <div class="flex flex-wrap gap-4">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="radio" name="job-language" value="fr" checked 
+                                           onchange="updateFieldsVisibility('job-form')"
+                                           class="w-4 h-4 text-green-600">
+                                    <span class="font-medium">🇨🇦 Français uniquement</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="radio" name="job-language" value="en"
+                                           onchange="updateFieldsVisibility('job-form')"
+                                           class="w-4 h-4 text-green-600">
+                                    <span class="font-medium">🇨🇦 English only</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="radio" name="job-language" value="bilingual"
+                                           onchange="updateFieldsVisibility('job-form')"
+                                           class="w-4 h-4 text-green-600">
+                                    <span class="font-medium">🇨🇦 Bilingue FR/EN</span>
+                                </label>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Choisissez "Bilingue" pour atteindre un plus large public
+                            </p>
                         </div>
 
-                        <div class="mb-6">
-                            <label class="block text-gray-700 font-semibold mb-2">Description du poste *</label>
-                            <textarea id="job-description" required rows="6"
-                                      placeholder="Décrivez le poste, les responsabilités..."
-                                      class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                        <!-- Onglets de langue (affiché seulement si bilingue) -->
+                        <div id="job-form-tabs" class="bilingual-tabs mb-4" style="display: none;">
+                            <div class="flex border-b">
+                                <button 
+                                    type="button"
+                                    class="tab-btn-fr px-6 py-2 border-b-2 border-green-600 text-green-600 font-semibold"
+                                    onclick="switchLanguageTab('job-form', 'fr')">
+                                    Français 🇨🇦
+                                </button>
+                                <button 
+                                    type="button"
+                                    class="tab-btn-en px-6 py-2 text-gray-600 hover:text-gray-800"
+                                    onclick="switchLanguageTab('job-form', 'en')">
+                                    English 🇨🇦
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <div>
-                                <label class="block text-gray-700 font-semibold mb-2">Type de poste *</label>
-                                <input type="text" id="job-position-type" required 
-                                       placeholder="Ex: Cuisinier, Serveur, Chef..."
+                        <!-- Contenu FRANÇAIS -->
+                        <div id="job-form-fr">
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-semibold mb-2">Titre du poste (FR) *</label>
+                                <input type="text" id="job-form-title-fr" required 
+                                       placeholder="Ex: Chef de Cuisine, Serveur/Serveuse..."
                                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
                             </div>
-                            <div>
-                                <label class="block text-gray-700 font-semibold mb-2">Type d'emploi *</label>
-                                <select id="job-employment-type" required 
-                                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-                                    <option value="">Sélectionner</option>
-                                    <option value="full-time">Temps plein</option>
-                                    <option value="part-time">Temps partiel</option>
-                                    <option value="contract">Contrat</option>
-                                    <option value="temporary">Temporaire</option>
-                                </select>
+
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-semibold mb-2">Description du poste (FR) *</label>
+                                <textarea id="job-form-description-fr" required rows="6"
+                                          placeholder="Décrivez le poste, les responsabilités..."
+                                          class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-semibold mb-2">Exigences du poste (FR)</label>
+                                <textarea id="job-form-requirements-fr" rows="4"
+                                          placeholder="Expérience requise, formation, compétences..."
+                                          class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-semibold mb-2">Avantages offerts (FR)</label>
+                                <textarea id="job-form-benefits-fr" rows="4"
+                                          placeholder="Assurances, vacances, repas fournis..."
+                                          class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
                             </div>
                         </div>
 
-                        <div class="mb-6">
-                            <label class="block text-gray-700 font-semibold mb-2">Salaire</label>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Contenu ANGLAIS -->
+                        <div id="job-form-en" class="hidden">
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-semibold mb-2">Job Title (EN) *</label>
+                                <input type="text" id="job-form-title-en"
+                                       placeholder="Ex: Executive Chef, Server/Waitress..."
+                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-semibold mb-2">Job Description (EN) *</label>
+                                <textarea id="job-form-description-en" rows="6"
+                                          placeholder="Describe the position, responsibilities..."
+                                          class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-semibold mb-2">Job Requirements (EN)</label>
+                                <textarea id="job-form-requirements-en" rows="4"
+                                          placeholder="Required experience, education, skills..."
+                                          class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-semibold mb-2">Benefits Offered (EN)</label>
+                                <textarea id="job-form-benefits-en" rows="4"
+                                          placeholder="Insurance, vacation, meals provided..."
+                                          class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Champs communs (non traduits) -->
+                        <div class="border-t pt-6 mt-6">
+                            <h4 class="text-lg font-bold text-gray-800 mb-4">Informations générales</h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <div>
-                                    <input type="number" id="job-salary-min" placeholder="Minimum"
+                                    <label class="block text-gray-700 font-semibold mb-2">Type de poste *</label>
+                                    <input type="text" id="job-position-type" required 
+                                           placeholder="Ex: Cuisinier, Serveur, Chef..."
                                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
                                 </div>
                                 <div>
-                                    <input type="number" id="job-salary-max" placeholder="Maximum"
-                                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-                                </div>
-                                <div>
-                                    <select id="job-salary-type"
+                                    <label class="block text-gray-700 font-semibold mb-2">Type d'emploi *</label>
+                                    <select id="job-employment-type" required 
                                             class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-                                        <option value="">Type</option>
-                                        <option value="hourly">À l'heure</option>
-                                        <option value="annual">Annuel</option>
-                                        <option value="negotiable">Négociable</option>
+                                        <option value="">Sélectionner</option>
+                                        <option value="full-time">Temps plein</option>
+                                        <option value="part-time">Temps partiel</option>
+                                        <option value="contract">Contrat</option>
+                                        <option value="temporary">Temporaire</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-semibold mb-2">Salaire</label>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <input type="number" id="job-salary-min" placeholder="Minimum"
+                                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    </div>
+                                    <div>
+                                        <input type="number" id="job-salary-max" placeholder="Maximum"
+                                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    </div>
+                                    <div>
+                                        <select id="job-salary-type"
+                                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                            <option value="">Type</option>
+                                            <option value="hourly">À l'heure</option>
+                                            <option value="annual">Annuel</option>
+                                            <option value="negotiable">Négociable</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                                <div>
+                                    <label class="block text-gray-700 font-semibold mb-2">Adresse *</label>
+                                    <input type="text" id="job-location" required 
+                                           placeholder="123 Rue Principale"
+                                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 font-semibold mb-2">Ville *</label>
+                                    <input type="text" id="job-city" required 
+                                           placeholder="Montréal"
+                                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 font-semibold mb-2">Province *</label>
+                                    <select id="job-province" required 
+                                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                        <option value="">Sélectionner</option>
+                                        <option value="QC">Québec (QC)</option>
+                                        <option value="ON">Ontario (ON)</option>
+                                        <option value="BC">Colombie-Britannique (BC)</option>
+                                        <option value="AB">Alberta (AB)</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                            <div>
-                                <label class="block text-gray-700 font-semibold mb-2">Adresse *</label>
-                                <input type="text" id="job-location" required 
-                                       placeholder="123 Rue Principale"
-                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 font-semibold mb-2">Ville *</label>
-                                <input type="text" id="job-city" required 
-                                       placeholder="Montréal"
-                                       class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 font-semibold mb-2">Province *</label>
-                                <select id="job-province" required 
-                                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-                                    <option value="">Sélectionner</option>
-                                    <option value="QC">Québec (QC)</option>
-                                    <option value="ON">Ontario (ON)</option>
-                                    <option value="BC">Colombie-Britannique (BC)</option>
-                                    <option value="AB">Alberta (AB)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="mb-6">
-                            <label class="block text-gray-700 font-semibold mb-2">Exigences du poste</label>
-                            <textarea id="job-requirements" rows="4"
-                                      placeholder="Expérience requise, formation, compétences..."
-                                      class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
-                        </div>
-
-                        <div class="mb-6">
-                            <label class="block text-gray-700 font-semibold mb-2">Avantages offerts</label>
-                            <textarea id="job-benefits" rows="4"
-                                      placeholder="Assurances, vacances, repas fournis..."
-                                      class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
-                        </div>
-
-                        <div class="flex justify-end space-x-4">
+                        <div class="flex justify-end space-x-4 mt-6">
                             <button type="button" onclick="showTab('jobs')" 
                                     class="px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50">
                                 Annuler
@@ -1391,9 +1481,19 @@
                 return;
             }
             
+            // Valider les champs bilingues
+            const validationErrors = validateBilingualForm('job-form');
+            if (validationErrors.length > 0) {
+                alert('Erreurs de validation:\n\n' + validationErrors.join('\n'));
+                return;
+            }
+            
+            // Récupérer les données bilingues
+            const bilingualData = getBilingualFormData('job-form');
+            
+            // Récupérer les champs communs
             const data = {
-                title: document.getElementById('job-title').value,
-                description: document.getElementById('job-description').value,
+                ...bilingualData,
                 position_type: document.getElementById('job-position-type').value,
                 employment_type: document.getElementById('job-employment-type').value,
                 salary_min: document.getElementById('job-salary-min').value || null,
@@ -1401,9 +1501,7 @@
                 salary_type: document.getElementById('job-salary-type').value || null,
                 location: document.getElementById('job-location').value,
                 city: document.getElementById('job-city').value,
-                province: document.getElementById('job-province').value,
-                requirements: document.getElementById('job-requirements').value || null,
-                benefits: document.getElementById('job-benefits').value || null
+                province: document.getElementById('job-province').value
             };
 
             try {
@@ -1413,13 +1511,18 @@
                     const expiresDate = new Date(response.data.expires_at);
                     const formattedDate = expiresDate.toLocaleDateString('fr-CA', { year: 'numeric', month: 'long', day: 'numeric' });
                     
+                    const langLabel = data.job_language === 'bilingual' ? 'Bilingue FR/EN' : 
+                                    data.job_language === 'en' ? 'English only' : 'Français uniquement';
+                    
                     if (creditCheck.unlimited) {
                         alert(`✅ Annonce publiée avec succès !\n\n` +
+                              `🌐 Langue: ${langLabel}\n` +
                               `📅 Valide jusqu'au: ${formattedDate}\n` +
                               `♾️ Forfait illimité actif\n\n` +
                               `Votre annonce est maintenant visible par les candidats.`);
                     } else {
                         alert(`✅ Annonce publiée avec succès !\n\n` +
+                              `🌐 Langue: ${langLabel}\n` +
                               `📅 Valide jusqu'au: ${formattedDate}\n` +
                               `💳 Crédits restants: ${response.data.credits_remaining}\n\n` +
                               `Votre annonce est maintenant visible par les candidats.`);
@@ -1441,9 +1544,19 @@
 
         // Update Job (pour l'édition)
         async function updateJob(jobId) {
+            // Valider les champs bilingues
+            const validationErrors = validateBilingualForm('job-form');
+            if (validationErrors.length > 0) {
+                alert('Erreurs de validation:\n\n' + validationErrors.join('\n'));
+                return;
+            }
+            
+            // Récupérer les données bilingues
+            const bilingualData = getBilingualFormData('job-form');
+            
+            // Récupérer les champs communs
             const data = {
-                title: document.getElementById('job-title').value,
-                description: document.getElementById('job-description').value,
+                ...bilingualData,
                 position_type: document.getElementById('job-position-type').value,
                 employment_type: document.getElementById('job-employment-type').value,
                 salary_min: document.getElementById('job-salary-min').value || null,
@@ -1451,15 +1564,16 @@
                 salary_type: document.getElementById('job-salary-type').value || null,
                 location: document.getElementById('job-location').value,
                 city: document.getElementById('job-city').value,
-                province: document.getElementById('job-province').value,
-                requirements: document.getElementById('job-requirements').value || null,
-                benefits: document.getElementById('job-benefits').value || null
+                province: document.getElementById('job-province').value
             };
 
             try {
                 await axios.put(`/api/jobs/${jobId}`, data);
                 
-                alert('✅ Offre modifiée avec succès !\n\nLes modifications sont maintenant visibles.');
+                const langLabel = data.job_language === 'bilingual' ? 'Bilingue FR/EN' : 
+                                data.job_language === 'en' ? 'English only' : 'Français uniquement';
+                
+                alert(`✅ Offre modifiée avec succès !\n\n🌐 Langue: ${langLabel}\n\nLes modifications sont maintenant visibles.`);
                 
                 // Réinitialiser le mode édition
                 cancelEditJob();
@@ -1492,9 +1606,10 @@
                 const response = await axios.get(`/api/jobs/${jobId}`);
                 const job = response.data.job;
                 
-                // Remplir le formulaire avec les données de l'offre
-                document.getElementById('job-title').value = job.title;
-                document.getElementById('job-description').value = job.description;
+                // Remplir le formulaire bilingue avec les données
+                fillBilingualForm('job-form', job);
+                
+                // Remplir les champs communs
                 document.getElementById('job-position-type').value = job.position_type;
                 document.getElementById('job-employment-type').value = job.employment_type;
                 document.getElementById('job-salary-min').value = job.salary_min || '';
@@ -1503,8 +1618,9 @@
                 document.getElementById('job-location').value = job.location;
                 document.getElementById('job-city').value = job.city;
                 document.getElementById('job-province').value = job.province;
-                document.getElementById('job-requirements').value = job.requirements || '';
-                document.getElementById('job-benefits').value = job.benefits || '';
+                
+                // Mettre à jour l'affichage des champs selon la langue
+                updateFieldsVisibility('job-form');
                 
                 // Stocker l'ID pour la mise à jour
                 document.getElementById('content-create').setAttribute('data-edit-job-id', jobId);
