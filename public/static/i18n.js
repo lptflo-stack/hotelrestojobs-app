@@ -522,11 +522,13 @@ class I18n {
       buttons.forEach(button => {
         const lang = button.getAttribute('data-lang');
         if (lang === this.currentLanguage) {
-          button.classList.add('active', 'font-bold', 'text-blue-600');
-          button.classList.remove('text-gray-600');
+          // Style actif - fond blanc semi-transparent
+          button.classList.add('bg-white/30', 'shadow-md');
+          button.classList.remove('hover:bg-white/20');
         } else {
-          button.classList.remove('active', 'font-bold', 'text-blue-600');
-          button.classList.add('text-gray-600');
+          // Style inactif
+          button.classList.remove('bg-white/30', 'shadow-md');
+          button.classList.add('hover:bg-white/20');
         }
       });
     }

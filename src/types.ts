@@ -44,8 +44,23 @@ export interface CandidateProfile {
 export interface JobOffer {
   id: number;
   company_id: number;
+  employer_id?: number;
+  // Anciennes colonnes (compatibilité rétroactive)
   title: string;
   description: string;
+  requirements?: string;
+  benefits?: string;
+  // Nouvelles colonnes bilingues
+  job_language: 'fr' | 'en' | 'bilingual';
+  title_fr?: string;
+  title_en?: string;
+  description_fr?: string;
+  description_en?: string;
+  requirements_fr?: string;
+  requirements_en?: string;
+  benefits_fr?: string;
+  benefits_en?: string;
+  // Autres champs
   position_type: string;
   employment_type: 'full-time' | 'part-time' | 'contract' | 'temporary';
   salary_min?: number;
@@ -54,11 +69,10 @@ export interface JobOffer {
   location: string;
   city: string;
   province: string;
-  requirements?: string;
-  benefits?: string;
   status: 'pending' | 'active' | 'rejected' | 'expired' | 'closed';
   is_featured: number;
   featured_until?: string;
+  expires_at?: string;
   views_count: number;
   applications_count: number;
   created_at: string;
@@ -106,8 +120,22 @@ export interface LoginRequest {
 }
 
 export interface CreateJobOfferRequest {
-  title: string;
-  description: string;
+  // Champs bilingues
+  job_language: 'fr' | 'en' | 'bilingual';
+  title_fr?: string;
+  title_en?: string;
+  description_fr?: string;
+  description_en?: string;
+  requirements_fr?: string;
+  requirements_en?: string;
+  benefits_fr?: string;
+  benefits_en?: string;
+  // Anciens champs (compatibilité)
+  title?: string;
+  description?: string;
+  requirements?: string;
+  benefits?: string;
+  // Autres champs
   position_type: string;
   employment_type: 'full-time' | 'part-time' | 'contract' | 'temporary';
   salary_min?: number;
@@ -116,8 +144,6 @@ export interface CreateJobOfferRequest {
   location: string;
   city: string;
   province: string;
-  requirements?: string;
-  benefits?: string;
 }
 
 export interface CreateApplicationRequest {

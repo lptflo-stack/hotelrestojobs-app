@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { Bindings, JobOffer, CreateJobOfferRequest } from '../types';
 import { requireAuth, requireEmployer, getCurrentUser } from '../middleware/auth';
+import { getJobInLanguage, prepareBilingualJobData, getPreferredLanguage } from '../utils/bilingual';
 
 const jobs = new Hono<{ Bindings: Bindings }>();
 
@@ -12,6 +13,10 @@ jobs.get('/', async (c) => {
     const employment_type = c.req.query('employment_type');
     const featured_only = c.req.query('featured');
     const search = c.req.query('search');
+    const language = c.req.query('language') as 'fr' | 'en' | undefined;
+    
+    // Obtenir la langue préférée depuis le header ou le paramètre
+    const preferredLang = language || getPreferredLanguage(c.req.header('Accept-Language'));
 
     let query = `
       SELECT 
@@ -42,18 +47,33 @@ jobs.get('/', async (c) => {
     if (featured_only === 'true') {
       query += ' AND jo.is_featured = 1 AND jo.featured_until > datetime("now")';
     }
+    
+    // Filtre par langue de l'offre
+    if (language) {
+      query += ' AND (jo.job_language = ? OR jo.job_language = ?)';
+      bindings.push(language, 'bilingual');
+    }
 
     if (search) {
-      query += ' AND (jo.title LIKE ? OR jo.description LIKE ?)';
-      bindings.push(`%${search}%`, `%${search}%`);
+      // Recherche dans les deux langues
+      query += ` AND (
+        jo.title LIKE ? OR jo.description LIKE ? OR 
+        jo.title_fr LIKE ? OR jo.description_fr LIKE ? OR
+        jo.title_en LIKE ? OR jo.description_en LIKE ?
+      )`;
+      const searchPattern = `%${search}%`;
+      bindings.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
     }
 
     query += ' ORDER BY jo.is_featured DESC, jo.created_at DESC LIMIT 50';
 
     const stmt = c.env.DB.prepare(query);
     const { results } = await stmt.bind(...bindings).all();
+    
+    // Adapter les résultats à la langue préférée
+    const jobsInLanguage = results.map((job: any) => getJobInLanguage(job, preferredLang));
 
-    return c.json({ jobs: results });
+    return c.json({ jobs: jobsInLanguage });
   } catch (error) {
     console.error('Erreur liste emplois:', error);
     return c.json({ error: 'Erreur lors de la récupération des emplois' }, 500);
@@ -64,6 +84,8 @@ jobs.get('/', async (c) => {
 jobs.get('/:id', async (c) => {
   try {
     const id = c.req.param('id');
+    const language = c.req.query('language') as 'fr' | 'en' | undefined;
+    const preferredLang = language || getPreferredLanguage(c.req.header('Accept-Language'));
 
     const job = await c.env.DB.prepare(`
       SELECT 
@@ -85,8 +107,11 @@ jobs.get('/:id', async (c) => {
     await c.env.DB.prepare(`
       UPDATE job_offers SET views_count = views_count + 1 WHERE id = ?
     `).bind(id).run();
+    
+    // Retourner l'offre dans la langue appropriée
+    const jobInLanguage = getJobInLanguage(job, preferredLang);
 
-    return c.json({ job });
+    return c.json({ job: jobInLanguage });
   } catch (error) {
     console.error('Erreur détail emploi:', error);
     return c.json({ error: 'Erreur lors de la récupération de l\'emploi' }, 500);
@@ -100,9 +125,11 @@ jobs.post('/', requireAuth, requireEmployer, async (c) => {
     const user_id = currentUser.userId;
     
     const body = await c.req.json<CreateJobOfferRequest>();
+    
+    // Préparer les données bilingues
+    const bilingualData = prepareBilingualJobData(body);
+    
     const {
-      title,
-      description,
       position_type,
       employment_type,
       salary_min,
@@ -110,9 +137,7 @@ jobs.post('/', requireAuth, requireEmployer, async (c) => {
       salary_type,
       location,
       city,
-      province,
-      requirements,
-      benefits
+      province
     } = body;
 
     // Récupérer company_id depuis le token JWT
@@ -144,17 +169,33 @@ jobs.post('/', requireAuth, requireEmployer, async (c) => {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
 
-    // Créer l'offre d'emploi avec statut 'active' (pas de validation admin)
+    // Créer l'offre d'emploi avec statut 'active' et colonnes bilingues
     const result = await c.env.DB.prepare(`
       INSERT INTO job_offers (
-        company_id, title, description, position_type, employment_type,
+        company_id, employer_id, job_language,
+        title, description, requirements, benefits,
+        title_fr, title_en, description_fr, description_en,
+        requirements_fr, requirements_en, benefits_fr, benefits_en,
+        position_type, employment_type,
         salary_min, salary_max, salary_type, location, city, province,
-        requirements, benefits, status, expires_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)
+        status, expires_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)
     `).bind(
       company_id,
-      title,
-      description,
+      user_id,
+      bilingualData.job_language,
+      bilingualData.title,
+      bilingualData.description,
+      bilingualData.requirements || null,
+      bilingualData.benefits || null,
+      bilingualData.title_fr || null,
+      bilingualData.title_en || null,
+      bilingualData.description_fr || null,
+      bilingualData.description_en || null,
+      bilingualData.requirements_fr || null,
+      bilingualData.requirements_en || null,
+      bilingualData.benefits_fr || null,
+      bilingualData.benefits_en || null,
       position_type,
       employment_type,
       salary_min || null,
@@ -163,8 +204,6 @@ jobs.post('/', requireAuth, requireEmployer, async (c) => {
       location,
       city,
       province,
-      requirements || null,
-      benefits || null,
       expiresAt.toISOString()
     ).run();
 
@@ -194,7 +233,7 @@ jobs.post('/', requireAuth, requireEmployer, async (c) => {
         balanceBefore,
         balanceAfter,
         jobId,
-        `Publication de l'annonce: ${title}`
+        `Publication de l'annonce: ${bilingualData.title}`
       ).run();
     }
 
@@ -244,9 +283,24 @@ jobs.put('/:id', requireAuth, requireEmployer, async (c) => {
       return c.json({ error: 'Offre non trouvée ou non autorisée' }, 404);
     }
 
+    // Préparer les données bilingues
+    const bilingualData = prepareBilingualJobData(body);
+    
+    // Fusionner avec les données non-bilingues
+    const updateData: any = {
+      ...body,
+      ...bilingualData
+    };
+    
+    // Retirer les champs non autorisés à la mise à jour
+    delete updateData.company_id;
+    delete updateData.employer_id;
+    delete updateData.status;
+    delete updateData.created_at;
+
     // Construire la requête de mise à jour
-    const fields = Object.keys(body).map(key => `${key} = ?`).join(', ');
-    const values = Object.values(body);
+    const fields = Object.keys(updateData).map(key => `${key} = ?`).join(', ');
+    const values = Object.values(updateData);
 
     await c.env.DB.prepare(`
       UPDATE job_offers SET ${fields}, updated_at = CURRENT_TIMESTAMP WHERE id = ?
