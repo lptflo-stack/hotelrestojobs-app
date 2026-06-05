@@ -2,6 +2,13 @@ import { Hono } from 'hono';
 import bcrypt from 'bcryptjs';
 import type { Bindings, User, CreateUserRequest, LoginRequest } from '../types';
 import { generateToken, requireAuth, getCurrentUser } from '../middleware/auth';
+import {
+  validateNewEmployerRegistration,
+  logRegistration,
+  grantFreeInitialCredit,
+  getClientIP,
+  getUserAgent
+} from '../utils/anti-abuse';
 
 const auth = new Hono<{ Bindings: Bindings }>();
 
@@ -34,6 +41,23 @@ auth.post('/register', async (c) => {
     // Validation pour employeur : company_name requis
     if (role === 'employer' && !company_name) {
       return c.json({ error: 'Le nom de l\'entreprise est requis pour les employeurs' }, 400);
+    }
+
+    // ANTI-ABUS: Validation complète pour les employeurs (IP, email, nom entreprise)
+    if (role === 'employer') {
+      const validation = await validateNewEmployerRegistration(
+        c.env.DB,
+        c.req.raw,
+        email,
+        company_name!
+      );
+
+      if (!validation.valid) {
+        return c.json({
+          error: 'Inscription refusée',
+          reasons: validation.errors
+        }, 400);
+      }
     }
 
     // Vérifier si l'email existe déjà
@@ -69,6 +93,23 @@ auth.post('/register', async (c) => {
       await c.env.DB.prepare(`
         UPDATE users SET company_id = ? WHERE id = ?
       `).bind(companyId, userId).run();
+
+      // NOUVEAU: Attribuer 1 crédit gratuit à l'inscription
+      const creditResult = await grantFreeInitialCredit(c.env.DB, userId);
+      
+      // NOUVEAU: Logger l'inscription dans l'audit
+      const ipAddress = getClientIP(c.req.raw);
+      const userAgent = getUserAgent(c.req.raw);
+      await logRegistration(
+        c.env.DB,
+        userId,
+        email,
+        ipAddress,
+        userAgent,
+        company_name!
+      );
+
+      console.log(`✅ Nouvel employeur inscrit: ${email} - ${creditResult.message}`);
     }
 
     // Si c'est un candidat, créer un profil

@@ -24,6 +24,9 @@ const translations = {
     'hero.search_city': 'Ville',
     'hero.search_button': 'Rechercher',
     
+    // Free Posting Banner
+    'banner.free_posting': 'Vous recrutez ? Publiez une offre gratuitement !',
+    
     // Job Listings
     'jobs.featured': 'Emplois Vedettes',
     'jobs.latest': 'Dernières offres d\'emploi',
@@ -241,6 +244,9 @@ const translations = {
     'hero.search_keywords': 'Keywords (e.g., Chef, Server...)',
     'hero.search_city': 'City',
     'hero.search_button': 'Search',
+    
+    // Free Posting Banner
+    'banner.free_posting': 'Are you hiring? Post a job for free!',
     
     // Job Listings
     'jobs.featured': 'Featured Jobs',

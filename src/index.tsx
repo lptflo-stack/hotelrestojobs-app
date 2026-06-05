@@ -129,6 +129,18 @@ app.get('/', (c) => {
             </div>
         </section>
 
+        <!-- Free Job Posting Banner -->
+        <section class="bg-blue-600 py-6">
+            <div class="container mx-auto px-4 flex justify-center">
+                <a href="/employeur/login" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-4 px-8 rounded-xl flex items-center space-x-3 transition-all duration-200 shadow-lg transform hover:scale-105">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-900" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 8.14c.164.007.33.01.496.01.166 0 .332-.003.496-.01A24.12 24.12 0 0018 11.67V15a2 2 0 01-2 2H4a2 2 0 01-2-2v-3.33a24.12 24.12 0 008.5 1.47z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-lg md:text-xl" data-i18n="banner.free_posting">Vous recrutez ? Publiez une offre gratuitement !</span>
+                </a>
+            </div>
+        </section>
+
         <!-- Featured Jobs Section -->
         <section class="container mx-auto px-4 py-12">
             <div class="flex items-center justify-between mb-8">
