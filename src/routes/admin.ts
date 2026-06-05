@@ -504,6 +504,7 @@ admin.get('/employers', requireAuth, requireAdminAuth, async (c) => {
         c.name as company_name,
         c.city as company_city,
         c.province as company_province,
+        c.logo_url as company_logo_url,
         ec.credits_remaining,
         ec.unlimited_until,
         (SELECT COUNT(*) FROM job_offers jo WHERE jo.company_id = c.id) as total_jobs

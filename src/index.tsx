@@ -17,6 +17,7 @@ import blog from './routes/blog';
 import newsletter from './routes/newsletter';
 import categories from './routes/categories';
 import employerNewsletter from './routes/employer-newsletter';
+import companyLogo from './routes/company-logo';
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -41,6 +42,7 @@ app.route('/api/blog', blog);
 app.route('/api/newsletter', newsletter);
 app.route('/api/categories', categories);
 app.route('/api/employer-newsletter', employerNewsletter);
+app.route('/api/company-logo', companyLogo);
 
 // Page d'accueil
 app.get('/', (c) => {
