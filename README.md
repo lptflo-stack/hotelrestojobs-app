@@ -23,6 +23,12 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
 ### Portail Employeur
 - ✅ Inscription et connexion
 - ✅ Gestion de l'entreprise (nom, description, coordonnées)
+- ✅ **Upload et gestion du logo d'entreprise** (NOUVEAU)
+  - Upload de logo depuis le portail employeur (PNG/JPG/GIF, max 2MB)
+  - Prévisualisation avant upload
+  - Suppression du logo existant
+  - Stockage base64 dans la base de données
+  - Affichage en temps réel sur le portail
 - ✅ **Gestion des crédits d'annonces**
   - Affichage visuel des crédits disponibles
   - Date d'expiration du forfait illimité sous le nom
@@ -75,6 +81,8 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
 - ✅ Gestion des utilisateurs
 - ✅ **Gestion complète des comptes employeurs**
   - Vue détaillée de tous les employeurs avec leurs entreprises
+  - **Colonne Logo** : affichage visuel des logos d'entreprise
+  - **Gestion des logos d'entreprise** : upload/suppression de logos pour n'importe quelle entreprise
   - Gestion des crédits (ajouter/retirer/définir avec notes)
   - Modification des informations de l'entreprise
   - Gestion des utilisateurs de l'entreprise (ajouter/modifier/activer/désactiver)
@@ -270,7 +278,8 @@ webapp/
 │       ├── admin.ts           # Routes administrateur + employeurs
 │       ├── featured.ts        # Emplois vedettes
 │       ├── pricing.ts         # Gestion de la tarification
-│       └── payments.ts        # Paiements et transactions
+│       ├── payments.ts        # Paiements et transactions
+│       └── company-logo.ts    # Gestion des logos (NOUVEAU)
 ├── public/
 │   └── portails/
 │       ├── candidat.html      # Interface candidat
@@ -397,11 +406,19 @@ curl http://localhost:3000/api/jobs
 - `POST /api/payments/complete/:sessionId` - Webhook de complétion
 - `GET /api/payments/transactions/:userId` - Historique des transactions
 
+### Logos d'entreprise
+- `POST /api/company-logo/upload` - Upload de logo (employeur)
+- `DELETE /api/company-logo` - Supprimer le logo (employeur)
+- `GET /api/company-logo/:companyId` - Récupérer le logo (public)
+- `PUT /api/company-logo/admin/:companyId` - Modifier/uploader logo (admin)
+- `DELETE /api/company-logo/admin/:companyId` - Supprimer logo (admin)
+
 ## 🎨 Améliorations futures
 
 ### Fonctionnalités à implémenter
 - [ ] Intégration de paiement réelle (Stripe)
-- [ ] Upload de CV et logos d'entreprise (Cloudflare R2)
+- [ ] Upload de CV pour candidats (Cloudflare R2)
+- ✅ **Upload de logos d'entreprise** (IMPLÉMENTÉ - Base64)
 - [ ] Système de notifications par email
 - [ ] Messagerie interne candidat-employeur
 - [ ] Système d'alertes emploi pour candidats
@@ -461,6 +478,6 @@ Développé avec ❤️ pour le secteur de l'hôtellerie-restauration au Québec
 
 ---
 
-**Date de dernière mise à jour** : 16 mars 2026
-**Version** : 1.0.0
-**Statut** : ✅ Prototype fonctionnel - Prêt pour démonstration
+**Date de dernière mise à jour** : 5 juin 2026
+**Version** : 1.1.0
+**Statut** : ✅ Prototype fonctionnel - Gestion des logos implémentée
