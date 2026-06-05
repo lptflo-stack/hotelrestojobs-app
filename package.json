@@ -21,7 +21,9 @@
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^3.0.3",
-    "hono": "^4.11.7"
+    "hono": "^4.11.7",
+    "js-yaml": "^4.2.0",
+    "openai": "^6.42.0"
   },
   "devDependencies": {
     "@hono/vite-build": "^1.2.0",

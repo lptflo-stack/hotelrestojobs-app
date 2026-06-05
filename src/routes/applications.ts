@@ -111,12 +111,16 @@ applications.get('/job/:jobId', requireAuth, requireEmployer, async (c) => {
         cp.bio,
         cp.experience_years,
         cp.desired_salary_min,
-        cp.desired_salary_max
+        cp.desired_salary_max,
+        a.ai_score,
+        a.ai_analyzed_at
       FROM applications a
       JOIN users u ON a.user_id = u.id
       LEFT JOIN candidate_profiles cp ON u.id = cp.user_id
       WHERE a.job_offer_id = ?
-      ORDER BY a.created_at DESC
+      ORDER BY 
+        CASE WHEN a.ai_score IS NOT NULL THEN a.ai_score ELSE -1 END DESC,
+        a.created_at DESC
     `).bind(jobId).all();
 
     return c.json({ applications: results });
