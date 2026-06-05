@@ -282,36 +282,39 @@
 
                         <!-- Onglets de langue (affiché seulement si bilingue) -->
                         <div id="job-form-tabs" class="bilingual-tabs mb-4" style="display: none;">
-                            <div class="flex border-b justify-between items-center">
-                                <div class="flex">
-                                    <button 
-                                        type="button"
-                                        class="tab-btn-fr px-6 py-2 border-b-2 border-green-600 text-green-600 font-semibold"
-                                        onclick="switchLanguageTab('job-form', 'fr')">
-                                        Français 🇨🇦
-                                    </button>
-                                    <button 
-                                        type="button"
-                                        class="tab-btn-en px-6 py-2 text-gray-600 hover:text-gray-800"
-                                        onclick="switchLanguageTab('job-form', 'en')">
-                                        English 🇨🇦
-                                    </button>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button 
-                                        type="button"
-                                        onclick="autoTranslateJobForm('fr-to-en')"
-                                        class="text-sm bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 transition"
-                                        title="Traduire du français vers l'anglais">
-                                        <i class="fas fa-language mr-1"></i>FR → EN
-                                    </button>
-                                    <button 
-                                        type="button"
-                                        onclick="autoTranslateJobForm('en-to-fr')"
-                                        class="text-sm bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 transition"
-                                        title="Traduire de l'anglais vers le français">
-                                        <i class="fas fa-language mr-1"></i>EN → FR
-                                    </button>
+                            <div class="border-b">
+                                <!-- Onglets de langue -->
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="flex">
+                                        <button 
+                                            type="button"
+                                            class="tab-btn-fr px-6 py-2 border-b-2 border-green-600 text-green-600 font-semibold"
+                                            onclick="switchLanguageTab('job-form', 'fr')">
+                                            Français 🇨🇦
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            class="tab-btn-en px-6 py-2 text-gray-600 hover:text-gray-800"
+                                            onclick="switchLanguageTab('job-form', 'en')">
+                                            English 🇨🇦
+                                        </button>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button 
+                                            type="button"
+                                            onclick="autoTranslateJobForm('fr-to-en')"
+                                            class="text-sm bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+                                            title="Traduire du français vers l'anglais">
+                                            <i class="fas fa-language mr-1"></i>FR → EN
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            onclick="autoTranslateJobForm('en-to-fr')"
+                                            class="text-sm bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+                                            title="Traduire de l'anglais vers le français">
+                                            <i class="fas fa-language mr-1"></i>EN → FR
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2704,19 +2707,31 @@
 
         // Traduire automatiquement le formulaire d'offre d'emploi
         async function autoTranslateJobForm(direction) {
-            const isEditing = !!document.getElementById('edit-job-id').value;
-            const formPrefix = isEditing ? 'edit-job-form' : 'job-form';
+            // Toujours utiliser 'job-form' (le modal d'édition n'a pas de champs bilingues pour l'instant)
+            const formPrefix = 'job-form';
 
             let sourceLang, targetLang, sourceFields, targetFields;
 
             if (direction === 'fr-to-en') {
                 sourceLang = 'fr';
                 targetLang = 'en';
+                
+                // Essayer de récupérer les champs (avec vérification d'existence)
+                const titleFr = document.getElementById(`${formPrefix}-title-fr`);
+                const descFr = document.getElementById(`${formPrefix}-description-fr`);
+                const reqFr = document.getElementById(`${formPrefix}-requirements-fr`);
+                const benFr = document.getElementById(`${formPrefix}-benefits-fr`);
+                
+                if (!titleFr || !descFr) {
+                    alert('Erreur: Les champs français ne sont pas trouvés. Assurez-vous d\'être sur la page de création d\'offre avec l\'option "Bilingue" sélectionnée.');
+                    return;
+                }
+                
                 sourceFields = {
-                    title: document.getElementById(`${formPrefix}-title-fr`).value,
-                    description: document.getElementById(`${formPrefix}-description-fr`).value,
-                    requirements: document.getElementById(`${formPrefix}-requirements-fr`).value,
-                    benefits: document.getElementById(`${formPrefix}-benefits-fr`).value
+                    title: titleFr.value || '',
+                    description: descFr.value || '',
+                    requirements: reqFr ? (reqFr.value || '') : '',
+                    benefits: benFr ? (benFr.value || '') : ''
                 };
                 targetFields = {
                     title: `${formPrefix}-title-en`,
@@ -2727,11 +2742,23 @@
             } else if (direction === 'en-to-fr') {
                 sourceLang = 'en';
                 targetLang = 'fr';
+                
+                // Essayer de récupérer les champs (avec vérification d'existence)
+                const titleEn = document.getElementById(`${formPrefix}-title-en`);
+                const descEn = document.getElementById(`${formPrefix}-description-en`);
+                const reqEn = document.getElementById(`${formPrefix}-requirements-en`);
+                const benEn = document.getElementById(`${formPrefix}-benefits-en`);
+                
+                if (!titleEn || !descEn) {
+                    alert('Erreur: Les champs anglais ne sont pas trouvés. Assurez-vous d\'être sur la page de création d\'offre avec l\'option "Bilingue" sélectionnée.');
+                    return;
+                }
+                
                 sourceFields = {
-                    title: document.getElementById(`${formPrefix}-title-en`).value,
-                    description: document.getElementById(`${formPrefix}-description-en`).value,
-                    requirements: document.getElementById(`${formPrefix}-requirements-en`).value,
-                    benefits: document.getElementById(`${formPrefix}-benefits-en`).value
+                    title: titleEn.value || '',
+                    description: descEn.value || '',
+                    requirements: reqEn ? (reqEn.value || '') : '',
+                    benefits: benEn ? (benEn.value || '') : ''
                 };
                 targetFields = {
                     title: `${formPrefix}-title-fr`,
