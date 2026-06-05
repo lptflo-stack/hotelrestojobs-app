@@ -219,7 +219,8 @@ app.get('/', (c) => {
             // Charger les emplois vedettes
             async function loadFeaturedJobs() {
                 try {
-                    const response = await axios.get('/api/jobs?featured=true');
+                    const lang = window.i18n ? window.i18n.getLanguage() : 'fr';
+                    const response = await axios.get('/api/jobs?featured=true&language=' + lang);
                     const jobs = response.data.jobs;
                     
                     const container = document.getElementById('featured-jobs');
@@ -232,7 +233,8 @@ app.get('/', (c) => {
             // Charger tous les emplois
             async function loadAllJobs() {
                 try {
-                    const response = await axios.get('/api/jobs');
+                    const lang = window.i18n ? window.i18n.getLanguage() : 'fr';
+                    const response = await axios.get('/api/jobs?language=' + lang);
                     const jobs = response.data.jobs.filter(j => !j.is_featured);
                     
                     const container = document.getElementById('all-jobs');
@@ -302,8 +304,9 @@ app.get('/', (c) => {
             async function searchJobs() {
                 const keywords = document.getElementById('search-keywords').value;
                 const city = document.getElementById('search-city').value;
+                const lang = window.i18n ? window.i18n.getLanguage() : 'fr';
                 
-                let url = '/api/jobs?';
+                let url = '/api/jobs?language=' + lang + '&';
                 if (keywords) url += \`search=\${encodeURIComponent(keywords)}&\`;
                 if (city) url += \`city=\${encodeURIComponent(city)}\`;
                 
@@ -332,6 +335,13 @@ app.get('/', (c) => {
             // Charger au démarrage
             loadFeaturedJobs();
             loadAllJobs();
+            
+            // Recharger les emplois quand la langue change
+            window.addEventListener('languageChanged', (event) => {
+                console.log('Langue changée à:', event.detail.language);
+                loadFeaturedJobs();
+                loadAllJobs();
+            });
         </script>
     </body>
     </html>
