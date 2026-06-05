@@ -47,6 +47,13 @@ const translations = {
     'job.type': 'Type d\'emploi',
     'job.salary': 'Salaire',
     'job.salary_negotiable': 'Salaire négociable',
+    'job_detail.back_to_offers': 'Retour aux offres',
+    'job_detail.post_offer': 'Publier une offre',
+    'job_detail.description_title': 'Description du poste',
+    'job_detail.requirements_title': 'Exigences',
+    'job_detail.benefits_title': 'Avantages',
+    'job_detail.apply_button': 'Postuler maintenant',
+    'job_detail.applications': 'candidatures',
     
     // Auth Forms
     'auth.login': 'Connexion',
@@ -258,6 +265,13 @@ const translations = {
     'job.type': 'Employment Type',
     'job.salary': 'Salary',
     'job.salary_negotiable': 'Negotiable Salary',
+    'job_detail.back_to_offers': 'Back to Jobs',
+    'job_detail.post_offer': 'Post a Job',
+    'job_detail.description_title': 'Job Description',
+    'job_detail.requirements_title': 'Requirements',
+    'job_detail.benefits_title': 'Benefits',
+    'job_detail.apply_button': 'Apply Now',
+    'job_detail.applications': 'applications',
     
     // Auth Forms
     'auth.login': 'Login',

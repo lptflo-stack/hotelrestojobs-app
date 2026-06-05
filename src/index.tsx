@@ -361,6 +361,8 @@ app.get('/emploi/:id', (c) => {
         <title>Détail de l'emploi - HotelRestoJobs</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <script src="/static/i18n.js"></script>
+        <script src="/static/language-selector.js"></script>
     </head>
     <body class="bg-gray-50">
         <!-- Header -->
@@ -371,16 +373,19 @@ app.get('/emploi/:id', (c) => {
                         <i class="fas fa-utensils text-3xl"></i>
                         <h1 class="text-2xl font-bold">HotelRestoJobs</h1>
                     </a>
-                    <a href="/" class="text-white hover:text-blue-200">
-                        <i class="fas fa-arrow-left mr-2"></i>Retour aux offres
-                    </a>
+                    <div class="flex items-center space-x-4">
+                        <div id="language-selector-container"></div>
+                        <a href="/" class="text-white hover:text-blue-200">
+                            <i class="fas fa-arrow-left mr-2"></i><span data-i18n="job_detail.back_to_offers">Retour aux offres</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </header>
 
         <!-- Floating Action Button for employers -->
         <a href="/employeur/login" class="fixed bottom-8 right-8 bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-6 py-4 rounded-full font-bold shadow-2xl transition-all transform hover:scale-110 z-50">
-            <i class="fas fa-plus-circle mr-2"></i>Publier une offre
+            <i class="fas fa-plus-circle mr-2"></i><span data-i18n="job_detail.post_offer">Publier une offre</span>
         </a>
 
         <div class="container mx-auto px-4 py-8">
@@ -395,13 +400,24 @@ app.get('/emploi/:id', (c) => {
             
             async function loadJobDetail() {
                 try {
-                    const response = await axios.get(\`/api/jobs/\${jobId}\`);
+                    const lang = window.i18n ? window.i18n.getLanguage() : 'fr';
+                    const response = await axios.get('/api/jobs/' + jobId + '?language=' + lang);
                     const job = response.data.job;
                     
                     const container = document.getElementById('job-detail');
+                    
+                    // Traduire les textes dynamiques
+                    const featuredLabel = window.i18n ? window.i18n.t('jobs.featured_badge') : 'EMPLOI VEDETTE';
+                    const descriptionTitle = window.i18n ? window.i18n.t('job_detail.description_title') : 'Description du poste';
+                    const requirementsTitle = window.i18n ? window.i18n.t('job_detail.requirements_title') : 'Exigences';
+                    const benefitsTitle = window.i18n ? window.i18n.t('job_detail.benefits_title') : 'Avantages';
+                    const applyButton = window.i18n ? window.i18n.t('job_detail.apply_button') : 'Postuler maintenant';
+                    const viewsLabel = window.i18n ? window.i18n.t('jobs.views') : 'vues';
+                    const applicationsLabel = window.i18n ? window.i18n.t('job_detail.applications') : 'candidatures';
+                    
                     container.innerHTML = \`
                         <div class="bg-white rounded-lg shadow-lg p-8">
-                            \${job.is_featured ? '<div class="bg-yellow-500 text-white px-4 py-2 rounded-full inline-block mb-4"><i class="fas fa-star mr-2"></i>EMPLOI VEDETTE</div>' : ''}
+                            \${job.is_featured ? '<div class="bg-yellow-500 text-white px-4 py-2 rounded-full inline-block mb-4"><i class="fas fa-star mr-2"></i>' + featuredLabel + '</div>' : ''}
                             
                             <h1 class="text-3xl font-bold text-gray-800 mb-4">\${job.title}</h1>
                             
@@ -413,31 +429,31 @@ app.get('/emploi/:id', (c) => {
                             </div>
 
                             <div class="prose max-w-none mb-8">
-                                <h2 class="text-2xl font-bold text-gray-800 mb-3">Description du poste</h2>
+                                <h2 class="text-2xl font-bold text-gray-800 mb-3">\${descriptionTitle}</h2>
                                 <p class="text-gray-700 whitespace-pre-line">\${job.description}</p>
                             </div>
 
                             \${job.requirements ? \`
                                 <div class="mb-8">
-                                    <h2 class="text-2xl font-bold text-gray-800 mb-3">Exigences</h2>
+                                    <h2 class="text-2xl font-bold text-gray-800 mb-3">\${requirementsTitle}</h2>
                                     <p class="text-gray-700 whitespace-pre-line">\${job.requirements}</p>
                                 </div>
                             \` : ''}
 
                             \${job.benefits ? \`
                                 <div class="mb-8">
-                                    <h2 class="text-2xl font-bold text-gray-800 mb-3">Avantages</h2>
+                                    <h2 class="text-2xl font-bold text-gray-800 mb-3">\${benefitsTitle}</h2>
                                     <p class="text-gray-700 whitespace-pre-line">\${job.benefits}</p>
                                 </div>
                             \` : ''}
 
                             <div class="border-t pt-6 mt-6">
                                 <button onclick="applyToJob()" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 text-lg">
-                                    <i class="fas fa-paper-plane mr-2"></i>Postuler maintenant
+                                    <i class="fas fa-paper-plane mr-2"></i>\${applyButton}
                                 </button>
                                 <p class="text-gray-500 mt-4 text-sm">
-                                    <i class="fas fa-eye mr-2"></i>\${job.views_count} vues • 
-                                    <i class="fas fa-users mr-2"></i>\${job.applications_count} candidatures
+                                    <i class="fas fa-eye mr-2"></i>\${job.views_count} \${viewsLabel} • 
+                                    <i class="fas fa-users mr-2"></i>\${job.applications_count} \${applicationsLabel}
                                 </p>
                             </div>
                         </div>
@@ -462,7 +478,17 @@ app.get('/emploi/:id', (c) => {
                 window.location.href = '/candidat/login';
             }
 
+            // Initialiser le sélecteur de langue
+            document.getElementById('language-selector-container').innerHTML = createLanguageSelector();
+            
+            // Charger le détail au démarrage
             loadJobDetail();
+            
+            // Recharger quand la langue change
+            window.addEventListener('languageChanged', (event) => {
+                console.log('Langue changée à:', event.detail.language);
+                loadJobDetail();
+            });
         </script>
     </body>
     </html>
