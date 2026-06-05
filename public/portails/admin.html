@@ -893,16 +893,21 @@
 
             try {
                 // Utiliser loginUser() de auth-jwt.js
-                const userData = await loginUser(email, password);
+                const result = await loginUser(email, password, 'admin');
                 
-                if (userData.role === 'admin') {
-                    currentUser = userData;
-                    showDashboard();
+                if (result.success) {
+                    if (result.user.role === 'admin') {
+                        currentUser = result.user;
+                        showDashboard();
+                    } else {
+                        showError('login-error', 'Accès réservé aux administrateurs uniquement');
+                        clearAuth(); // Déconnecter si ce n'est pas un admin
+                    }
                 } else {
-                    showError('login-error', 'Accès réservé aux administrateurs uniquement');
-                    logoutUser(); // Déconnecter si ce n'est pas un admin
+                    showError('login-error', result.error || 'Erreur de connexion');
                 }
             } catch (error) {
+                console.error('Erreur login:', error);
                 showError('login-error', error.response?.data?.error || 'Erreur de connexion');
             }
         }

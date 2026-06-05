@@ -924,16 +924,21 @@
 
             try {
                 // Utiliser loginUser() de auth-jwt.js
-                const userData = await loginUser(email, password);
+                const result = await loginUser(email, password, 'employer');
                 
-                if (userData.role === 'employer') {
-                    currentUser = userData;
-                    showDashboard();
+                if (result.success) {
+                    if (result.user.role === 'employer') {
+                        currentUser = result.user;
+                        showDashboard();
+                    } else {
+                        showError('login-error', 'Accès réservé aux employeurs uniquement');
+                        clearAuth(); // Déconnecter si ce n'est pas un employeur
+                    }
                 } else {
-                    showError('login-error', 'Accès réservé aux employeurs uniquement');
-                    logoutUser(); // Déconnecter si ce n'est pas un employeur
+                    showError('login-error', result.error || 'Erreur de connexion');
                 }
             } catch (error) {
+                console.error('Erreur login:', error);
                 showError('login-error', error.response?.data?.error || 'Erreur de connexion');
             }
         }
