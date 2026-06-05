@@ -72,6 +72,16 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
   - 15 jours : 49.99$
   - 30 jours : 99.99$
 - ✅ Statistiques des offres (vues, candidatures)
+- ✅ **Traduction automatique pour offres bilingues** (NOUVEAU)
+  - Création d'offres bilingues FR/EN
+  - Traduction automatique en un clic (boutons FR → EN et EN → FR)
+  - API MyMemory (gratuite, ~1000 requêtes/jour)
+  - Découpage intelligent des textes longs (>450 caractères)
+  - Traduction séquentielle avec délais anti-spam (évite les limites de taux)
+  - Logs détaillés dans la console du navigateur
+  - Messages d'erreur clairs (quota dépassé, erreurs réseau, etc.)
+  - Compteur de champs traduits avec succès
+  - Voir [GUIDE_TRADUCTION.md](GUIDE_TRADUCTION.md) et [TRANSLATION_FIX.md](TRANSLATION_FIX.md)
 
 ### Portail Administrateur
 - ✅ Connexion sécurisée
