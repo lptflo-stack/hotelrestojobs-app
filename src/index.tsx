@@ -260,6 +260,13 @@ app.get('/', (c) => {
 
             // Créer une carte d'emploi vedette
             function createFeaturedJobCard(job) {
+                // Logo HTML (si disponible)
+                const logoHtml = job.company_logo_url 
+                    ? \`<img src="\${job.company_logo_url}" alt="\${job.company_name}" class="w-16 h-16 object-contain rounded-lg bg-white p-1 border border-gray-200">\`
+                    : \`<div class="w-16 h-16 flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200">
+                         <i class="fas fa-building text-gray-400 text-2xl"></i>
+                       </div>\`;
+                
                 return \`
                     <div class="bg-gradient-to-br from-yellow-50 to-white border-2 border-yellow-400 rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow">
                         <div class="flex items-start justify-between mb-3">
@@ -268,10 +275,18 @@ app.get('/', (c) => {
                             </div>
                             <span class="text-gray-500 text-sm">\${formatDate(job.created_at)}</span>
                         </div>
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">\${job.title}</h4>
-                        <p class="text-gray-600 mb-3">
-                            <i class="fas fa-building mr-2"></i>\${job.company_name}
-                        </p>
+                        
+                        <!-- Logo et titre -->
+                        <div class="flex items-start gap-4 mb-3">
+                            \${logoHtml}
+                            <div class="flex-1">
+                                <h4 class="text-xl font-bold text-gray-800 mb-2">\${job.title}</h4>
+                                <p class="text-gray-600">
+                                    <i class="fas fa-building mr-2"></i>\${job.company_name}
+                                </p>
+                            </div>
+                        </div>
+                        
                         <div class="flex items-center text-gray-600 mb-3">
                             <i class="fas fa-map-marker-alt mr-2"></i>
                             <span>\${job.city}, \${job.province}</span>
@@ -289,10 +304,23 @@ app.get('/', (c) => {
 
             // Créer une carte d'emploi normale
             function createJobCard(job) {
+                // Logo HTML (si disponible)
+                const logoHtml = job.company_logo_url 
+                    ? \`<img src="\${job.company_logo_url}" alt="\${job.company_name}" class="w-20 h-20 object-contain rounded-lg bg-white p-2 border border-gray-200">\`
+                    : \`<div class="w-20 h-20 flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200">
+                         <i class="fas fa-building text-gray-400 text-3xl"></i>
+                       </div>\`;
+                
                 return \`
                     <div class="bg-white rounded-lg p-6 shadow hover:shadow-lg transition-shadow">
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1">
+                        <div class="flex items-start justify-between gap-4">
+                            <!-- Logo -->
+                            <div class="flex-shrink-0">
+                                \${logoHtml}
+                            </div>
+                            
+                            <!-- Contenu -->
+                            <div class="flex-1 min-w-0">
                                 <h4 class="text-xl font-bold text-gray-800 mb-2">\${job.title}</h4>
                                 <p class="text-gray-600 mb-2">
                                     <i class="fas fa-building mr-2"></i>\${job.company_name}
@@ -304,7 +332,9 @@ app.get('/', (c) => {
                                 </div>
                                 <p class="text-gray-700 line-clamp-2">\${job.description.substring(0, 150)}...</p>
                             </div>
-                            <div class="ml-4">
+                            
+                            <!-- Bouton -->
+                            <div class="flex-shrink-0">
                                 <a href="/emploi/\${job.id}" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 whitespace-nowrap">
                                     <span data-i18n="jobs.view_details">Voir détails</span>
                                 </a>
@@ -429,17 +459,29 @@ app.get('/emploi/:id', (c) => {
                     const viewsLabel = window.i18n ? window.i18n.t('jobs.views') : 'vues';
                     const applicationsLabel = window.i18n ? window.i18n.t('job_detail.applications') : 'candidatures';
                     
+                    // Logo HTML
+                    const logoHtml = job.company_logo_url 
+                        ? \`<img src="\${job.company_logo_url}" alt="\${job.company_name}" class="w-24 h-24 object-contain rounded-lg bg-white border border-gray-200 p-2">\`
+                        : \`<div class="w-24 h-24 flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200">
+                             <i class="fas fa-building text-gray-400 text-4xl"></i>
+                           </div>\`;
+                    
                     container.innerHTML = \`
                         <div class="bg-white rounded-lg shadow-lg p-8">
                             \${job.is_featured ? '<div class="bg-yellow-500 text-white px-4 py-2 rounded-full inline-block mb-4"><i class="fas fa-star mr-2"></i>' + featuredLabel + '</div>' : ''}
                             
-                            <h1 class="text-3xl font-bold text-gray-800 mb-4">\${job.title}</h1>
-                            
-                            <div class="flex flex-wrap gap-6 mb-6 text-gray-600">
-                                <div><i class="fas fa-building mr-2"></i><strong>\${job.company_name}</strong></div>
-                                <div><i class="fas fa-map-marker-alt mr-2"></i>\${job.location}</div>
-                                <div><i class="fas fa-briefcase mr-2"></i>\${job.employment_type}</div>
-                                \${job.salary_min ? \`<div><i class="fas fa-dollar-sign mr-2"></i>\${formatSalary(job)}</div>\` : ''}
+                            <!-- Logo et titre -->
+                            <div class="flex items-start gap-6 mb-6">
+                                \${logoHtml}
+                                <div class="flex-1">
+                                    <h1 class="text-3xl font-bold text-gray-800 mb-2">\${job.title}</h1>
+                                    <div class="flex flex-wrap gap-6 text-gray-600">
+                                        <div><i class="fas fa-building mr-2"></i><strong>\${job.company_name}</strong></div>
+                                        <div><i class="fas fa-map-marker-alt mr-2"></i>\${job.location}</div>
+                                        <div><i class="fas fa-briefcase mr-2"></i>\${job.employment_type}</div>
+                                        \${job.salary_min ? \`<div><i class="fas fa-dollar-sign mr-2"></i>\${formatSalary(job)}</div>\` : ''}
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="prose max-w-none mb-8">

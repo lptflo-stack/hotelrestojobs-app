@@ -14,13 +14,19 @@ import type { JobOffer } from '../types';
 export function getJobInLanguage(job: any, lang: 'fr' | 'en'): any {
   const jobLanguage = job.job_language || 'fr';
   
+  // Mapper company_logo vers company_logo_url pour la cohérence avec le frontend
+  const baseJob = {
+    ...job,
+    company_logo_url: job.company_logo || null
+  };
+  
   // Si l'offre n'est disponible qu'en une seule langue
   if (jobLanguage !== 'bilingual') {
     // Si on demande une langue différente de celle de l'offre, retourner null ou l'offre originale
     if (lang !== jobLanguage && !job[`title_${lang}`]) {
       // Retourner dans la langue disponible
       return {
-        ...job,
+        ...baseJob,
         title: job[`title_${jobLanguage}`] || job.title,
         description: job[`description_${jobLanguage}`] || job.description,
         requirements: job[`requirements_${jobLanguage}`] || job.requirements,
@@ -32,7 +38,7 @@ export function getJobInLanguage(job: any, lang: 'fr' | 'en'): any {
   
   // Retourner le contenu dans la langue demandée
   return {
-    ...job,
+    ...baseJob,
     title: job[`title_${lang}`] || job.title,
     description: job[`description_${lang}`] || job.description,
     requirements: job[`requirements_${lang}`] || job.requirements,
