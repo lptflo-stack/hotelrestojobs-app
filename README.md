@@ -9,6 +9,7 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
 ### Site Public
 - ✅ Recherche d'emplois avec filtres (ville, type de poste, mots-clés)
 - ✅ Affichage des emplois vedettes en tête de liste
+- ✅ **Logos d'entreprise** : Affichage des logos sur toutes les offres (liste et détails)
 - ✅ Page de détail pour chaque offre d'emploi
 - ✅ Design responsive et moderne avec TailwindCSS
 - ✅ Statistiques de plateforme
