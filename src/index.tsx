@@ -120,9 +120,11 @@ app.get('/', (c) => {
                 <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-xl p-4">
                     <div class="flex flex-col md:flex-row gap-3">
                         <input type="text" id="search-keywords" data-i18n-placeholder="hero.search_keywords" placeholder="Mots-clés (ex: Chef, Serveur...)" 
-                               class="flex-1 px-4 py-3 rounded border text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                               class="flex-1 px-4 py-3 rounded border text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               onkeypress="if(event.key === 'Enter') searchJobs()">
                         <input type="text" id="search-city" data-i18n-placeholder="hero.search_city" placeholder="Ville" 
-                               class="flex-1 px-4 py-3 rounded border text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                               class="flex-1 px-4 py-3 rounded border text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               onkeypress="if(event.key === 'Enter') searchJobs()">
                         <button onclick="searchJobs()" class="bg-blue-600 text-white px-8 py-3 rounded font-semibold hover:bg-blue-700">
                             <i class="fas fa-search mr-2"></i><span data-i18n="hero.search_button">Rechercher</span>
                         </button>
@@ -350,6 +352,12 @@ app.get('/', (c) => {
                 const city = document.getElementById('search-city').value;
                 const lang = window.i18n ? window.i18n.getLanguage() : 'fr';
                 
+                // Si aucun critère, recharger tous les emplois
+                if (!keywords && !city) {
+                    loadAllJobs();
+                    return;
+                }
+                
                 let url = '/api/jobs?language=' + lang + '&';
                 if (keywords) url += \`search=\${encodeURIComponent(keywords)}&\`;
                 if (city) url += \`city=\${encodeURIComponent(city)}\`;
@@ -357,10 +365,64 @@ app.get('/', (c) => {
                 try {
                     const response = await axios.get(url);
                     const container = document.getElementById('all-jobs');
-                    container.innerHTML = response.data.jobs.map(job => createJobCard(job)).join('');
+                    
+                    if (response.data.jobs.length === 0) {
+                        // Aucun résultat trouvé
+                        container.innerHTML = \`
+                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-lg">
+                                <div class="flex items-center mb-3">
+                                    <i class="fas fa-search text-yellow-600 text-2xl mr-3"></i>
+                                    <h3 class="text-lg font-semibold text-gray-800">Aucun emploi trouvé</h3>
+                                </div>
+                                <p class="text-gray-700 mb-4">
+                                    Aucune offre ne correspond à vos critères de recherche : 
+                                    \${keywords ? '<strong>"' + keywords + '"</strong>' : ''}
+                                    \${city ? ' à <strong>' + city + '</strong>' : ''}
+                                </p>
+                                <button onclick="resetSearch()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">
+                                    <i class="fas fa-redo mr-2"></i>Voir toutes les offres
+                                </button>
+                            </div>
+                        \`;
+                    } else {
+                        // Afficher les résultats avec compteur
+                        const resultCount = \`
+                            <div class="mb-4 p-4 bg-blue-50 rounded-lg flex items-center justify-between">
+                                <div>
+                                    <i class="fas fa-check-circle text-blue-600 mr-2"></i>
+                                    <strong>\${response.data.jobs.length}</strong> offre(s) trouvée(s)
+                                    \${keywords ? ' pour "<strong>' + keywords + '</strong>"' : ''}
+                                    \${city ? ' à <strong>' + city + '</strong>' : ''}
+                                </div>
+                                <button onclick="resetSearch()" class="text-blue-600 hover:text-blue-800 font-semibold">
+                                    <i class="fas fa-times-circle mr-1"></i>Réinitialiser
+                                </button>
+                            </div>
+                        \`;
+                        container.innerHTML = resultCount + response.data.jobs.map(job => createJobCard(job)).join('');
+                    }
                 } catch (error) {
                     console.error('Erreur recherche:', error);
+                    const container = document.getElementById('all-jobs');
+                    container.innerHTML = \`
+                        <div class="bg-red-50 border-l-4 border-red-400 p-6 rounded-lg">
+                            <div class="flex items-center">
+                                <i class="fas fa-exclamation-circle text-red-600 text-2xl mr-3"></i>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-800">Erreur de recherche</h3>
+                                    <p class="text-gray-700">Une erreur s'est produite. Veuillez réessayer.</p>
+                                </div>
+                            </div>
+                        </div>
+                    \`;
                 }
+            }
+            
+            // Réinitialiser la recherche
+            function resetSearch() {
+                document.getElementById('search-keywords').value = '';
+                document.getElementById('search-city').value = '';
+                loadAllJobs();
             }
 
             // Formater la date

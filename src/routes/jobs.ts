@@ -30,8 +30,9 @@ jobs.get('/', async (c) => {
     const bindings: any[] = [];
 
     if (city) {
-      query += ' AND jo.city = ?';
-      bindings.push(city);
+      // Recherche flexible : LIKE avec trim et insensible aux accents
+      query += ' AND LOWER(TRIM(jo.city)) LIKE LOWER(?)';
+      bindings.push(`%${city.trim()}%`);
     }
 
     if (position_type) {
@@ -55,14 +56,15 @@ jobs.get('/', async (c) => {
     }
 
     if (search) {
-      // Recherche dans les deux langues
+      // Recherche dans les deux langues + nom d'entreprise + ville
       query += ` AND (
-        jo.title LIKE ? OR jo.description LIKE ? OR 
-        jo.title_fr LIKE ? OR jo.description_fr LIKE ? OR
-        jo.title_en LIKE ? OR jo.description_en LIKE ?
+        LOWER(jo.title) LIKE LOWER(?) OR LOWER(jo.description) LIKE LOWER(?) OR 
+        LOWER(jo.title_fr) LIKE LOWER(?) OR LOWER(jo.description_fr) LIKE LOWER(?) OR
+        LOWER(jo.title_en) LIKE LOWER(?) OR LOWER(jo.description_en) LIKE LOWER(?) OR
+        LOWER(c.name) LIKE LOWER(?) OR LOWER(jo.city) LIKE LOWER(?)
       )`;
       const searchPattern = `%${search}%`;
-      bindings.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
+      bindings.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
     }
 
     query += ' ORDER BY jo.is_featured DESC, jo.created_at DESC LIMIT 50';
