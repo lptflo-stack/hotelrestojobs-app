@@ -282,19 +282,37 @@
 
                         <!-- Onglets de langue (affiché seulement si bilingue) -->
                         <div id="job-form-tabs" class="bilingual-tabs mb-4" style="display: none;">
-                            <div class="flex border-b">
-                                <button 
-                                    type="button"
-                                    class="tab-btn-fr px-6 py-2 border-b-2 border-green-600 text-green-600 font-semibold"
-                                    onclick="switchLanguageTab('job-form', 'fr')">
-                                    Français 🇨🇦
-                                </button>
-                                <button 
-                                    type="button"
-                                    class="tab-btn-en px-6 py-2 text-gray-600 hover:text-gray-800"
-                                    onclick="switchLanguageTab('job-form', 'en')">
-                                    English 🇨🇦
-                                </button>
+                            <div class="flex border-b justify-between items-center">
+                                <div class="flex">
+                                    <button 
+                                        type="button"
+                                        class="tab-btn-fr px-6 py-2 border-b-2 border-green-600 text-green-600 font-semibold"
+                                        onclick="switchLanguageTab('job-form', 'fr')">
+                                        Français 🇨🇦
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        class="tab-btn-en px-6 py-2 text-gray-600 hover:text-gray-800"
+                                        onclick="switchLanguageTab('job-form', 'en')">
+                                        English 🇨🇦
+                                    </button>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button 
+                                        type="button"
+                                        onclick="autoTranslateJobForm('fr-to-en')"
+                                        class="text-sm bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 transition"
+                                        title="Traduire du français vers l'anglais">
+                                        <i class="fas fa-language mr-1"></i>FR → EN
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onclick="autoTranslateJobForm('en-to-fr')"
+                                        class="text-sm bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 transition"
+                                        title="Traduire de l'anglais vers le français">
+                                        <i class="fas fa-language mr-1"></i>EN → FR
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -2678,6 +2696,132 @@
             setTimeout(() => {
                 statusDiv.classList.add('hidden');
             }, 5000);
+        }
+
+        // =====================================================
+        // Auto-Translation Functions for Job Forms
+        // =====================================================
+
+        // Traduire automatiquement le formulaire d'offre d'emploi
+        async function autoTranslateJobForm(direction) {
+            const isEditing = !!document.getElementById('edit-job-id').value;
+            const formPrefix = isEditing ? 'edit-job-form' : 'job-form';
+
+            let sourceLang, targetLang, sourceFields, targetFields;
+
+            if (direction === 'fr-to-en') {
+                sourceLang = 'fr';
+                targetLang = 'en';
+                sourceFields = {
+                    title: document.getElementById(`${formPrefix}-title-fr`).value,
+                    description: document.getElementById(`${formPrefix}-description-fr`).value,
+                    requirements: document.getElementById(`${formPrefix}-requirements-fr`).value,
+                    benefits: document.getElementById(`${formPrefix}-benefits-fr`).value
+                };
+                targetFields = {
+                    title: `${formPrefix}-title-en`,
+                    description: `${formPrefix}-description-en`,
+                    requirements: `${formPrefix}-requirements-en`,
+                    benefits: `${formPrefix}-benefits-en`
+                };
+            } else if (direction === 'en-to-fr') {
+                sourceLang = 'en';
+                targetLang = 'fr';
+                sourceFields = {
+                    title: document.getElementById(`${formPrefix}-title-en`).value,
+                    description: document.getElementById(`${formPrefix}-description-en`).value,
+                    requirements: document.getElementById(`${formPrefix}-requirements-en`).value,
+                    benefits: document.getElementById(`${formPrefix}-benefits-en`).value
+                };
+                targetFields = {
+                    title: `${formPrefix}-title-fr`,
+                    description: `${formPrefix}-description-fr`,
+                    requirements: `${formPrefix}-requirements-fr`,
+                    benefits: `${formPrefix}-benefits-fr`
+                };
+            }
+
+            // Vérifier qu'au moins un champ source est rempli
+            const hasSourceContent = Object.values(sourceFields).some(val => val && val.trim());
+            if (!hasSourceContent) {
+                alert(`Veuillez d'abord remplir les champs en ${sourceLang === 'fr' ? 'français' : 'anglais'} avant de traduire.`);
+                return;
+            }
+
+            // Confirmation avant de traduire (pour éviter d'écraser du contenu existant)
+            const targetHasContent = Object.keys(targetFields).some(key => {
+                const field = document.getElementById(targetFields[key]);
+                return field && field.value && field.value.trim();
+            });
+
+            if (targetHasContent) {
+                if (!confirm(`Les champs en ${targetLang === 'fr' ? 'français' : 'anglais'} contiennent déjà du texte. Voulez-vous les remplacer par la traduction automatique ?`)) {
+                    return;
+                }
+            }
+
+            // Afficher un message de chargement
+            const loadingMsg = document.createElement('div');
+            loadingMsg.id = 'translation-loading';
+            loadingMsg.className = 'fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            loadingMsg.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Traduction en cours...';
+            document.body.appendChild(loadingMsg);
+
+            try {
+                // Traduire chaque champ
+                const translations = await Promise.all([
+                    translateText(sourceFields.title, sourceLang, targetLang),
+                    translateText(sourceFields.description, sourceLang, targetLang),
+                    translateText(sourceFields.requirements, sourceLang, targetLang),
+                    translateText(sourceFields.benefits, sourceLang, targetLang)
+                ]);
+
+                // Remplir les champs cibles avec les traductions
+                if (translations[0]) document.getElementById(targetFields.title).value = translations[0];
+                if (translations[1]) document.getElementById(targetFields.description).value = translations[1];
+                if (translations[2]) document.getElementById(targetFields.requirements).value = translations[2];
+                if (translations[3]) document.getElementById(targetFields.benefits).value = translations[3];
+
+                // Message de succès
+                loadingMsg.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                loadingMsg.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Traduction terminée !';
+
+                // Basculer vers l'onglet de la langue traduite
+                switchLanguageTab(formPrefix, targetLang);
+
+            } catch (error) {
+                console.error('Erreur de traduction:', error);
+                loadingMsg.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                loadingMsg.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>Erreur lors de la traduction. Veuillez réessayer.';
+            }
+
+            // Masquer le message après 3 secondes
+            setTimeout(() => {
+                loadingMsg.remove();
+            }, 3000);
+        }
+
+        // Fonction de traduction utilisant l'API MyMemory (gratuite, pas de clé requise)
+        async function translateText(text, sourceLang, targetLang) {
+            if (!text || !text.trim()) {
+                return '';
+            }
+
+            try {
+                // MyMemory API - gratuite, pas de clé requise
+                const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang}|${targetLang}`);
+                const data = await response.json();
+
+                if (data.responseStatus === 200 && data.responseData) {
+                    return data.responseData.translatedText;
+                } else {
+                    throw new Error('Translation failed');
+                }
+            } catch (error) {
+                console.error('Translation error:', error);
+                // Fallback: retourner le texte original si la traduction échoue
+                return text;
+            }
         }
     </script>
 </body>
