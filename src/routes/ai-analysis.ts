@@ -69,6 +69,7 @@ aiAnalysis.post('/application/:id', requireEmployer, async (c) => {
 
     // Perform AI analysis
     const analysisResult: AIAnalysisResult = await analyzeApplication(
+      c.env,  // Pass Cloudflare Workers environment bindings
       {
         name: application.candidate_name,
         email: application.candidate_email,

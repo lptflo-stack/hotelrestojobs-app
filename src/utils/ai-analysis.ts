@@ -5,12 +5,22 @@
 
 import OpenAI from 'openai';
 
-// Initialize OpenAI client with environment variables
-// These are automatically set by GenSpark sandbox
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
-  baseURL: process.env.OPENAI_BASE_URL || 'https://www.genspark.ai/api/llm_proxy/v1',
-});
+// Client is initialized lazily in getOpenAIClient()
+let client: OpenAI | null = null;
+
+/**
+ * Get or create OpenAI client
+ * Lazy initialization to access environment variables in Cloudflare Workers context
+ */
+function getOpenAIClient(env: any): OpenAI {
+  if (!client) {
+    client = new OpenAI({
+      apiKey: env.OPENAI_API_KEY || '',
+      baseURL: env.OPENAI_BASE_URL || 'https://www.genspark.ai/api/llm_proxy/v1',
+    });
+  }
+  return client;
+}
 
 export interface AIAnalysisResult {
   score: number; // 0-100
@@ -24,11 +34,13 @@ export interface AIAnalysisResult {
  * Analyze a job application using AI
  * Compares candidate's CV/profile against job offer requirements
  * 
+ * @param env Cloudflare Workers environment bindings (includes OPENAI_API_KEY)
  * @param candidateData Candidate's CV and profile information
  * @param jobOfferData Job offer requirements and description
  * @returns AIAnalysisResult with score and detailed analysis
  */
 export async function analyzeApplication(
+  env: any,
   candidateData: {
     name: string;
     email: string;
@@ -49,6 +61,9 @@ export async function analyzeApplication(
     salary_max?: number;
   }
 ): Promise<AIAnalysisResult> {
+  
+  // Get OpenAI client with environment variables
+  const client = getOpenAIClient(env);
   
   // Build comprehensive prompt for analysis
   const prompt = `Tu es un expert RH spécialisé dans l'analyse de candidatures pour le secteur de l'hôtellerie-restauration au Québec.
