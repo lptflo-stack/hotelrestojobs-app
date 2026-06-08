@@ -40,7 +40,13 @@ HotelRestoJobs est une plateforme transactionnelle complète de recrutement spé
 - [PHASE1_VISUAL_GUIDE.md](PHASE1_VISUAL_GUIDE.md) - Design changes
 - [DEPLOYMENT_PACKAGE.md](DEPLOYMENT_PACKAGE.md) - Deployment guide
 
-📦 **Backup Phase 1:** https://www.genspark.ai/api/files/s/LKzlkGGr
+🚀 **Guides de Déploiement Cloudflare:**
+- ⚠️ [CLOUDFLARE_FIX_CRITICAL.md](CLOUDFLARE_FIX_CRITICAL.md) - **CONFIGURATION CRITIQUE** (À lire en premier)
+- 📋 [CONFIG_COPY_PASTE.md](CONFIG_COPY_PASTE.md) - Configuration copier-coller
+- 🚀 [DEPLOY_QUICK_START.md](DEPLOY_QUICK_START.md) - Guide rapide 5-10 min
+- 📖 [CLOUDFLARE_DEPLOY_CONFIG.md](CLOUDFLARE_DEPLOY_CONFIG.md) - Configuration détaillée
+
+📦 **Backup Phase 1:** https://www.genspark.ai/api/files/s/fpmSfHzX
 
 ### Site Public
 - ✅ Recherche d'emplois avec filtres (ville, type de poste, mots-clés)
