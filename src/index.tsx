@@ -147,16 +147,29 @@ app.get('/', (c) => {
             </div>
         </section>
 
-        <!-- Featured Jobs Section -->
-        <section class="container mx-auto px-4 py-12">
-            <div class="flex items-center justify-between mb-8">
-                <h3 class="text-3xl font-bold text-gray-800">
-                    <i class="fas fa-star text-yellow-500 mr-2"></i>
-                    <span data-i18n="jobs.featured">Emplois Vedettes</span>
-                </h3>
-            </div>
-            <div id="featured-jobs" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Les emplois vedettes seront chargés ici -->
+        <!-- Featured Jobs Section - Enhanced Visibility -->
+        <section class="bg-gradient-to-b from-yellow-50 to-white py-16">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <div class="inline-block bg-yellow-500 text-white px-6 py-2 rounded-full font-bold text-lg mb-4">
+                        <i class="fas fa-star mr-2"></i>
+                        <span data-i18n="jobs.featured">EMPLOIS VEDETTES</span>
+                    </div>
+                    <h3 class="text-4xl font-bold text-gray-800 mb-3">
+                        Les meilleures opportunités du moment
+                    </h3>
+                    <p class="text-xl text-gray-600">
+                        Offres premium avec visibilité maximale
+                    </p>
+                </div>
+                <div id="featured-jobs" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Les emplois vedettes seront chargés ici -->
+                </div>
+                <div class="text-center mt-10">
+                    <a href="/employeur/login" class="inline-block bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-8 py-4 rounded-lg font-bold text-lg shadow-lg transition-all transform hover:scale-105">
+                        <i class="fas fa-rocket mr-2"></i>Mettre mon offre en vedette
+                    </a>
+                </div>
             </div>
         </section>
 
@@ -262,45 +275,55 @@ app.get('/', (c) => {
                 }
             }
 
-            // Créer une carte d'emploi vedette
+            // Créer une carte d'emploi vedette (enhanced)
             function createFeaturedJobCard(job) {
                 // Logo HTML (si disponible)
                 const logoHtml = job.company_logo_url 
-                    ? \`<img src="\${job.company_logo_url}" alt="\${job.company_name}" class="w-16 h-16 object-contain rounded-lg bg-white p-1 border border-gray-200">\`
-                    : \`<div class="w-16 h-16 flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200">
-                         <i class="fas fa-building text-gray-400 text-2xl"></i>
+                    ? \`<img src="\${job.company_logo_url}" alt="\${job.company_name}" class="w-20 h-20 object-contain rounded-lg bg-white p-2 border-2 border-yellow-300 shadow-md">\`
+                    : \`<div class="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-lg border-2 border-yellow-300 shadow-md">
+                         <i class="fas fa-building text-yellow-600 text-3xl"></i>
                        </div>\`;
                 
                 return \`
-                    <div class="bg-gradient-to-br from-yellow-50 to-white border-2 border-yellow-400 rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow">
-                        <div class="flex items-start justify-between mb-3">
-                            <div class="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    <div class="bg-gradient-to-br from-yellow-50 via-white to-yellow-50 border-2 border-yellow-400 rounded-xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 relative overflow-hidden">
+                        <!-- Decorative corner badge -->
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-yellow-400 opacity-10 rounded-bl-full"></div>
+                        
+                        <div class="flex items-start justify-between mb-4 relative z-10">
+                            <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md animate-pulse">
                                 <i class="fas fa-star mr-1"></i><span data-i18n="jobs.featured_badge">VEDETTE</span>
                             </div>
-                            <span class="text-gray-500 text-sm">\${formatDate(job.created_at)}</span>
+                            <span class="text-gray-500 text-sm bg-white px-3 py-1 rounded-full">\${formatDate(job.created_at)}</span>
                         </div>
                         
                         <!-- Logo et titre -->
-                        <div class="flex items-start gap-4 mb-3">
+                        <div class="flex items-start gap-4 mb-4">
                             \${logoHtml}
                             <div class="flex-1">
-                                <h4 class="text-xl font-bold text-gray-800 mb-2">\${job.title}</h4>
-                                <p class="text-gray-600">
-                                    <i class="fas fa-building mr-2"></i>\${job.company_name}
+                                <h4 class="text-xl font-bold text-gray-800 mb-2 leading-tight">\${job.title}</h4>
+                                <p class="text-gray-600 font-semibold">
+                                    <i class="fas fa-building mr-2 text-yellow-600"></i>\${job.company_name}
                                 </p>
                             </div>
                         </div>
                         
-                        <div class="flex items-center text-gray-600 mb-3">
-                            <i class="fas fa-map-marker-alt mr-2"></i>
-                            <span>\${job.city}, \${job.province}</span>
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-map-marker-alt mr-2 text-yellow-600 w-5"></i>
+                                <span>\${job.city}, \${job.province}</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-briefcase mr-2 text-yellow-600 w-5"></i>
+                                <span>\${job.employment_type}</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-eye mr-2 text-yellow-600 w-5"></i>
+                                <span>\${job.views_count} <span data-i18n="jobs.views">vues</span></span>
+                            </div>
                         </div>
-                        <div class="flex items-center text-gray-600 mb-4">
-                            <i class="fas fa-briefcase mr-2"></i>
-                            <span>\${job.employment_type}</span>
-                        </div>
-                        <a href="/emploi/\${job.id}" class="block w-full bg-blue-600 text-white text-center py-2 rounded-lg font-semibold hover:bg-blue-700">
-                            <span data-i18n="jobs.view_details">Voir les détails</span>
+                        
+                        <a href="/emploi/\${job.id}" class="block w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center py-3 rounded-lg font-bold hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg">
+                            <i class="fas fa-arrow-right mr-2"></i><span data-i18n="jobs.view_details">Voir les détails</span>
                         </a>
                     </div>
                 \`;
@@ -315,8 +338,16 @@ app.get('/', (c) => {
                          <i class="fas fa-building text-gray-400 text-3xl"></i>
                        </div>\`;
                 
+                // Featured badge if applicable
+                const featuredBadge = job.is_featured ? \`
+                    <div class="absolute top-4 right-4 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
+                        <i class="fas fa-star mr-1"></i>VEDETTE
+                    </div>
+                \` : '';
+                
                 return \`
-                    <div class="bg-white rounded-lg p-6 shadow hover:shadow-lg transition-shadow">
+                    <div class="bg-white rounded-lg p-6 shadow hover:shadow-lg transition-shadow relative \${job.is_featured ? 'border-l-4 border-yellow-500' : ''}">
+                        \${featuredBadge}
                         <div class="flex items-start justify-between gap-4">
                             <!-- Logo -->
                             <div class="flex-shrink-0">
@@ -457,8 +488,76 @@ app.get('/', (c) => {
 });
 
 // Page de détail d'un emploi
-app.get('/emploi/:id', (c) => {
+app.get('/emploi/:id', async (c) => {
   const jobId = c.req.param('id');
+  
+  // Fetch job data for SEO metadata and structured data
+  let jobData = null;
+  try {
+    const job = await c.env.DB.prepare(`
+      SELECT jo.*, c.name as company_name, c.logo_url as company_logo_url
+      FROM job_offers jo
+      JOIN companies c ON jo.company_id = c.id
+      WHERE jo.id = ? AND jo.status = 'active'
+    `).bind(jobId).first();
+    jobData = job;
+  } catch (error) {
+    console.error('Error fetching job for SEO:', error);
+  }
+  
+  // Generate JSON-LD structured data for SEO
+  let structuredData = '';
+  if (jobData) {
+    const jobPosting = {
+      "@context": "https://schema.org",
+      "@type": "JobPosting",
+      "title": jobData.title,
+      "description": jobData.description,
+      "identifier": {
+        "@type": "PropertyValue",
+        "name": "HotelRestoJobs",
+        "value": jobData.id
+      },
+      "datePosted": jobData.created_at,
+      "validThrough": jobData.featured_until || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+      "employmentType": jobData.employment_type.toUpperCase().replace('-', '_'),
+      "hiringOrganization": {
+        "@type": "Organization",
+        "name": jobData.company_name,
+        "sameAs": c.req.url.replace(/\/emploi\/\d+$/, ''),
+        "logo": jobData.company_logo_url || ""
+      },
+      "jobLocation": {
+        "@type": "Place",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": jobData.location,
+          "addressLocality": jobData.city,
+          "addressRegion": jobData.province,
+          "addressCountry": "CA"
+        }
+      },
+      "baseSalary": jobData.salary_min ? {
+        "@type": "MonetaryAmount",
+        "currency": "CAD",
+        "value": {
+          "@type": "QuantitativeValue",
+          "minValue": jobData.salary_min,
+          "maxValue": jobData.salary_max || jobData.salary_min,
+          "unitText": jobData.salary_type === 'hourly' ? 'HOUR' : 'YEAR'
+        }
+      } : undefined,
+      "jobBenefits": jobData.benefits || undefined,
+      "qualifications": jobData.requirements || undefined,
+      "industry": "Hospitality and Food Service",
+      "occupationalCategory": jobData.position_type
+    };
+    
+    structuredData = `<script type="application/ld+json">${JSON.stringify(jobPosting)}</script>`;
+  }
+  
+  const pageTitle = jobData ? `${jobData.title} - ${jobData.company_name} - HotelRestoJobs` : 'Détail de l\'emploi - HotelRestoJobs';
+  const metaDescription = jobData ? `${jobData.title} chez ${jobData.company_name} à ${jobData.city}, ${jobData.province}. ${jobData.description.substring(0, 150)}...` : 'Offre d\'emploi en hôtellerie-restauration au Québec';
   
   return c.html(`
     <!DOCTYPE html>
@@ -466,7 +565,9 @@ app.get('/emploi/:id', (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Détail de l'emploi - HotelRestoJobs</title>
+        <title>${pageTitle}</title>
+        <meta name="description" content="${metaDescription}">
+        ${structuredData}
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <script src="/static/i18n.js"></script>
@@ -609,6 +710,572 @@ app.get('/emploi/:id', (c) => {
                 console.log('Langue changée à:', event.detail.language);
                 loadJobDetail();
             });
+        </script>
+    </body>
+    </html>
+  `);
+});
+
+// Sitemap XML dynamique pour SEO
+app.get('/sitemap.xml', async (c) => {
+  const baseUrl = 'https://hotelrestojobs.pages.dev'; // Update with your production URL
+  
+  let urls: string[] = [];
+  
+  // Static pages
+  const staticPages = [
+    { url: '/', priority: '1.0', changefreq: 'daily' },
+    { url: '/candidat/login', priority: '0.8', changefreq: 'weekly' },
+    { url: '/employeur/login', priority: '0.8', changefreq: 'weekly' },
+  ];
+  
+  urls.push(...staticPages.map(page => `
+    <url>
+      <loc>${baseUrl}${page.url}</loc>
+      <changefreq>${page.changefreq}</changefreq>
+      <priority>${page.priority}</priority>
+      <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    </url>
+  `));
+  
+  // Dynamic job pages
+  try {
+    const jobs = await c.env.DB.prepare(`
+      SELECT id, updated_at 
+      FROM job_offers 
+      WHERE status = 'active' 
+      ORDER BY created_at DESC 
+      LIMIT 500
+    `).all();
+    
+    urls.push(...jobs.results.map((job: any) => `
+      <url>
+        <loc>${baseUrl}/emploi/${job.id}</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+        <lastmod>${job.updated_at.split('T')[0]}</lastmod>
+      </url>
+    `));
+  } catch (error) {
+    console.error('Error fetching jobs for sitemap:', error);
+  }
+  
+  // Category pages
+  const categories = ['cuisinier', 'serveur', 'receptionniste', 'manager', 'plongeur', 'barista', 'bartender', 'patissier'];
+  urls.push(...categories.map(cat => `
+    <url>
+      <loc>${baseUrl}/metiers/${cat}</loc>
+      <changefreq>daily</changefreq>
+      <priority>0.8</priority>
+      <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    </url>
+  `));
+  
+  // City pages
+  try {
+    const cities = await c.env.DB.prepare(`
+      SELECT DISTINCT city 
+      FROM job_offers 
+      WHERE status = 'active' AND city IS NOT NULL
+      LIMIT 50
+    `).all();
+    
+    urls.push(...cities.results.map((cityRow: any) => {
+      const citySlug = cityRow.city.toLowerCase().replace(/\s+/g, '-');
+      return `
+        <url>
+          <loc>${baseUrl}/villes/${citySlug}</loc>
+          <changefreq>daily</changefreq>
+          <priority>0.8</priority>
+          <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+        </url>
+      `;
+    }));
+  } catch (error) {
+    console.error('Error fetching cities for sitemap:', error);
+  }
+  
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  ${urls.join('\n  ')}
+</urlset>`;
+  
+  c.header('Content-Type', 'application/xml');
+  return c.text(sitemap);
+});
+
+// robots.txt pour SEO
+app.get('/robots.txt', (c) => {
+  const robotsTxt = `User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /portails/
+
+Sitemap: https://hotelrestojobs.pages.dev/sitemap.xml
+`;
+  
+  c.header('Content-Type', 'text/plain');
+  return c.text(robotsTxt);
+});
+
+// Page villes dynamique
+app.get('/villes/:city', async (c) => {
+  const city = c.req.param('city');
+  const cityName = decodeURIComponent(city).replace(/-/g, ' ');
+  
+  // Fetch jobs count for this city
+  let jobsCount = 0;
+  let featuredJobsCount = 0;
+  try {
+    const result = await c.env.DB.prepare(`
+      SELECT 
+        COUNT(*) as count,
+        SUM(CASE WHEN is_featured = 1 THEN 1 ELSE 0 END) as featured_count
+      FROM job_offers 
+      WHERE LOWER(city) LIKE LOWER(?) AND status = 'active'
+    `).bind(`%${cityName}%`).first();
+    jobsCount = result?.count || 0;
+    featuredJobsCount = result?.featured_count || 0;
+  } catch (error) {
+    console.error('Error counting jobs:', error);
+  }
+  
+  // Get unique position types in this city
+  let positionTypes: string[] = [];
+  try {
+    const results = await c.env.DB.prepare(`
+      SELECT DISTINCT position_type 
+      FROM job_offers 
+      WHERE LOWER(city) LIKE LOWER(?) AND status = 'active'
+      LIMIT 10
+    `).bind(`%${cityName}%`).all();
+    positionTypes = results.results.map(r => r.position_type as string);
+  } catch (error) {
+    console.error('Error fetching position types:', error);
+  }
+  
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Emplois en Hôtellerie-Restauration à ${cityName} | HotelRestoJobs</title>
+        <meta name="description" content="Découvrez ${jobsCount} offres d'emploi en hôtellerie et restauration à ${cityName}, Québec. Trouvez votre prochain emploi dans les meilleurs restaurants et hôtels.">
+        <meta name="keywords" content="emploi ${cityName}, hôtellerie ${cityName}, restauration ${cityName}, serveur ${cityName}, cuisinier ${cityName}">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-50">
+        <!-- Header -->
+        <header class="bg-blue-600 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex items-center justify-between">
+                    <a href="/" class="flex items-center space-x-2">
+                        <i class="fas fa-utensils text-3xl"></i>
+                        <h1 class="text-2xl font-bold">HotelRestoJobs</h1>
+                    </a>
+                    <nav class="hidden md:flex items-center space-x-6">
+                        <a href="/" class="hover:text-blue-200">Emplois</a>
+                        <a href="/candidat/login" class="hover:text-blue-200">Espace Candidat</a>
+                        <a href="/employeur/login" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 py-2 rounded-lg font-semibold">
+                            <i class="fas fa-plus-circle mr-2"></i>Publier une offre
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <!-- Breadcrumb -->
+        <div class="bg-white border-b">
+            <div class="container mx-auto px-4 py-3">
+                <div class="flex items-center text-sm text-gray-600">
+                    <a href="/" class="hover:text-blue-600">Accueil</a>
+                    <i class="fas fa-chevron-right mx-2 text-xs"></i>
+                    <a href="/villes" class="hover:text-blue-600">Villes</a>
+                    <i class="fas fa-chevron-right mx-2 text-xs"></i>
+                    <span class="text-gray-900 font-semibold">${cityName}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero Section -->
+        <section class="bg-gradient-to-r from-blue-500 to-blue-700 text-white py-12">
+            <div class="container mx-auto px-4">
+                <h1 class="text-4xl font-bold mb-4">
+                    <i class="fas fa-map-marker-alt mr-3"></i>Emplois à ${cityName}
+                </h1>
+                <p class="text-xl mb-6">
+                    Trouvez votre emploi idéal en hôtellerie-restauration à ${cityName}, Québec
+                </p>
+                <div class="flex gap-6 flex-wrap">
+                    <div class="bg-white bg-opacity-20 rounded-lg px-6 py-4">
+                        <span class="text-3xl font-bold">${jobsCount}</span>
+                        <span class="ml-2 text-lg">offres disponibles</span>
+                    </div>
+                    ${featuredJobsCount > 0 ? `
+                        <div class="bg-yellow-500 bg-opacity-30 rounded-lg px-6 py-4">
+                            <i class="fas fa-star mr-2"></i>
+                            <span class="text-2xl font-bold">${featuredJobsCount}</span>
+                            <span class="ml-2 text-lg">offres vedettes</span>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Jobs -->
+        ${featuredJobsCount > 0 ? `
+        <section class="container mx-auto px-4 py-12">
+            <h2 class="text-3xl font-bold mb-6">
+                <i class="fas fa-star text-yellow-500 mr-2"></i>Emplois Vedettes à ${cityName}
+            </h2>
+            <div id="featured-jobs" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Featured jobs will be loaded here -->
+            </div>
+        </section>
+        ` : ''}
+
+        <!-- All Jobs -->
+        <section class="container mx-auto px-4 py-12">
+            <h2 class="text-3xl font-bold mb-6">Toutes les offres à ${cityName}</h2>
+            <div id="jobs-list" class="space-y-4">
+                <!-- Jobs will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Available Position Types -->
+        ${positionTypes.length > 0 ? `
+        <section class="bg-gray-100 py-12">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold mb-8 text-center">Métiers disponibles à ${cityName}</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    ${positionTypes.map(type => `
+                        <a href="/metiers/${type.toLowerCase()}" class="bg-white rounded-lg p-6 text-center hover:shadow-lg transition-shadow">
+                            <i class="fas fa-briefcase text-3xl text-blue-600 mb-3"></i>
+                            <h3 class="font-semibold text-gray-800 capitalize">${type}</h3>
+                        </a>
+                    `).join('')}
+                </div>
+            </div>
+        </section>
+        ` : ''}
+
+        <!-- Popular Cities -->
+        <section class="container mx-auto px-4 py-12">
+            <h2 class="text-3xl font-bold mb-8 text-center">Autres villes populaires</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <a href="/villes/montreal" class="bg-white rounded-lg p-6 text-center hover:shadow-lg transition-shadow">
+                    <i class="fas fa-city text-3xl text-blue-600 mb-3"></i>
+                    <h3 class="font-semibold text-gray-800">Montréal</h3>
+                </a>
+                <a href="/villes/quebec" class="bg-white rounded-lg p-6 text-center hover:shadow-lg transition-shadow">
+                    <i class="fas fa-city text-3xl text-blue-600 mb-3"></i>
+                    <h3 class="font-semibold text-gray-800">Québec</h3>
+                </a>
+                <a href="/villes/gatineau" class="bg-white rounded-lg p-6 text-center hover:shadow-lg transition-shadow">
+                    <i class="fas fa-city text-3xl text-blue-600 mb-3"></i>
+                    <h3 class="font-semibold text-gray-800">Gatineau</h3>
+                </a>
+                <a href="/villes/laval" class="bg-white rounded-lg p-6 text-center hover:shadow-lg transition-shadow">
+                    <i class="fas fa-city text-3xl text-blue-600 mb-3"></i>
+                    <h3 class="font-semibold text-gray-800">Laval</h3>
+                </a>
+                <a href="/villes/sherbrooke" class="bg-white rounded-lg p-6 text-center hover:shadow-lg transition-shadow">
+                    <i class="fas fa-city text-3xl text-blue-600 mb-3"></i>
+                    <h3 class="font-semibold text-gray-800">Sherbrooke</h3>
+                </a>
+                <a href="/villes/trois-rivieres" class="bg-white rounded-lg p-6 text-center hover:shadow-lg transition-shadow">
+                    <i class="fas fa-city text-3xl text-blue-600 mb-3"></i>
+                    <h3 class="font-semibold text-gray-800">Trois-Rivières</h3>
+                </a>
+                <a href="/villes/drummondville" class="bg-white rounded-lg p-6 text-center hover:shadow-lg transition-shadow">
+                    <i class="fas fa-city text-3xl text-blue-600 mb-3"></i>
+                    <h3 class="font-semibold text-gray-800">Drummondville</h3>
+                </a>
+                <a href="/villes/saguenay" class="bg-white rounded-lg p-6 text-center hover:shadow-lg transition-shadow">
+                    <i class="fas fa-city text-3xl text-blue-600 mb-3"></i>
+                    <h3 class="font-semibold text-gray-800">Saguenay</h3>
+                </a>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-8">
+            <div class="container mx-auto px-4 text-center">
+                <p>&copy; 2024 HotelRestoJobs. Tous droits réservés.</p>
+            </div>
+        </footer>
+
+        <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+        <script>
+            const cityName = '${cityName}';
+            
+            async function loadCityJobs() {
+                try {
+                    const response = await axios.get(\`/api/jobs?city=\${encodeURIComponent(cityName)}\`);
+                    const jobs = response.data.jobs;
+                    
+                    // Load featured jobs
+                    const featuredJobs = jobs.filter(j => j.is_featured);
+                    const featuredContainer = document.getElementById('featured-jobs');
+                    if (featuredContainer && featuredJobs.length > 0) {
+                        featuredContainer.innerHTML = featuredJobs.map(job => \`
+                            <div class="bg-gradient-to-br from-yellow-50 to-white border-2 border-yellow-400 rounded-lg p-6 shadow-lg">
+                                <div class="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-semibold mb-3 inline-block">
+                                    <i class="fas fa-star mr-1"></i>VEDETTE
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">\${job.title}</h3>
+                                <p class="text-gray-600 mb-2"><i class="fas fa-building mr-2"></i>\${job.company_name}</p>
+                                <p class="text-gray-600 mb-4"><i class="fas fa-briefcase mr-2"></i>\${job.employment_type}</p>
+                                <a href="/emploi/\${job.id}" class="block w-full bg-blue-600 text-white text-center py-2 rounded-lg font-semibold hover:bg-blue-700">
+                                    Voir les détails
+                                </a>
+                            </div>
+                        \`).join('');
+                    }
+                    
+                    // Load all jobs
+                    const regularJobs = jobs.filter(j => !j.is_featured);
+                    const container = document.getElementById('jobs-list');
+                    if (regularJobs.length === 0) {
+                        container.innerHTML = '<div class="text-center py-12 text-gray-600">Aucune offre disponible pour le moment.</div>';
+                        return;
+                    }
+                    
+                    container.innerHTML = regularJobs.map(job => \`
+                        <div class="bg-white rounded-lg p-6 shadow hover:shadow-lg transition-shadow">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="flex-1">
+                                    <h3 class="text-xl font-bold text-gray-800 mb-2">\${job.title}</h3>
+                                    <p class="text-gray-600 mb-2">
+                                        <i class="fas fa-building mr-2"></i>\${job.company_name}
+                                    </p>
+                                    <div class="flex flex-wrap gap-4 text-sm text-gray-600">
+                                        <span><i class="fas fa-map-marker-alt mr-1"></i>\${job.city}, \${job.province}</span>
+                                        <span><i class="fas fa-briefcase mr-1"></i>\${job.employment_type}</span>
+                                        <span><i class="fas fa-eye mr-1"></i>\${job.views_count} vues</span>
+                                    </div>
+                                </div>
+                                <a href="/emploi/\${job.id}" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 whitespace-nowrap">
+                                    Voir détails
+                                </a>
+                            </div>
+                        </div>
+                    \`).join('');
+                } catch (error) {
+                    console.error('Error loading jobs:', error);
+                }
+            }
+            
+            loadCityJobs();
+        </script>
+    </body>
+    </html>
+  `);
+});
+
+// Page métiers dynamique
+app.get('/metiers/:category', async (c) => {
+  const category = c.req.param('category');
+  
+  // Mapping des catégories avec métadonnées SEO
+  const categoryMeta: Record<string, {title: string, description: string, keywords: string[]}> = {
+    'cuisinier': {
+      title: 'Emplois de Cuisinier',
+      description: 'Trouvez des emplois de cuisinier, chef cuisinier, sous-chef dans les meilleurs restaurants et hôtels au Québec.',
+      keywords: ['cuisinier', 'chef', 'sous-chef', 'cuisine', 'gastronomie']
+    },
+    'serveur': {
+      title: 'Emplois de Serveur',
+      description: 'Opportunités d\'emploi pour serveurs, serveuses, maîtres d\'hôtel dans la restauration au Québec.',
+      keywords: ['serveur', 'serveuse', 'maître d\'hôtel', 'service', 'restauration']
+    },
+    'receptionniste': {
+      title: 'Emplois de Réceptionniste',
+      description: 'Postes de réceptionniste dans les hôtels, auberges et établissements d\'hébergement au Québec.',
+      keywords: ['réceptionniste', 'hôtel', 'hébergement', 'accueil']
+    },
+    'manager': {
+      title: 'Emplois de Manager',
+      description: 'Postes de direction, gérant de restaurant, directeur d\'hôtel, superviseur en hôtellerie-restauration.',
+      keywords: ['manager', 'gérant', 'directeur', 'superviseur', 'gestion']
+    },
+    'plongeur': {
+      title: 'Emplois de Plongeur',
+      description: 'Opportunités d\'emploi pour plongeurs dans les restaurants et hôtels au Québec.',
+      keywords: ['plongeur', 'aide-cuisine', 'entretien']
+    },
+    'barista': {
+      title: 'Emplois de Barista',
+      description: 'Postes de barista, préparateur de café dans les cafés et restaurants au Québec.',
+      keywords: ['barista', 'café', 'espresso', 'café-restaurant']
+    },
+    'bartender': {
+      title: 'Emplois de Bartender',
+      description: 'Emplois de barman, mixologue dans les bars, restaurants et hôtels au Québec.',
+      keywords: ['bartender', 'barman', 'mixologue', 'bar', 'cocktails']
+    },
+    'patissier': {
+      title: 'Emplois de Pâtissier',
+      description: 'Opportunités pour pâtissiers, boulangers dans les pâtisseries, boulangeries et hôtels.',
+      keywords: ['pâtissier', 'boulanger', 'pâtisserie', 'boulangerie']
+    }
+  };
+  
+  const meta = categoryMeta[category] || {
+    title: `Emplois ${category}`,
+    description: `Trouvez des emplois de ${category} en hôtellerie-restauration au Québec.`,
+    keywords: [category, 'emploi', 'hôtellerie', 'restauration']
+  };
+  
+  // Fetch jobs for this category
+  let jobsCount = 0;
+  try {
+    const result = await c.env.DB.prepare(`
+      SELECT COUNT(*) as count 
+      FROM job_offers 
+      WHERE position_type LIKE ? AND status = 'active'
+    `).bind(`%${category}%`).first();
+    jobsCount = result?.count || 0;
+  } catch (error) {
+    console.error('Error counting jobs:', error);
+  }
+  
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${meta.title} au Québec | HotelRestoJobs</title>
+        <meta name="description" content="${meta.description}">
+        <meta name="keywords" content="${meta.keywords.join(', ')}, emploi Québec, hôtellerie, restauration">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-50">
+        <!-- Header -->
+        <header class="bg-blue-600 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex items-center justify-between">
+                    <a href="/" class="flex items-center space-x-2">
+                        <i class="fas fa-utensils text-3xl"></i>
+                        <h1 class="text-2xl font-bold">HotelRestoJobs</h1>
+                    </a>
+                    <nav class="hidden md:flex items-center space-x-6">
+                        <a href="/" class="hover:text-blue-200">Emplois</a>
+                        <a href="/candidat/login" class="hover:text-blue-200">Espace Candidat</a>
+                        <a href="/employeur/login" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 py-2 rounded-lg font-semibold">
+                            <i class="fas fa-plus-circle mr-2"></i>Publier une offre
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <!-- Breadcrumb -->
+        <div class="bg-white border-b">
+            <div class="container mx-auto px-4 py-3">
+                <div class="flex items-center text-sm text-gray-600">
+                    <a href="/" class="hover:text-blue-600">Accueil</a>
+                    <i class="fas fa-chevron-right mx-2 text-xs"></i>
+                    <a href="/metiers" class="hover:text-blue-600">Métiers</a>
+                    <i class="fas fa-chevron-right mx-2 text-xs"></i>
+                    <span class="text-gray-900 font-semibold">${meta.title}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero Section -->
+        <section class="bg-gradient-to-r from-blue-500 to-blue-700 text-white py-12">
+            <div class="container mx-auto px-4">
+                <h1 class="text-4xl font-bold mb-4">
+                    <i class="fas fa-briefcase mr-3"></i>${meta.title}
+                </h1>
+                <p class="text-xl mb-6">${meta.description}</p>
+                <div class="bg-white bg-opacity-20 rounded-lg px-6 py-4 inline-block">
+                    <span class="text-2xl font-bold">${jobsCount}</span>
+                    <span class="ml-2">offres disponibles</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Jobs List -->
+        <section class="container mx-auto px-4 py-12">
+            <div id="jobs-list" class="space-y-4">
+                <!-- Jobs will be loaded here -->
+            </div>
+            <div class="text-center mt-8">
+                <a href="/?search=${encodeURIComponent(category)}" class="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700">
+                    <i class="fas fa-search mr-2"></i>Voir toutes les offres
+                </a>
+            </div>
+        </section>
+
+        <!-- Popular Categories -->
+        <section class="bg-gray-100 py-12">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold mb-8 text-center">Autres métiers populaires</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    ${Object.keys(categoryMeta).filter(cat => cat !== category).map(cat => `
+                        <a href="/metiers/${cat}" class="bg-white rounded-lg p-6 text-center hover:shadow-lg transition-shadow">
+                            <i class="fas fa-utensils text-3xl text-blue-600 mb-3"></i>
+                            <h3 class="font-semibold text-gray-800">${categoryMeta[cat].title}</h3>
+                        </a>
+                    `).join('')}
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-8">
+            <div class="container mx-auto px-4 text-center">
+                <p>&copy; 2024 HotelRestoJobs. Tous droits réservés.</p>
+            </div>
+        </footer>
+
+        <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+        <script>
+            const category = '${category}';
+            
+            async function loadCategoryJobs() {
+                try {
+                    const response = await axios.get(\`/api/jobs?search=\${encodeURIComponent(category)}\`);
+                    const jobs = response.data.jobs;
+                    
+                    const container = document.getElementById('jobs-list');
+                    if (jobs.length === 0) {
+                        container.innerHTML = '<div class="text-center py-12 text-gray-600">Aucune offre disponible pour le moment.</div>';
+                        return;
+                    }
+                    
+                    container.innerHTML = jobs.slice(0, 10).map(job => \`
+                        <div class="bg-white rounded-lg p-6 shadow hover:shadow-lg transition-shadow">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="flex-1">
+                                    <h3 class="text-xl font-bold text-gray-800 mb-2">\${job.title}</h3>
+                                    <p class="text-gray-600 mb-2">
+                                        <i class="fas fa-building mr-2"></i>\${job.company_name}
+                                    </p>
+                                    <div class="flex flex-wrap gap-4 text-sm text-gray-600">
+                                        <span><i class="fas fa-map-marker-alt mr-1"></i>\${job.city}, \${job.province}</span>
+                                        <span><i class="fas fa-briefcase mr-1"></i>\${job.employment_type}</span>
+                                    </div>
+                                </div>
+                                <a href="/emploi/\${job.id}" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 whitespace-nowrap">
+                                    Voir détails
+                                </a>
+                            </div>
+                        </div>
+                    \`).join('');
+                } catch (error) {
+                    console.error('Error loading jobs:', error);
+                }
+            }
+            
+            loadCategoryJobs();
         </script>
     </body>
     </html>
